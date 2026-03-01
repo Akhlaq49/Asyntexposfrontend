@@ -1,0 +1,2 @@
+import{r as i}from"./index-BEzZlHGs.js";import{g as c}from"./formFieldConfigService-CMMhhluV.js";function b(a){const[s,n]=i.useState([]),[o,l]=i.useState(!0);i.useEffect(()=>{let t=!1;return(async()=>{try{const e=await c(a);t||n(e)}catch{t||n([])}finally{t||l(!1)}})(),()=>{t=!0}},[a]);const r=i.useMemo(()=>{const t={};return s.forEach(e=>{t[e.fieldName]=e.isVisible}),t},[s]);return{isVisible:i.useCallback(t=>t in r?r[t]:!0,[r]),loading:o,configs:s}}export{b as u};
+//# sourceMappingURL=useFieldVisibility-OXYREzeO.js.map
