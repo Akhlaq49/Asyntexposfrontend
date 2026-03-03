@@ -458,7 +458,7 @@ const CreateInstallment: React.FC = () => {
               >
                 <h5 className="card-title mb-0">
                   <i className="ti ti-user me-2"></i>
-                  Customer Information
+                  {t('create_installment.customer_info')}
                   <i className={`ti ${collapsedSections.customer ? 'ti-chevron-down' : 'ti-chevron-up'} ms-2`}></i>
                 </h5>
                 <button 
@@ -1006,7 +1006,7 @@ const CreateInstallment: React.FC = () => {
               >
                 <h5 className="card-title mb-0 text-white">
                   <i className="ti ti-calculator me-2"></i>
-                  Plan Summary & Schedule
+                  {t('create_installment.plan_summary_schedule')}
                   <i className={`ti ${collapsedSections.plan ? 'ti-chevron-down' : 'ti-chevron-up'} ms-2 text-white`}></i>
                   {previewLoading && <span className="spinner-border spinner-border-sm ms-2"></span>}
                 </h5>
@@ -1075,9 +1075,9 @@ const CreateInstallment: React.FC = () => {
                     <button type="button" className="btn btn-secondary" onClick={goBack}>
                       <i className="ti ti-arrow-left me-1"></i> {t('common.back')}
                     </button>
-                    <button type="submit" className="btn btn-primary" disabled={!isValid || submitting}>
+                    {/* <button type="submit" className="btn btn-primary" disabled={!isValid || submitting}>
                       {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('create_installment.creating')}</> : <><i className="ti ti-check me-1"></i>{t('create_installment.create_plan_btn')}</>}
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </div>
