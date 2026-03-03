@@ -1,10 +1,12 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getBestSellers, SalesReportItemDto } from '../../services/reportService';
 
 const BestSeller: React.FC = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<SalesReportItemDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [from, setFrom] = useState('');
@@ -24,23 +26,23 @@ const BestSeller: React.FC = () => {
     !search || i.productName.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase())
   );
 
-  const cols = ['SKU', 'Product Name', 'Brand', 'Category', 'Sold Qty', 'Sold Amount', 'In Stock Qty'];
+  const cols = [t('reports.sku'), t('reports.product_name'), t('reports.brand'), t('reports.category'), t('reports.sold_qty'), t('reports.sold_amount'), t('reports.in_stock_qty')];
   const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2), i.inStockQty]);
 
   return (
     <>
-      <PageHeader title="Best Seller" breadcrumbs={[{ title: 'Reports' }, { title: 'Best Seller' }]} />
+      <PageHeader title={t('reports.best_seller')} breadcrumbs={[{ title: t('reports.reports') }, { title: t('reports.best_seller') }]} />
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <input type="date" className="form-control form-control-sm" value={from} onChange={e => setFrom(e.target.value)} style={{ width: 160 }} />
             <input type="date" className="form-control form-control-sm" value={to} onChange={e => setTo(e.target.value)} style={{ width: 160 }} />
-            <button className="btn btn-primary btn-sm" onClick={load}>Apply</button>
+            <button className="btn btn-primary btn-sm" onClick={load}>{t('reports.apply')}</button>
           </div>
           <div className="d-flex align-items-center gap-2">
-            <input type="text" className="form-control form-control-sm" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
+            <input type="text" className="form-control form-control-sm" placeholder={t('reports.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'best-sellers')}
-              onExportPDF={() => exportToPDF(cols, rows, 'best-sellers', 'Best Seller Report')} />
+              onExportPDF={() => exportToPDF(cols, rows, 'best-sellers', t('reports.best_seller_report'))} />
           </div>
         </div>
         <div className="card-body">
@@ -48,7 +50,7 @@ const BestSeller: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">No data found</td></tr>
+                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
                   : filtered.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.brand}</td><td>{item.category}</td>

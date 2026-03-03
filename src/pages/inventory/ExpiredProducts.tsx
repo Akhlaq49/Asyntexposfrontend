@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 
 interface ProductDto {
@@ -29,6 +30,7 @@ const mapDtoToExpired = (dto: ProductDto): ExpiredProduct => ({
 });
 
 const ExpiredProducts: React.FC = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ExpiredProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -152,28 +154,28 @@ const ExpiredProducts: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Expired Products</h4>
-            <h6>Manage your expired products</h6>
+            <h4 className="fw-bold">{t('expired_products.title')}</h4>
+            <h6>{t('expired_products.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/pdf.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/excel.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}>
               <i className="ti ti-chevron-up"></i>
             </a>
           </li>
@@ -189,7 +191,7 @@ const ExpiredProducts: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search"
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -204,11 +206,11 @@ const ExpiredProducts: React.FC = () => {
                 data-bs-toggle="dropdown"
                 onClick={(e) => e.preventDefault()}
               >
-                {productFilter || 'Product'}
+                {productFilter || t('common.product')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
                 <li>
-                  <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setProductFilter(''); }}>All</a>
+                  <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setProductFilter(''); }}>{t('common.all')}</a>
                 </li>
                 {productNames.map((name) => (
                   <li key={name}>
@@ -225,12 +227,12 @@ const ExpiredProducts: React.FC = () => {
                 data-bs-toggle="dropdown"
                 onClick={(e) => e.preventDefault()}
               >
-                Sort By : {sortBy}
+                {t('common.sort_by')} {sortBy}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                {['Recently Added', 'Ascending', 'Descending', 'Last Month', 'Last 7 Days'].map((opt) => (
-                  <li key={opt}>
-                    <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy(opt); }}>{opt}</a>
+                {[{k:'recently_added',v:'Recently Added'},{k:'ascending',v:'Ascending'},{k:'descending',v:'Descending'},{k:'last_month',v:'Last Month'},{k:'last_7_days',v:'Last 7 Days'}].map((opt) => (
+                  <li key={opt.v}>
+                    <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy(opt.v); }}>{t(`common.${opt.k}`)}</a>
                   </li>
                 ))}
               </ul>
@@ -241,7 +243,7 @@ const ExpiredProducts: React.FC = () => {
           {loading ? (
             <div className="text-center p-5">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('common.loading')}</span>
               </div>
             </div>
           ) : (
@@ -255,10 +257,10 @@ const ExpiredProducts: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>SKU</th>
-                    <th>Product</th>
-                    <th>Manufactured Date</th>
-                    <th>Expired Date</th>
+                    <th>{t('expired_products.sku')}</th>
+                    <th>{t('common.product')}</th>
+                    <th>{t('expired_products.manufactured_date')}</th>
+                    <th>{t('expired_products.expired_date')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -341,13 +343,13 @@ const ExpiredProducts: React.FC = () => {
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('expired_products.product_name')}<span className="text-danger ms-1">*</span></label>
                       <select
                         className="form-select"
                         value={editForm.name}
                         onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
                       >
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {productNames.map((name) => (
                           <option key={name} value={name}>{name}</option>
                         ))}
@@ -356,7 +358,7 @@ const ExpiredProducts: React.FC = () => {
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Manufacturer Date<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('expired_products.manufactured_date')}<span className="text-danger ms-1">*</span></label>
                       <input
                         type="date"
                         className="form-control"
@@ -367,7 +369,7 @@ const ExpiredProducts: React.FC = () => {
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-0">
-                      <label className="form-label">Expiry Date<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('expired_products.expired_date')}<span className="text-danger ms-1">*</span></label>
                       <input
                         type="date"
                         className="form-control"
@@ -379,8 +381,8 @@ const ExpiredProducts: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -398,10 +400,10 @@ const ExpiredProducts: React.FC = () => {
                     <i className="ti ti-trash fs-24 text-danger"></i>
                   </span>
                   <h4>Delete Product</h4>
-                  <p className="fs-14 text-muted">Are you sure you want to delete this expired product?</p>
+                  <p className="fs-14 text-muted">{t('expired_products.delete_confirm')}</p>
                   <div className="d-flex justify-content-center gap-2">
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                    <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                    <button type="button" className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button>
                   </div>
                 </div>
               </div>

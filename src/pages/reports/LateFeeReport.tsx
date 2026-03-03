@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getLateFeeReport, LateFeeReport as IReport } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const LateFeeReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<IReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState('');
@@ -21,37 +23,37 @@ const LateFeeReport: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Late Fee Report" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Operational' }]} />
+      <PageHeader title={t('reports.late_fee_report')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.operational') }]} />
 
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
-              <label className="form-label">From Date</label>
+              <label className="form-label">{t('common.from_date')}</label>
               <input type="date" className="form-control" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <label className="form-label">To Date</label>
+              <label className="form-label">{t('common.to_date')}</label>
               <input type="date" className="form-control" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <button className="btn btn-primary" onClick={fetchData}>Apply Filter</button>
+              <button className="btn btn-primary" onClick={fetchData}>{t('reports.apply_filter')}</button>
             </div>
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['Plan ID', 'Customer', 'Phone', 'Inst #', 'Due Date', 'Paid Date', 'Days Late', 'Late Fee', 'Status'];
-                  const rows = data.items.map(item => [item.planId, item.customerName, item.phone || '-', item.installmentNo, new Date(item.dueDate).toLocaleDateString(), item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '-', item.daysLate, item.lateFeeAmount, item.isPaid ? 'Paid' : 'Unpaid']);
+                  const cols = [t('reports.plan_id'), t('common.customer'), t('common.phone'), t('reports.inst_no'), t('reports.due_date'), t('reports.paid_date'), t('reports.days_late'), t('reports.late_fee'), t('common.status')];
+                  const rows = data.items.map(item => [item.planId, item.customerName, item.phone || '-', item.installmentNo, new Date(item.dueDate).toLocaleDateString(), item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '-', item.daysLate, item.lateFeeAmount, item.isPaid ? t('common.paid') : t('common.unpaid')]);
                   exportToExcel(cols, rows, 'Late-Fee-Report');
                 }}
                 onExportPDF={() => {
-                  const cols = ['Plan ID', 'Customer', 'Phone', 'Inst #', 'Due Date', 'Paid Date', 'Days Late', 'Late Fee', 'Status'];
-                  const rows = data.items.map(item => [item.planId, item.customerName, item.phone || '-', item.installmentNo, new Date(item.dueDate).toLocaleDateString(), item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '-', item.daysLate, `Rs ${item.lateFeeAmount.toLocaleString()}`, item.isPaid ? 'Paid' : 'Unpaid']);
-                  exportToPDF(cols, rows, 'Late-Fee-Report', 'Late Fee Report', [
-                    { label: 'Total Late Fees', value: `Rs ${data.totalLateFees.toLocaleString()}` },
-                    { label: 'Paid Late Fees', value: `Rs ${data.paidLateFees.toLocaleString()}` },
-                    { label: 'Unpaid Late Fees', value: `Rs ${data.unpaidLateFees.toLocaleString()}` },
-                    { label: 'Total Late Entries', value: data.totalLateEntries },
+                  const cols = [t('reports.plan_id'), t('common.customer'), t('common.phone'), t('reports.inst_no'), t('reports.due_date'), t('reports.paid_date'), t('reports.days_late'), t('reports.late_fee'), t('common.status')];
+                  const rows = data.items.map(item => [item.planId, item.customerName, item.phone || '-', item.installmentNo, new Date(item.dueDate).toLocaleDateString(), item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '-', item.daysLate, `Rs ${item.lateFeeAmount.toLocaleString()}`, item.isPaid ? t('common.paid') : t('common.unpaid')]);
+                  exportToPDF(cols, rows, 'Late-Fee-Report', t('reports.late_fee_report'), [
+                    { label: t('reports.total_late_fees'), value: `Rs ${data.totalLateFees.toLocaleString()}` },
+                    { label: t('reports.paid_late_fees'), value: `Rs ${data.paidLateFees.toLocaleString()}` },
+                    { label: t('reports.unpaid_late_fees'), value: `Rs ${data.unpaidLateFees.toLocaleString()}` },
+                    { label: t('reports.total_late_entries'), value: data.totalLateEntries },
                   ]);
                 }}
               />}
@@ -66,10 +68,10 @@ const LateFeeReport: React.FC = () => {
         <>
           <div className="row mb-4">
             {[
-              { label: 'Total Late Fees', value: `Rs ${data.totalLateFees.toLocaleString()}`, color: 'primary' },
-              { label: 'Paid Late Fees', value: `Rs ${data.paidLateFees.toLocaleString()}`, color: 'success' },
-              { label: 'Unpaid Late Fees', value: `Rs ${data.unpaidLateFees.toLocaleString()}`, color: 'danger' },
-              { label: 'Total Late Entries', value: data.totalLateEntries.toString(), color: 'warning' },
+              { label: t('reports.total_late_fees'), value: `Rs ${data.totalLateFees.toLocaleString()}`, color: 'primary' },
+              { label: t('reports.paid_late_fees'), value: `Rs ${data.paidLateFees.toLocaleString()}`, color: 'success' },
+              { label: t('reports.unpaid_late_fees'), value: `Rs ${data.unpaidLateFees.toLocaleString()}`, color: 'danger' },
+              { label: t('reports.total_late_entries'), value: data.totalLateEntries.toString(), color: 'warning' },
             ].map((c, i) => (
               <div className="col-md-3 mb-3" key={i}>
                 <div className={`card border-${c.color}`}>
@@ -83,21 +85,21 @@ const LateFeeReport: React.FC = () => {
           </div>
 
           <div className="card">
-            <div className="card-header"><h5 className="card-title mb-0">Late Fee Details</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.late_fee_details')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Plan ID</th>
-                      <th>Customer</th>
-                      <th>Phone</th>
-                      <th>Inst #</th>
-                      <th>Due Date</th>
-                      <th>Paid Date</th>
-                      <th>Days Late</th>
-                      <th>Late Fee</th>
-                      <th>Status</th>
+                      <th>{t('reports.plan_id')}</th>
+                      <th>{t('common.customer')}</th>
+                      <th>{t('common.phone')}</th>
+                      <th>{t('reports.inst_no')}</th>
+                      <th>{t('reports.due_date')}</th>
+                      <th>{t('reports.paid_date')}</th>
+                      <th>{t('reports.days_late')}</th>
+                      <th>{t('reports.late_fee')}</th>
+                      <th>{t('common.status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -113,13 +115,13 @@ const LateFeeReport: React.FC = () => {
                         <td>Rs {item.lateFeeAmount.toLocaleString()}</td>
                         <td>
                           <span className={`badge bg-${item.isPaid ? 'success' : 'danger'}`}>
-                            {item.isPaid ? 'Paid' : 'Unpaid'}
+                            {item.isPaid ? t('common.paid') : t('common.unpaid')}
                           </span>
                         </td>
                       </tr>
                     ))}
                     {data.items.length === 0 && (
-                      <tr><td colSpan={9} className="text-center text-muted">No late fee data</td></tr>
+                      <tr><td colSpan={9} className="text-center text-muted">{t('reports.no_late_fee_data')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -128,7 +130,7 @@ const LateFeeReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

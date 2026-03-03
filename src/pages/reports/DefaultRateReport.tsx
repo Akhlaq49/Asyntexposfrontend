@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getDefaultRateReport, DefaultRateReport as IReport } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const DefaultRateReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<IReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,25 +19,25 @@ const DefaultRateReport: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Default Rate Report" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Risk & Compliance' }]} />
+      <PageHeader title={t('reports.default_rate_report')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.risk_compliance') }]} />
 
       {data && (
         <div className="d-flex justify-content-end mb-3">
           <ExportButtons
             onExportExcel={() => {
-              const cols = ['Month', 'Total Active', 'New Defaults', 'Default Rate (%)'];
+              const cols = [t('reports.month'), t('reports.total_active'), t('reports.new_defaults'), t('reports.default_rate_pct')];
               const rows = data.monthlyTrend.map(m => [m.month, m.totalActive, m.newDefaults, m.defaultRate.toFixed(1)]);
               exportToExcel(cols, rows, 'Default-Rate-Report');
             }}
             onExportPDF={() => {
-              const cols = ['Month', 'Total Active', 'New Defaults', 'Default Rate (%)'];
+              const cols = [t('reports.month'), t('reports.total_active'), t('reports.new_defaults'), t('reports.default_rate_pct')];
               const rows = data.monthlyTrend.map(m => [m.month, m.totalActive, m.newDefaults, `${m.defaultRate.toFixed(1)}%`]);
-              exportToPDF(cols, rows, 'Default-Rate-Report', 'Default Rate Report', [
-                { label: 'Total Financed Customers', value: data.totalFinancedCustomers },
-                { label: 'Number of Defaulters', value: data.numberOfDefaulters },
-                { label: 'Default Rate', value: `${data.defaultPercentage.toFixed(1)}%` },
-                { label: 'Total Financed Amount', value: `Rs ${data.totalFinancedAmount.toLocaleString()}` },
-                { label: 'Defaulted Amount', value: `Rs ${data.defaultedAmount.toLocaleString()}` },
+              exportToPDF(cols, rows, 'Default-Rate-Report', t('reports.default_rate_report'), [
+                { label: t('reports.total_financed_customers'), value: data.totalFinancedCustomers },
+                { label: t('reports.number_of_defaulters'), value: data.numberOfDefaulters },
+                { label: t('reports.default_rate'), value: `${data.defaultPercentage.toFixed(1)}%` },
+                { label: t('reports.total_financed_amount'), value: `Rs ${data.totalFinancedAmount.toLocaleString()}` },
+                { label: t('reports.defaulted_amount'), value: `Rs ${data.defaultedAmount.toLocaleString()}` },
               ]);
             }}
           />
@@ -48,9 +50,9 @@ const DefaultRateReport: React.FC = () => {
         <>
           <div className="row mb-4">
             {[
-              { label: 'Total Financed Customers', value: data.totalFinancedCustomers.toString(), color: 'primary' },
-              { label: 'Number of Defaulters', value: data.numberOfDefaulters.toString(), color: 'danger' },
-              { label: 'Default Rate', value: `${data.defaultPercentage.toFixed(1)}%`, color: 'warning' },
+              { label: t('reports.total_financed_customers'), value: data.totalFinancedCustomers.toString(), color: 'primary' },
+              { label: t('reports.number_of_defaulters'), value: data.numberOfDefaulters.toString(), color: 'danger' },
+              { label: t('reports.default_rate'), value: `${data.defaultPercentage.toFixed(1)}%`, color: 'warning' },
             ].map((c, i) => (
               <div className="col-md-4 mb-3" key={i}>
                 <div className={`card border-${c.color}`}>
@@ -67,7 +69,7 @@ const DefaultRateReport: React.FC = () => {
             <div className="col-md-6 mb-3">
               <div className="card">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Financed Amount</h6>
+                  <h6 className="text-muted">{t('reports.total_financed_amount')}</h6>
                   <h4>Rs {data.totalFinancedAmount.toLocaleString()}</h4>
                 </div>
               </div>
@@ -75,7 +77,7 @@ const DefaultRateReport: React.FC = () => {
             <div className="col-md-6 mb-3">
               <div className="card border-danger">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Defaulted Amount</h6>
+                  <h6 className="text-muted">{t('reports.defaulted_amount')}</h6>
                   <h4 className="text-danger">Rs {data.defaultedAmount.toLocaleString()}</h4>
                 </div>
               </div>
@@ -85,7 +87,7 @@ const DefaultRateReport: React.FC = () => {
           {/* Default Rate Progress Bar */}
           <div className="card mb-4">
             <div className="card-body">
-              <h6 className="mb-2">Default Rate</h6>
+              <h6 className="mb-2">{t('reports.default_rate')}</h6>
               <div className="progress" style={{ height: '30px' }}>
                 <div
                   className={`progress-bar ${data.defaultPercentage > 20 ? 'bg-danger' : data.defaultPercentage > 10 ? 'bg-warning' : 'bg-success'}`}
@@ -99,16 +101,16 @@ const DefaultRateReport: React.FC = () => {
 
           {/* Monthly Trend */}
           <div className="card">
-            <div className="card-header"><h5 className="card-title mb-0">Monthly Default Trend</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.monthly_default_trend')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Month</th>
-                      <th>Total Active</th>
-                      <th>New Defaults</th>
-                      <th>Default Rate</th>
+                      <th>{t('reports.month')}</th>
+                      <th>{t('reports.total_active')}</th>
+                      <th>{t('reports.new_defaults')}</th>
+                      <th>{t('reports.default_rate')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -125,7 +127,7 @@ const DefaultRateReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.monthlyTrend.length === 0 && (
-                      <tr><td colSpan={4} className="text-center text-muted">No data</td></tr>
+                      <tr><td colSpan={4} className="text-center text-muted">{t('reports.no_data')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -134,7 +136,7 @@ const DefaultRateReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

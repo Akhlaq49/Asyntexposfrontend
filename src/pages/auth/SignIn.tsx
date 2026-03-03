@@ -1,8 +1,10 @@
 ﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 const SignIn: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +18,7 @@ const SignIn: React.FC = () => {
     e.preventDefault();
     setError('');
     if (!email || !password) {
-      setError('Please enter email and password.');
+      setError(t('auth.please_enter_email_password'));
       return;
     }
     setLoading(true);
@@ -24,7 +26,7 @@ const SignIn: React.FC = () => {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || t('auth.login_failed'));
     } finally {
       setLoading(false);
     }
@@ -39,14 +41,14 @@ const SignIn: React.FC = () => {
               <form onSubmit={handleSubmit}>
                 <div className="login-userset">
                   <div className="login-logo logo-normal">
-                    <img src="/assets/img/logo.svg" alt="img" />
+                    <img src="/assets/img/logo.png" alt="img" />
                   </div>
                   <Link to="/" className="login-logo logo-white">
-                    <img src="/assets/img/logo-white.svg" alt="Img" />
+                    <img src="/assets/img/logo-white.png" alt="Img" />
                   </Link>
                   <div className="login-userheading">
-                    <h3>Sign In</h3>
-                    <h4>Access the Dreamspos panel using your email and passcode.</h4>
+                    <h3>{t('auth.sign_in')}</h3>
+                    <h4>{t('auth.access_panel_desc')}</h4>
                   </div>
                   {error && (
                     <div className="alert alert-danger alert-dismissible fade show" role="alert">
@@ -55,7 +57,7 @@ const SignIn: React.FC = () => {
                     </div>
                   )}
                   <div className="mb-3">
-                    <label className="form-label">Email Address</label>
+                    <label className="form-label">{t('auth.email_address')}</label>
                     <div className="input-group">
                       <input
                         type="text"
@@ -69,7 +71,7 @@ const SignIn: React.FC = () => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Password</label>
+                    <label className="form-label">{t('auth.password')}</label>
                     <div className="pass-group">
                       <input
                         type={showPassword ? 'text' : 'password'}
@@ -94,25 +96,25 @@ const SignIn: React.FC = () => {
                               checked={rememberMe}
                               onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <span className="checkmarks"></span>Remember me
+                            <span className="checkmarks"></span>{t('auth.remember_me')}
                           </label>
                         </div>
                       </div>
                       <div className="col-6 text-end">
-                        <Link className="forgot-link" to="/forgot-password">Forgot Password?</Link>
+                        <Link className="forgot-link" to="/forgot-password">{t('auth.forgot_password_q')}</Link>
                       </div>
                     </div>
                   </div>
                   <div className="form-login">
                     <button type="submit" className="btn btn-login" disabled={loading}>
-                      {loading ? 'Signing in...' : 'Sign In'}
+                      {loading ? t('auth.signing_in') : t('auth.sign_in')}
                     </button>
                   </div>
                   <div className="signinform">
-                    <h4>New on our platform?<Link to="/register" className="hover-a"> Create an account</Link></h4>
+                    <h4>{t('auth.new_on_platform')}<Link to="/register" className="hover-a"> {t('auth.create_account')}</Link></h4>
                   </div>
                   <div className="form-setlogin or-text">
-                    <h4>OR</h4>
+                    <h4>{t('auth.or')}</h4>
                   </div>
                   <div className="form-sociallink">
                     <div className="d-flex align-items-center justify-content-center flex-wrap">
@@ -133,7 +135,7 @@ const SignIn: React.FC = () => {
                       </div>
                     </div>
                     <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                      <p>Copyright &copy; 2025 DreamsPOS</p>
+                      <p>{t('common.copyright')}</p>
                     </div>
                   </div>
                 </div>

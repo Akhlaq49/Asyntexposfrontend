@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getProductSalesReport, ProductSalesReport as IReport } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const ProductSalesReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<IReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState('');
@@ -21,36 +23,36 @@ const ProductSalesReport: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Product-wise Sales Report" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Sales' }]} />
+      <PageHeader title={t('reports.product_wise_sales_report')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.sales') }]} />
 
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
-              <label className="form-label">From Date</label>
+              <label className="form-label">{t('common.from_date')}</label>
               <input type="date" className="form-control" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <label className="form-label">To Date</label>
+              <label className="form-label">{t('common.to_date')}</label>
               <input type="date" className="form-control" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <button className="btn btn-primary" onClick={fetchData}>Apply Filter</button>
+              <button className="btn btn-primary" onClick={fetchData}>{t('reports.apply_filter')}</button>
             </div>
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['Product', 'Units Sold', 'Total Revenue', 'Avg Price', 'Down Payment Collected'];
+                  const cols = [t('common.product'), t('reports.units_sold'), t('reports.total_revenue'), t('reports.avg_price'), t('reports.down_payment_collected')];
                   const rows = data.products.map(p => [p.productName, p.unitsSold, p.totalRevenue, p.averagePrice, p.downPaymentCollected]);
                   exportToExcel(cols, rows, 'Product-Sales-Report');
                 }}
                 onExportPDF={() => {
-                  const cols = ['Product', 'Units Sold', 'Total Revenue', 'Avg Price', 'Down Payment'];
+                  const cols = [t('common.product'), t('reports.units_sold'), t('reports.total_revenue'), t('reports.avg_price'), t('reports.down_payments')];
                   const rows = data.products.map(p => [p.productName, p.unitsSold, `Rs ${p.totalRevenue.toLocaleString()}`, `Rs ${p.averagePrice.toLocaleString()}`, `Rs ${p.downPaymentCollected.toLocaleString()}`]);
-                  exportToPDF(cols, rows, 'Product-Sales-Report', 'Product-wise Sales Report', [
-                    { label: 'Total Products', value: data.totalProducts },
-                    { label: 'Total Units Sold', value: data.totalUnitsSold },
-                    { label: 'Total Revenue', value: `Rs ${data.totalRevenue.toLocaleString()}` },
+                  exportToPDF(cols, rows, 'Product-Sales-Report', t('reports.product_wise_sales_report'), [
+                    { label: t('reports.total_products'), value: data.totalProducts },
+                    { label: t('reports.total_units_sold'), value: data.totalUnitsSold },
+                    { label: t('reports.total_revenue'), value: `Rs ${data.totalRevenue.toLocaleString()}` },
                   ]);
                 }}
               />}
@@ -67,7 +69,7 @@ const ProductSalesReport: React.FC = () => {
             <div className="col-md-4 mb-3">
               <div className="card border-primary">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Products Sold</h6>
+                  <h6 className="text-muted">{t('reports.total_products_sold')}</h6>
                   <h3 className="text-primary">{data.totalProducts}</h3>
                 </div>
               </div>
@@ -75,7 +77,7 @@ const ProductSalesReport: React.FC = () => {
             <div className="col-md-4 mb-3">
               <div className="card border-success">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Units Sold</h6>
+                  <h6 className="text-muted">{t('reports.total_units_sold')}</h6>
                   <h3 className="text-success">{data.totalUnitsSold}</h3>
                 </div>
               </div>
@@ -83,7 +85,7 @@ const ProductSalesReport: React.FC = () => {
             <div className="col-md-4 mb-3">
               <div className="card border-info">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Revenue</h6>
+                  <h6 className="text-muted">{t('reports.total_revenue')}</h6>
                   <h3 className="text-info">Rs {data.totalRevenue.toLocaleString()}</h3>
                 </div>
               </div>
@@ -91,17 +93,17 @@ const ProductSalesReport: React.FC = () => {
           </div>
 
           <div className="card">
-            <div className="card-header"><h5 className="card-title mb-0">Product Details</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.product_details')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Product</th>
-                      <th>Units Sold</th>
-                      <th>Total Revenue</th>
-                      <th>Avg Price</th>
-                      <th>Down Payment Collected</th>
+                      <th>{t('common.product')}</th>
+                      <th>{t('reports.units_sold')}</th>
+                      <th>{t('reports.total_revenue')}</th>
+                      <th>{t('reports.avg_price')}</th>
+                      <th>{t('reports.down_payment_collected')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -115,7 +117,7 @@ const ProductSalesReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.products.length === 0 && (
-                      <tr><td colSpan={5} className="text-center text-muted">No data</td></tr>
+                      <tr><td colSpan={5} className="text-center text-muted">{t('reports.no_data')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -124,7 +126,7 @@ const ProductSalesReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

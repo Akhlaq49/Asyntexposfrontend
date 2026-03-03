@@ -1,0 +1,2148 @@
+
+========================================
+FILE: src/pages/AdminDashboard.tsx
+TOTAL LINES: 158
+--- First 5 lines ---
+1: import React from 'react';
+2: import { Link } from 'react-router-dom';
+3: 
+4: const AdminDashboard: React.FC = () => {
+5:   return (
+--- Hardcoded English strings ---
+9: <h2 className="mb-1">Welcome, Admin</h2>
+10: <p>You have <span className="text-primary fw-bold">200+</span> Orders, Today</p>
+26: <p className="mb-2">{card.title}</p>
+27: <h2 className="mb-0">{card.value}</h2>
+50: <h5 className="card-title mb-0">Sales &amp; Purchase</h5>
+68: <span><span className="legend-dot bg-primary"></span> Sales</span>
+69: <span><span className="legend-dot bg-success"></span> Purchase</span>
+77: <h5 className="card-title mb-0">Best Seller</h5>
+78: <Link to="/best-seller" className="btn btn-sm btn-primary">View All</Link>
+85: <th>Product</th>
+86: <th>Sales</th>
+87: <th>Amount</th>
+99: <td><h6 className="fs-14 fw-medium mb-0">{p.name}</h6></td>
+100: <td>{p.qty}</td>
+101: <td className="fw-bold">{p.amount}</td>
+115: <h5 className="card-title mb-0">Recent Orders</h5>
+116: <Link to="/online-orders" className="btn btn-sm btn-primary">View All</Link>
+123: <th>Order ID</th>
+124: <th>Customer</th>
+125: <th>Product</th>
+126: <th>Amount</th>
+127: <th>Date</th>
+128: <th>Status</th>
+141: <td>{o.customer}</td>
+142: <td>{o.product}</td>
+143: <td>{o.amount}</td>
+144: <td>{o.date}</td>
+145: <td><span className={`badge badge-xs bg-${o.sc}-light text-${o.sc}`}>{o.status}</span></td>
+Hardcoded string lines: 28
+
+========================================
+FILE: src/pages/inventory/ProductList.tsx
+TOTAL LINES: 251
+--- First 5 lines ---
+1: import React, { useState, useEffect, useCallback, useMemo } from 'react';
+2: import { Link } from 'react-router-dom';
+3: import { getProducts, deleteProduct, getCategories, getBrands, ProductResponse, DropdownOption } from '../../services/productService';
+4: import { mediaUrl } from '../../services/api';
+5: 
+--- Hardcoded English strings ---
+92: <h4 className="fw-bold">Product List</h4>
+93: <h6>Manage your products</h6>
+98: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+103: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+108: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+126: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+131: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+135: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>All</a></li>
+137: <li key={c.value}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(c.value); }}>{c.label}</a></li>
+142: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+146: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setBrandFilter(''); }}>All</a></li>
+148: <li key={b.value}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setBrandFilter(b.value); }}>{b.label}</a></li>
+157: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+167: <th>SKU</th>
+168: <th>Product Name</th>
+169: <th>Category</th>
+170: <th>Brand</th>
+171: <th>Price</th>
+172: <th>Unit</th>
+173: <th>Qty</th>
+174: <th className="no-sort">Actions</th>
+179: <tr><td colSpan={9} className="text-center py-4 text-muted">No products found.</td></tr>
+186: <td>{p.sku}</td>
+190: <a href="#" className="avatar avatar-md me-2" onClick={(e) => e.preventDefault()}>
+197: <td>{p.category}</td>
+198: <td>{p.brand}</td>
+199: <td>{fmt(p.price)}</td>
+200: <td>{p.unit}</td>
+201: <td>{p.quantity}</td>
+210: <a href="#" className="btn btn-icon btn-sm" onClick={(e) => { e.preventDefault(); openDeleteModal(p.id); }}>
+234: <h4>Delete Product</h4>
+235: <p className="text-muted">Are you sure you want to delete this product?</p>
+238: <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+239: <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+Hardcoded string lines: 34
+
+========================================
+FILE: src/pages/inventory/CategoryList.tsx
+TOTAL LINES: 351
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import api from '../../services/api';
+3: 
+4: interface Category {
+5:   id: string;
+--- Hardcoded English strings ---
+131: <h4 className="fw-bold">Category</h4>
+132: <h6>Manage your categories</h6>
+137: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+142: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+147: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+152: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+158: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); setShowAddModal(true); }}>
+170: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+175: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+179: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+180: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+181: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+189: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+202: <th>Category</th>
+203: <th>Category slug</th>
+204: <th>Created On</th>
+205: <th>Status</th>
+218: <td><span className="text-gray-9">{cat.name}</span></td>
+219: <td>{cat.slug}</td>
+220: <td>{cat.createdOn}</td>
+228: <a className="me-2 p-2" href="#" onClick={(e) => { e.preventDefault(); openEditModal(cat); }}>
+231: <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(cat.id); }}>
+251: <div className="page-title"><h4>Add Category</h4></div>
+252: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)} aria-label="Close">
+253: <span aria-hidden="true">&times;</span>
+258: <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+266: <label className="form-label">Category Slug<span className="text-danger ms-1">*</span></label>
+271: <span className="status-label">Status<span className="text-danger ms-1">*</span></span>
+278: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+279: <button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.name.trim()}>Add Category</button>
+292: <div className="page-title"><h4>Edit Category</h4></div>
+293: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
+294: <span aria-hidden="true">&times;</span>
+299: <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+303: <label className="form-label">Category Slug<span className="text-danger ms-1">*</span></label>
+308: <span className="status-label">Status<span className="text-danger ms-1">*</span></span>
+315: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+316: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+333: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Category</h4>
+334: <p className="fs-14 text-muted">Are you sure you want to delete this category?</p>
+337: <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+338: <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+Hardcoded string lines: 42
+
+========================================
+FILE: src/pages/inventory/BrandList.tsx
+TOTAL LINES: 498
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: interface BrandDto {
+5:   id: number;
+--- Hardcoded English strings ---
+195: <h4 className="fw-bold">Brand</h4>
+196: <h6>Manage your brands</h6>
+201: <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+206: <a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+211: <a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}>
+216: <a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+241: placeholder="Search"
+250: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+254: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+255: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+256: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+261: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+265: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('latest'); }}>Latest</a></li>
+266: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('asc'); }}>Ascending</a></li>
+267: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('desc'); }}>Descending</a></li>
+276: <span className="visually-hidden">Loading...</span>
+290: <th>Brand</th>
+291: <th>Created Date</th>
+292: <th>Status</th>
+311: <a href="#" className="avatar avatar-md bg-light-900 p-1 me-2" onClick={(e) => e.preventDefault()}>
+314: <a href="#" onClick={(e) => e.preventDefault()}>{item.name}</a>
+317: <td>{item.createdAt}</td>
+325: <a className="me-2 p-2" href="#" onClick={(e) => { e.preventDefault(); openEditModal(item); }}>
+328: <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(item.id); }}>
+348: <div className="page-title"><h4>Add Brand</h4></div>
+349: <button type="button" className="close bg-danger text-white fs-16" onClick={() => { setShowAddModal(false); resetAddForm(); }} aria-label="Close">
+350: <span aria-hidden="true" className="fs-16">&times;</span>
+359: <span><i data-feather="plus-circle" className="plus-down-add"></i> Add Image</span>
+365: <div className="image-uploads"><h4>Upload Image</h4></div>
+367: <p className="mt-2">JPEG, PNG up to 2 MB</p>
+371: <label className="form-label">Brand<span className="text-danger ms-1">*</span></label>
+381: <span className="status-label">Status</span>
+394: <button type="button" className="btn me-2 btn-secondary" onClick={() => { setShowAddModal(false); resetAddForm(); }}>Cancel</button>
+395: <button type="button" className="btn btn-primary" onClick={handleAddSave}>Add Brand</button>
+408: <div className="page-title"><h4>Edit Brand</h4></div>
+409: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
+410: <span aria-hidden="true" className="fs-16">&times;</span>
+428: <span><i data-feather="plus-circle" className="plus-down-add"></i> Add Image</span>
+434: <div className="image-uploads"><h4>Change Image</h4></div>
+436: <p className="mt-2">JPEG, PNG up to 2 MB</p>
+440: <label className="form-label">Brand<span className="text-danger ms-1">*</span></label>
+450: <span className="status-label">Status</span>
+463: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+464: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+481: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Brand</h4>
+482: <p className="mb-0 fs-16">Are you sure you want to delete brand?</p>
+484: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+485: <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+Hardcoded string lines: 48
+
+========================================
+FILE: src/pages/inventory/Units.tsx
+TOTAL LINES: 423
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import api from '../../services/api';
+3: 
+4: interface UnitDto {
+5:   id: number;
+--- Hardcoded English strings ---
+158: <h4 className="fw-bold">Units</h4>
+159: <h6>Manage your units</h6>
+164: <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+169: <a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+174: <a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}>
+179: <a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+204: placeholder="Search"
+212: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+216: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+217: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+218: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+227: <span className="visually-hidden">Loading...</span>
+241: <th>Unit</th>
+242: <th>Short Name</th>
+243: <th>No of Products</th>
+244: <th>Created Date</th>
+245: <th>Status</th>
+262: <td className="text-gray-9">{item.name}</td>
+263: <td>{item.shortName}</td>
+264: <td>{item.productCount}</td>
+265: <td>{item.createdAt}</td>
+273: <a className="me-2 p-2" href="#" onClick={(e) => { e.preventDefault(); openEditModal(item); }}>
+276: <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(item.id); }}>
+296: <div className="page-title"><h4>Add Unit</h4></div>
+297: <button type="button" className="close bg-danger text-white fs-16" onClick={() => { setShowAddModal(false); resetAddForm(); }} aria-label="Close">
+298: <span aria-hidden="true" className="fs-16">&times;</span>
+303: <label className="form-label">Unit<span className="text-danger ms-1">*</span></label>
+312: <label className="form-label">Short Name<span className="text-danger ms-1">*</span></label>
+322: <span className="status-label">Status</span>
+335: <button type="button" className="btn me-2 btn-secondary" onClick={() => { setShowAddModal(false); resetAddForm(); }}>Cancel</button>
+336: <button type="button" className="btn btn-primary" onClick={handleAddSave}>Add Unit</button>
+349: <div className="page-title"><h4>Edit Unit</h4></div>
+350: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
+351: <span aria-hidden="true" className="fs-16">&times;</span>
+356: <label className="form-label">Unit<span className="text-danger ms-1">*</span></label>
+365: <label className="form-label">Short Name<span className="text-danger ms-1">*</span></label>
+375: <span className="status-label">Status</span>
+388: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+389: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+406: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Unit</h4>
+407: <p className="mb-0 fs-16">Are you sure you want to delete unit?</p>
+409: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+410: <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+Hardcoded string lines: 43
+
+========================================
+FILE: src/pages/inventory/SubCategories.tsx
+TOTAL LINES: 495
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: interface SubCategory {
+5:   id: string;
+--- Hardcoded English strings ---
+185: <h4 className="fw-bold">Sub Category</h4>
+186: <h6>Manage your sub categories</h6>
+191: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+196: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+201: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+206: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+212: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); setShowAddModal(true); }}>
+224: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+229: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+233: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>All</a></li>
+235: <li key={cat.id}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(cat.name); }}>{cat.name}</a></li>
+240: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+244: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+245: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+246: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+254: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+267: <th>Image</th>
+268: <th>Sub Category</th>
+269: <th>Category</th>
+270: <th>Category Code</th>
+271: <th>Description</th>
+272: <th>Status</th>
+290: <td>{item.subCategory}</td>
+291: <td>{item.category}</td>
+292: <td>{item.categoryCode}</td>
+293: <td>{item.description}</td>
+301: <a className="me-2 p-2" href="#" onClick={(e) => { e.preventDefault(); openEditModal(item); }}>
+304: <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(item.id); }}>
+324: <div className="page-title"><h4>Add Sub Category</h4></div>
+325: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)} aria-label="Close">
+326: <span aria-hidden="true">&times;</span>
+336: <span className="fw-normal"><i className="ti ti-circle-plus me-1"></i> Add Image</span>
+344: <h4 className="fs-13 fw-medium">Upload Image</h4>
+347: <span>JPEG, PNG up to 2 MB</span>
+353: <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+355: <option value="">Select</option>
+357: <option key={cat.id} value={cat.name}>{cat.name}</option>
+362: <label className="form-label">Sub Category<span className="text-danger ms-1">*</span></label>
+366: <label className="form-label">Category Code<span className="text-danger ms-1">*</span></label>
+370: <label className="form-label">Description<span className="text-danger ms-1">*</span></label>
+375: <span className="status-label">Status</span>
+382: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+383: <button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.subCategory.trim() || !addForm.category}>Add Sub Category</button>
+396: <div className="page-title"><h4>Edit Sub Category</h4></div>
+397: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
+398: <span aria-hidden="true">&times;</span>
+408: <a href="#" onClick={(e) => { e.preventDefault(); removeEditImage(); }} style={{ position: 'absolute', top: 2, right: 2 }}>
+413: <span className="fw-normal"><i className="ti ti-circle-plus me-1"></i> Add Image</span>
+421: <h4 className="fs-13 fw-medium">Change Image</h4>
+424: <span>JPEG, PNG up to 2 MB</span>
+430: <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+432: <option value="">Select</option>
+434: <option key={cat.id} value={cat.name}>{cat.name}</option>
+439: <label className="form-label">Sub Category<span className="text-danger ms-1">*</span></label>
+443: <label className="form-label">Category Code<span className="text-danger ms-1">*</span></label>
+447: <label className="form-label">Description<span className="text-danger ms-1">*</span></label>
+452: <span className="status-label">Status</span>
+459: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+460: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+477: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Sub Category</h4>
+478: <p className="mb-0 fs-16">Are you sure you want to delete sub category?</p>
+481: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+482: <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+Hardcoded string lines: 63
+
+========================================
+FILE: src/pages/inventory/ExpiredProducts.tsx
+TOTAL LINES: 417
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: interface ProductDto {
+5:   id: string;
+--- Hardcoded English strings ---
+155: <h4 className="fw-bold">Expired Products</h4>
+156: <h6>Manage your expired products</h6>
+161: <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+166: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+171: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+176: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+192: placeholder="Search"
+211: <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setProductFilter(''); }}>All</a>
+215: <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setProductFilter(name); }}>{name}</a>
+233: <a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy(opt); }}>{opt}</a>
+244: <span className="visually-hidden">Loading...</span>
+258: <th>SKU</th>
+259: <th>Product</th>
+260: <th>Manufactured Date</th>
+261: <th>Expired Date</th>
+278: <td>{product.sku}</td>
+281: <a href="#" className="avatar avatar-md me-2" onClick={(e) => e.preventDefault()}>
+284: <a href="#" onClick={(e) => e.preventDefault()}>{product.name}</a>
+287: <td>{product.manufacturedDate}</td>
+288: <td>{product.expiredDate}</td>
+323: <h4>Edit Expired Product</h4>
+325: <button type="button" className="close" onClick={() => setShowEditModal(false)} aria-label="Close">
+326: <span aria-hidden="true">&times;</span>
+333: <label className="form-label">SKU<span className="text-danger ms-1">*</span></label>
+344: <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+350: <option value="">Select</option>
+352: <option key={name} value={name}>{name}</option>
+359: <label className="form-label">Manufacturer Date<span className="text-danger ms-1">*</span></label>
+370: <label className="form-label">Expiry Date<span className="text-danger ms-1">*</span></label>
+382: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3" onClick={() => setShowEditModal(false)}>Cancel</button>
+383: <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleEditSave}>Save Changes</button>
+400: <h4>Delete Product</h4>
+401: <p className="fs-14 text-muted">Are you sure you want to delete this expired product?</p>
+403: <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+404: <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+Hardcoded string lines: 35
+
+========================================
+FILE: src/pages/inventory/LowStocks.tsx
+TOTAL LINES: 540
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: interface ProductDto {
+5:   id: string;
+--- Hardcoded English strings ---
+203: <th>Warehouse</th>
+204: <th>Store</th>
+205: <th>Product Name</th>
+206: <th>Category</th>
+207: <th>SKU</th>
+208: <th>Qty</th>
+209: <th>Qty Alert</th>
+226: <td>{item.warehouse}</td>
+227: <td>{item.store}</td>
+230: <a href="#" className="avatar avatar-md me-2" onClick={(e) => e.preventDefault()}>
+233: <a href="#" onClick={(e) => e.preventDefault()}>{item.name}</a>
+236: <td>{item.category}</td>
+237: <td>{item.sku}</td>
+238: <td>{item.qty}</td>
+239: <td>{item.qtyAlert}</td>
+273: placeholder="Search"
+282: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+286: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(''); }}>All</a></li>
+288: <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(w); }}>{w}</a></li>
+294: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+298: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(''); }}>All</a></li>
+300: <li key={s}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(s); }}>{s}</a></li>
+306: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+310: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>All</a></li>
+312: <li key={c}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(c); }}>{c}</a></li>
+325: <h4 className="fw-bold">Low Stocks</h4>
+326: <h6>Manage your low stocks</h6>
+330: <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+335: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+340: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}>
+345: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+350: <a href="#" className="btn btn-secondary w-auto shadow-none" onClick={(e) => { e.preventDefault(); setShowEmailModal(true); }}>
+383: <label htmlFor="notify-toggle" className="checktoggle me-2">checkbox</label>
+396: <span className="visually-hidden">Loading...</span>
+413: <h4>Edit Low Stocks</h4>
+415: <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
+416: <span aria-hidden="true" className="fs-16">&times;</span>
+422: <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+431: <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+440: <label className="form-label">SKU<span className="text-danger ms-1">*</span></label>
+449: <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+458: <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+467: <label className="form-label">Qty<span className="text-danger ms-1">*</span></label>
+476: <label className="form-label">Qty Alert<span className="text-danger ms-1">*</span></label>
+487: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+488: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+505: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Product</h4>
+506: <p className="mb-0 fs-16">Are you sure you want to delete product from low stock?</p>
+508: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+509: <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+527: <h4 className="fs-20 fw-semibold">Success</h4>
+528: <p>Email Sent Successfully</p>
+529: <a href="#" className="btn btn-primary p-1 px-2 fs-13 fw-normal" onClick={(e) => { e.preventDefault(); setShowEmailModal(false); }}>Close</a>
+Hardcoded string lines: 53
+
+========================================
+FILE: src/pages/sales/OnlineOrders.tsx
+TOTAL LINES: 813
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface SaleItemDto {
+--- Hardcoded English strings ---
+288: <h4>Sales</h4>
+289: <h6>Manage Your Sales</h6>
+293: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); openAddModal(); }}>
+305: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+314: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+316: <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
+325: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(''); }}>All</a></li>
+327: <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(s); }}>{s}</a></li>
+336: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>Recent</a></li>
+337: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>Amount Asc</a></li>
+338: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>Amount Desc</a></li>
+355: <th>Customer</th>
+356: <th>Reference</th>
+357: <th>Date</th>
+358: <th>Status</th>
+359: <th>Grand Total</th>
+360: <th>Paid</th>
+361: <th>Due</th>
+362: <th>Payment Status</th>
+363: <th>Biller</th>
+364: <th className="text-center">Actions</th>
+369: <tr><td colSpan={11} className="text-center py-4">No sales found</td></tr>
+380: <a href="#">{s.customerName}</a>
+383: <td>{s.reference}</td>
+384: <td>{s.saleDate}</td>
+385: <td><span className={`badge ${statusBadge(s.status)}`}>{s.status}</span></td>
+386: <td>{fmt(s.grandTotal)}</td>
+387: <td>{fmt(s.paid)}</td>
+388: <td>{fmt(s.due)}</td>
+394: <td>{s.biller}</td>
+400: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}><i data-feather="eye" className="info-img"></i>Sale Detail</a></li>
+401: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openEditModal(s); }}><i data-feather="edit" className="info-img"></i>Edit Sale</a></li>
+402: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}><i data-feather="dollar-sign" className="info-img"></i>Show Payments</a></li>
+403: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}><i data-feather="plus-circle" className="info-img"></i>Create Payment</a></li>
+404: <li><a className="dropdown-item mb-0" href="#" onClick={(e) => { e.preventDefault(); setDeleteId(s.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>Delete Sale</a></li>
+422: <h4 className="modal-title">{editingId ? 'Edit Sales' : 'Add Sales'}</h4>
+423: <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
+433: <th>Product</th>
+434: <th>Qty</th>
+435: <th>Purchase Price($)</th>
+436: <th>Discount($)</th>
+437: <th>Tax(%)</th>
+438: <th>Tax Amount($)</th>
+439: <th>Unit Cost($)</th>
+440: <th>Total Cost($)</th>
+447: <td>{item.productName}</td>
+450: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', Math.max(1, item.quantity - 1))}><i data-feather="minus-circle"></i></span>
+452: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', item.quantity + 1)}><i data-feather="plus-circle"></i></span>
+458: <td>{item.taxAmount.toFixed(2)}</td>
+459: <td>{item.unitCost.toFixed(2)}</td>
+460: <td>{item.totalCost.toFixed(2)}</td>
+461: <td><a href="#" className="text-danger" onClick={(e) => { e.preventDefault(); removeItem(idx); }}><i data-feather="trash-2"></i></a></td>
+473: <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
+474: <input type="text" className="form-control" placeholder="Search customer..." value={customerSearchTerm}
+480: <li key={c.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleCustomerSelect(c)}>
+481: {c.name} {c.phone && <small className="text-muted ms-1">{c.phone}</small>}
+490: <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+496: <label className="form-label">Biller<span className="text-danger ms-1">*</span></label>
+502: <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
+503: <input type="text" className="form-control" placeholder="Please type product code and select" value={productSearchTerm}
+509: <li key={p.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleProductSelect(p)}>
+510: {p.productName} <small className="text-muted ms-1">({p.sku})</small>
+524: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Order Tax</h6><span>{fmt(form.orderTax)}</span></li>
+525: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Discount</h6><span>{fmt(form.discount)}</span></li>
+526: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Shipping</h6><span>{fmt(form.shipping)}</span></li>
+527: <li className="d-flex justify-content-between p-2"><h6 className="mb-0 fw-bold">Grand Total</h6><span className="fw-bold">{fmt(grandTotal)}</span></li>
+537: <label className="form-label">Order Tax<span className="text-danger ms-1">*</span></label>
+543: <label className="form-label">Discount<span className="text-danger ms-1">*</span></label>
+549: <label className="form-label">Shipping<span className="text-danger ms-1">*</span></label>
+555: <label className="form-label">Status<span className="text-danger ms-1">*</span></label>
+564: <label className="form-label">Notes</label>
+573: <button type="button" className="btn btn-secondary me-3" onClick={() => setShowModal(false)}>Cancel</button>
+574: <button type="button" className="btn btn-primary" onClick={saveSale}>{editingId ? 'Save Changes' : 'Submit'}</button>
+588: <h4 className="mb-0 me-2">Sales Detail</h4>
+591: <button className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>
+601: <h6>Customer Info</h6>
+602: <h5 className="mb-1">{detailSale.customerName}</h5>
+605: <h6>Invoice Info</h6>
+606: <p className="mb-0">Reference: <span className="fs-16 text-primary ms-2">#{detailSale.reference}</span></p>
+607: <p className="mb-0">Date: <span className="ms-2 text-muted">{detailSale.saleDate}</span></p>
+608: <p className="mb-0">Status: <span className={`badge ${statusBadge(detailSale.status)} ms-2`}>{detailSale.status}</span></p>
+609: <p className="mb-0">Payment Status: <span className={`badge ${paymentStatusBadge(detailSale.paymentStatus)} shadow-none badge-xs ms-2`}><i className="ti ti-point-filled"></i>{detailSale.paymentStatus}</span></p>
+612: <h6>Biller</h6>
+613: <p className="mb-0">{detailSale.biller}</p>
+617: <h5 className="mb-3">Order Summary</h5>
+622: <th>Product</th>
+623: <th>Qty</th>
+624: <th>Purchase Price($)</th>
+625: <th>Discount($)</th>
+626: <th>Tax(%)</th>
+627: <th>Tax Amount($)</th>
+628: <th>Unit Cost($)</th>
+629: <th>Total Cost($)</th>
+635: <td>{item.productName}</td>
+636: <td>{item.quantity}</td>
+637: <td>{item.purchasePrice.toFixed(2)}</td>
+638: <td>{item.discount.toFixed(2)}</td>
+639: <td>{item.taxPercent.toFixed(2)}</td>
+640: <td>{item.taxAmount.toFixed(2)}</td>
+641: <td>{item.unitCost.toFixed(2)}</td>
+642: <td>{item.totalCost.toFixed(2)}</td>
+653: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Order Tax</h6><span>{fmt(detailSale.orderTax)}</span></li>
+654: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Discount</h6><span>{fmt(detailSale.discount)}</span></li>
+655: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Grand Total</h6><span className="fw-bold">{fmt(detailSale.grandTotal)}</span></li>
+656: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Paid</h6><span>{fmt(detailSale.paid)}</span></li>
+657: <li className="d-flex justify-content-between p-2"><h6 className="mb-0">Due</h6><span>{fmt(detailSale.due)}</span></li>
+665: <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>Close</button>
+678: <h4 className="modal-title">Show Payments - {paymentsSale.reference}</h4>
+679: <button type="button" className="close" onClick={() => setShowPaymentsModal(false)}><span>&times;</span></button>
+686: <th>Date</th>
+687: <th>Reference</th>
+688: <th>Amount</th>
+689: <th>Paid By</th>
+695: <tr><td colSpan={5} className="text-center py-3">No payments recorded</td></tr>
+698: <td>{p.paymentDate}</td>
+699: <td>{p.reference}</td>
+700: <td>{fmt(p.payingAmount)}</td>
+701: <td>{p.paymentType}</td>
+704: <a className="me-3 p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); openEditPayment(paymentsSale.id, p); }}>
+707: <a className="p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); deletePayment(paymentsSale.id, p.id); }}>
+729: <h4 className="modal-title">{editingPaymentId ? 'Edit Payment' : 'Create Payment'}</h4>
+730: <button type="button" className="close" onClick={() => setShowPaymentFormModal(false)}><span>&times;</span></button>
+736: <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+742: <label className="form-label">Reference<span className="text-danger ms-1">*</span></label>
+750: <label className="form-label">Received Amount<span className="text-danger ms-1">*</span></label>
+756: <label className="form-label">Paying Amount<span className="text-danger ms-1">*</span></label>
+762: <label className="form-label">Payment Type<span className="text-danger ms-1">*</span></label>
+770: <label className="form-label">Description</label>
+772: <p className="text-muted mb-0">Maximum 60 Characters</p>
+778: <button type="button" className="btn btn-secondary me-2" onClick={() => setShowPaymentFormModal(false)}>Cancel</button>
+779: <button type="button" className="btn btn-primary" onClick={savePayment}>{editingPaymentId ? 'Save Changes' : 'Submit'}</button>
+796: <h3 className="mb-2">Delete Sale</h3>
+797: <p className="fs-16 mb-3">Are you sure you want to delete this sale?</p>
+799: <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteId(null); }}>No, Cancel</button>
+800: <button type="button" className="btn btn-primary" onClick={confirmDelete}>Yes, Delete</button>
+Hardcoded string lines: 135
+
+========================================
+FILE: src/pages/sales/POSOrders.tsx
+TOTAL LINES: 814
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface SaleItemDto {
+--- Hardcoded English strings ---
+289: <h4>POS Orders</h4>
+290: <h6>Manage Your POS Orders</h6>
+294: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); openAddModal(); }}>
+306: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+315: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+317: <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
+326: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(''); }}>All</a></li>
+328: <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(s); }}>{s}</a></li>
+337: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>Recent</a></li>
+338: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>Amount Asc</a></li>
+339: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>Amount Desc</a></li>
+356: <th>Customer</th>
+357: <th>Reference</th>
+358: <th>Date</th>
+359: <th>Status</th>
+360: <th>Grand Total</th>
+361: <th>Paid</th>
+362: <th>Due</th>
+363: <th>Payment Status</th>
+364: <th>Biller</th>
+365: <th className="text-center">Actions</th>
+370: <tr><td colSpan={11} className="text-center py-4">No POS orders found</td></tr>
+381: <a href="#">{s.customerName}</a>
+384: <td>{s.reference}</td>
+385: <td>{s.saleDate}</td>
+386: <td><span className={`badge ${statusBadge(s.status)}`}>{s.status}</span></td>
+387: <td>{fmt(s.grandTotal)}</td>
+388: <td>{fmt(s.paid)}</td>
+389: <td>{fmt(s.due)}</td>
+395: <td>{s.biller}</td>
+401: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}><i data-feather="eye" className="info-img"></i>Sale Detail</a></li>
+402: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openEditModal(s); }}><i data-feather="edit" className="info-img"></i>Edit Sale</a></li>
+403: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}><i data-feather="dollar-sign" className="info-img"></i>Show Payments</a></li>
+404: <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}><i data-feather="plus-circle" className="info-img"></i>Create Payment</a></li>
+405: <li><a className="dropdown-item mb-0" href="#" onClick={(e) => { e.preventDefault(); setDeleteId(s.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>Delete Sale</a></li>
+423: <h4 className="modal-title">{editingId ? 'Edit Sales' : 'Add Sales'}</h4>
+424: <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
+434: <th>Product</th>
+435: <th>Qty</th>
+436: <th>Purchase Price($)</th>
+437: <th>Discount($)</th>
+438: <th>Tax(%)</th>
+439: <th>Tax Amount($)</th>
+440: <th>Unit Cost($)</th>
+441: <th>Total Cost($)</th>
+448: <td>{item.productName}</td>
+451: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', Math.max(1, item.quantity - 1))}><i data-feather="minus-circle"></i></span>
+453: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', item.quantity + 1)}><i data-feather="plus-circle"></i></span>
+459: <td>{item.taxAmount.toFixed(2)}</td>
+460: <td>{item.unitCost.toFixed(2)}</td>
+461: <td>{item.totalCost.toFixed(2)}</td>
+462: <td><a href="#" className="text-danger" onClick={(e) => { e.preventDefault(); removeItem(idx); }}><i data-feather="trash-2"></i></a></td>
+474: <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
+475: <input type="text" className="form-control" placeholder="Search customer..." value={customerSearchTerm}
+481: <li key={c.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleCustomerSelect(c)}>
+482: {c.name} {c.phone && <small className="text-muted ms-1">{c.phone}</small>}
+491: <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+497: <label className="form-label">Biller<span className="text-danger ms-1">*</span></label>
+503: <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
+504: <input type="text" className="form-control" placeholder="Please type product code and select" value={productSearchTerm}
+510: <li key={p.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleProductSelect(p)}>
+511: {p.productName} <small className="text-muted ms-1">({p.sku})</small>
+525: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Order Tax</h6><span>{fmt(form.orderTax)}</span></li>
+526: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Discount</h6><span>{fmt(form.discount)}</span></li>
+527: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Shipping</h6><span>{fmt(form.shipping)}</span></li>
+528: <li className="d-flex justify-content-between p-2"><h6 className="mb-0 fw-bold">Grand Total</h6><span className="fw-bold">{fmt(grandTotal)}</span></li>
+538: <label className="form-label">Order Tax<span className="text-danger ms-1">*</span></label>
+544: <label className="form-label">Discount<span className="text-danger ms-1">*</span></label>
+550: <label className="form-label">Shipping<span className="text-danger ms-1">*</span></label>
+556: <label className="form-label">Status<span className="text-danger ms-1">*</span></label>
+565: <label className="form-label">Notes</label>
+574: <button type="button" className="btn btn-secondary me-3" onClick={() => setShowModal(false)}>Cancel</button>
+575: <button type="button" className="btn btn-primary" onClick={saveSale}>{editingId ? 'Save Changes' : 'Submit'}</button>
+589: <h4 className="mb-0 me-2">Sales Detail</h4>
+592: <button className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>
+602: <h6>Customer Info</h6>
+603: <h5 className="mb-1">{detailSale.customerName}</h5>
+606: <h6>Invoice Info</h6>
+607: <p className="mb-0">Reference: <span className="fs-16 text-primary ms-2">#{detailSale.reference}</span></p>
+608: <p className="mb-0">Date: <span className="ms-2 text-muted">{detailSale.saleDate}</span></p>
+609: <p className="mb-0">Status: <span className={`badge ${statusBadge(detailSale.status)} ms-2`}>{detailSale.status}</span></p>
+610: <p className="mb-0">Payment Status: <span className={`badge ${paymentStatusBadge(detailSale.paymentStatus)} shadow-none badge-xs ms-2`}><i className="ti ti-point-filled"></i>{detailSale.paymentStatus}</span></p>
+613: <h6>Biller</h6>
+614: <p className="mb-0">{detailSale.biller}</p>
+618: <h5 className="mb-3">Order Summary</h5>
+623: <th>Product</th>
+624: <th>Qty</th>
+625: <th>Purchase Price($)</th>
+626: <th>Discount($)</th>
+627: <th>Tax(%)</th>
+628: <th>Tax Amount($)</th>
+629: <th>Unit Cost($)</th>
+630: <th>Total Cost($)</th>
+636: <td>{item.productName}</td>
+637: <td>{item.quantity}</td>
+638: <td>{item.purchasePrice.toFixed(2)}</td>
+639: <td>{item.discount.toFixed(2)}</td>
+640: <td>{item.taxPercent.toFixed(2)}</td>
+641: <td>{item.taxAmount.toFixed(2)}</td>
+642: <td>{item.unitCost.toFixed(2)}</td>
+643: <td>{item.totalCost.toFixed(2)}</td>
+654: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Order Tax</h6><span>{fmt(detailSale.orderTax)}</span></li>
+655: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Discount</h6><span>{fmt(detailSale.discount)}</span></li>
+656: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Grand Total</h6><span className="fw-bold">{fmt(detailSale.grandTotal)}</span></li>
+657: <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Paid</h6><span>{fmt(detailSale.paid)}</span></li>
+658: <li className="d-flex justify-content-between p-2"><h6 className="mb-0">Due</h6><span>{fmt(detailSale.due)}</span></li>
+666: <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>Close</button>
+679: <h4 className="modal-title">Show Payments - {paymentsSale.reference}</h4>
+680: <button type="button" className="close" onClick={() => setShowPaymentsModal(false)}><span>&times;</span></button>
+687: <th>Date</th>
+688: <th>Reference</th>
+689: <th>Amount</th>
+690: <th>Paid By</th>
+696: <tr><td colSpan={5} className="text-center py-3">No payments recorded</td></tr>
+699: <td>{p.paymentDate}</td>
+700: <td>{p.reference}</td>
+701: <td>{fmt(p.payingAmount)}</td>
+702: <td>{p.paymentType}</td>
+705: <a className="me-3 p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); openEditPayment(paymentsSale.id, p); }}>
+708: <a className="p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); deletePayment(paymentsSale.id, p.id); }}>
+730: <h4 className="modal-title">{editingPaymentId ? 'Edit Payment' : 'Create Payment'}</h4>
+731: <button type="button" className="close" onClick={() => setShowPaymentFormModal(false)}><span>&times;</span></button>
+737: <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+743: <label className="form-label">Reference<span className="text-danger ms-1">*</span></label>
+751: <label className="form-label">Received Amount<span className="text-danger ms-1">*</span></label>
+757: <label className="form-label">Paying Amount<span className="text-danger ms-1">*</span></label>
+763: <label className="form-label">Payment Type<span className="text-danger ms-1">*</span></label>
+771: <label className="form-label">Description</label>
+773: <p className="text-muted mb-0">Maximum 60 Characters</p>
+779: <button type="button" className="btn btn-secondary me-2" onClick={() => setShowPaymentFormModal(false)}>Cancel</button>
+780: <button type="button" className="btn btn-primary" onClick={savePayment}>{editingPaymentId ? 'Save Changes' : 'Submit'}</button>
+797: <h3 className="mb-2">Delete Sale</h3>
+798: <p className="fs-16 mb-3">Are you sure you want to delete this sale?</p>
+800: <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteId(null); }}>No, Cancel</button>
+801: <button type="button" className="btn btn-primary" onClick={confirmDelete}>Yes, Delete</button>
+Hardcoded string lines: 135
+
+========================================
+FILE: src/pages/sales/Invoice.tsx
+TOTAL LINES: 241
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import { Link } from 'react-router-dom';
+3: import api, { mediaUrl } from '../../services/api';
+4: 
+5: interface InvoiceItemDto {
+--- Hardcoded English strings ---
+93: <h4>Invoices</h4>
+94: <h6>Manage your stock invoices</h6>
+105: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+115: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCustomer(''); }}>All</a></li>
+117: <li key={c}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCustomer(c); }}>{c}</a></li>
+127: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+129: <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
+139: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+140: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+141: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+158: <th>Invoice No</th>
+159: <th>Customer</th>
+160: <th>Due Date</th>
+161: <th>Amount</th>
+162: <th>Paid</th>
+163: <th>Amount Due</th>
+164: <th>Status</th>
+170: <tr><td colSpan={9} className="text-center py-4">No invoices found</td></tr>
+182: <a href="#">{inv.customerName}</a>
+185: <td>{inv.dueDate}</td>
+186: <td>{fmt(inv.totalAmount)}</td>
+187: <td>{fmt(inv.paid)}</td>
+188: <td>{fmt(inv.amountDue)}</td>
+224: <h3 className="mb-2">Delete Invoice</h3>
+225: <p className="fs-16 mb-3">Are you sure you want to delete this invoice?</p>
+227: <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteId(null); }}>No, Cancel</button>
+228: <button type="button" className="btn btn-primary" onClick={confirmDelete}>Yes, Delete</button>
+Hardcoded string lines: 27
+
+========================================
+FILE: src/pages/sales/SalesReturns.tsx
+TOTAL LINES: 574
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface SalesReturnItemDto {
+--- Hardcoded English strings ---
+240: <h4>Sales Returns</h4>
+241: <h6>Manage Your Sales Returns</h6>
+245: <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}>
+257: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+267: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCustomer(''); }}>All</a></li>
+269: <li key={c}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCustomer(c); }}>{c}</a></li>
+279: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+281: <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
+291: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterPaymentStatus(''); }}>All</a></li>
+293: <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterPaymentStatus(s); }}>{s}</a></li>
+303: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+304: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+305: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+322: <th>Product</th>
+323: <th>Date</th>
+324: <th>Customer</th>
+325: <th>Status</th>
+326: <th>Total</th>
+327: <th>Paid</th>
+328: <th>Due</th>
+329: <th>Payment Status</th>
+330: <th className="text-center">Actions</th>
+335: <tr><td colSpan={10} className="text-center py-4">No sales returns found</td></tr>
+346: <a href="#">{r.productName || 'N/A'}</a>
+349: <td>{r.returnDate}</td>
+355: <a href="#">{r.customerName}</a>
+358: <td><span className={`badge ${statusBadge(r.status)}`}>{r.status}</span></td>
+359: <td>{fmt(r.grandTotal)}</td>
+360: <td>{fmt(r.paid)}</td>
+361: <td>{fmt(r.due)}</td>
+372: <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(r); }}><i data-feather="edit" className="info-img"></i>Edit Return</a></li>
+373: <li><a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(r.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>Delete Return</a></li>
+391: <h4 className="modal-title">{editingId ? 'Edit Sales Return' : 'Add Sales Return'}</h4>
+392: <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
+400: <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
+401: <input type="text" className="form-control" placeholder="Search customer..." value={customerSearchTerm}
+407: <li key={c.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleCustomerSelect(c)}>
+408: {c.name} {c.phone && <small className="text-muted ms-1">{c.phone}</small>}
+417: <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+423: <label className="form-label">Reference</label>
+424: <input type="text" className="form-control" placeholder="Enter reference" value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
+429: <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+430: <input type="text" className="form-control" placeholder="Search product by name or SKU..." value={productSearchTerm}
+436: <li key={p.id} className="list-group-item list-group-item-action d-flex align-items-center" style={{ cursor: 'pointer' }} onClick={() => handleProductSelect(p)}>
+438: <span>{p.productName} <small className="text-muted ms-1">({p.sku})</small></span>
+453: <th>Product Name</th>
+454: <th>Net Unit Price($)</th>
+455: <th>Stock</th>
+456: <th>QTY</th>
+457: <th>Discount($)</th>
+458: <th>Tax %</th>
+459: <th>Subtotal ($)</th>
+466: <td>{item.productName}</td>
+477: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', Math.max(1, item.quantity - 1))}><i data-feather="minus-circle"></i></span>
+480: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', item.quantity + 1)}><i data-feather="plus-circle"></i></span>
+491: <td>{fmt(item.subtotal)}</td>
+492: <td><a href="#" className="text-danger" onClick={e => { e.preventDefault(); removeItem(idx); }}><i data-feather="trash-2"></i></a></td>
+504: <label className="form-label">Order Tax</label>
+510: <label className="form-label">Discount</label>
+516: <label className="form-label">Shipping</label>
+522: <label className="form-label">Status<span className="text-danger ms-1">*</span></label>
+533: <h5>Grand Total: {fmt(grandTotal)}</h5>
+539: <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+540: <button type="button" className="btn btn-primary" onClick={saveReturn}>{editingId ? 'Update' : 'Submit'}</button>
+557: <h4 className="mt-3">Delete Sales Return</h4>
+558: <p className="mb-0">Are you sure you want to delete this sales return?</p>
+560: <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+561: <button type="button" className="btn btn-danger" onClick={confirmDelete}>Delete</button>
+Hardcoded string lines: 68
+
+========================================
+FILE: src/pages/sales/QuotationList.tsx
+TOTAL LINES: 657
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface QuotationItemDto {
+--- Hardcoded English strings ---
+256: <h4>Quotation List</h4>
+257: <h6>Manage Your Quotation</h6>
+261: <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}>
+273: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+283: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterProduct(''); }}>All</a></li>
+285: <li key={p}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterProduct(p); }}>{p}</a></li>
+295: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCustomer(''); }}>All</a></li>
+297: <li key={c}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCustomer(c); }}>{c}</a></li>
+307: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+309: <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
+319: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+320: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+321: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+338: <th>Product Name</th>
+339: <th>Customer Name</th>
+340: <th>Status</th>
+341: <th>Total</th>
+347: <tr><td colSpan={6} className="text-center py-4">No quotations found</td></tr>
+358: <a href="#">{q.productName || 'N/A'}</a>
+366: <a href="#">{q.customerName}</a>
+369: <td><span className={`badge ${statusBadge(q.status)}`}>{q.status}</span></td>
+370: <td>{fmt(q.grandTotal)}</td>
+373: <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); openDetail(q); }}>
+376: <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); openEditModal(q); }}>
+379: <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); setDeleteId(q.id); setShowDeleteModal(true); }}>
+399: <h4 className="modal-title">{editingId ? 'Edit Quotation' : 'Add Quotation'}</h4>
+400: <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
+408: <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
+409: <input type="text" className="form-control" placeholder="Search customer..." value={customerSearchTerm}
+415: <li key={c.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleCustomerSelect(c)}>
+416: {c.name} {c.phone && <small className="text-muted ms-1">{c.phone}</small>}
+425: <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+431: <label className="form-label">Reference</label>
+432: <input type="text" className="form-control" placeholder="Enter reference" value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
+437: <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
+438: <input type="text" className="form-control" placeholder="Please type product code and select" value={productSearchTerm}
+444: <li key={p.id} className="list-group-item list-group-item-action d-flex align-items-center" style={{ cursor: 'pointer' }} onClick={() => handleProductSelect(p)}>
+446: <span>{p.productName} <small className="text-muted ms-1">({p.sku})</small></span>
+461: <th>Product</th>
+462: <th>Qty</th>
+463: <th>Purchase Price($)</th>
+464: <th>Discount($)</th>
+465: <th>Tax(%)</th>
+466: <th>Tax Amount($)</th>
+467: <th>Unit Cost($)</th>
+468: <th>Total Cost($)</th>
+475: <td>{item.productName}</td>
+478: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', Math.max(1, item.quantity - 1))}><i data-feather="minus-circle"></i></span>
+481: <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', item.quantity + 1)}><i data-feather="plus-circle"></i></span>
+487: <td>{item.taxAmount.toFixed(2)}</td>
+488: <td>{item.unitCost.toFixed(2)}</td>
+489: <td>{item.totalCost.toFixed(2)}</td>
+490: <td><a href="#" className="text-danger" onClick={e => { e.preventDefault(); removeItem(idx); }}><i data-feather="trash-2"></i></a></td>
+502: <label className="form-label">Order Tax</label>
+508: <label className="form-label">Discount</label>
+514: <label className="form-label">Shipping</label>
+520: <label className="form-label">Status<span className="text-danger ms-1">*</span></label>
+532: <label className="form-label">Description</label>
+541: <h5>Grand Total: {fmt(grandTotal)}</h5>
+547: <button type="button" className="btn btn-secondary me-2" onClick={() => setShowModal(false)}>Cancel</button>
+548: <button type="button" className="btn btn-primary" onClick={saveQuotation}>{editingId ? 'Update' : 'Submit'}</button>
+561: <h4 className="modal-title">Quotation Detail</h4>
+562: <button type="button" className="close" onClick={() => setShowDetailModal(false)}><span>&times;</span></button>
+567: <p className="mb-1"><strong>Reference:</strong> {detailQuotation.reference || '—'}</p>
+568: <p className="mb-1"><strong>Customer:</strong> {detailQuotation.customerName}</p>
+569: <p className="mb-1"><strong>Date:</strong> {detailQuotation.quotationDate}</p>
+572: <p className="mb-1"><strong>Status:</strong> <span className={`badge ${statusBadge(detailQuotation.status)}`}>{detailQuotation.status}</span></p>
+573: <p className="mb-1"><strong>Grand Total:</strong> {fmt(detailQuotation.grandTotal)}</p>
+576: {detailQuotation.description && <p className="mb-3"><strong>Description:</strong> {detailQuotation.description}</p>}
+583: <th>Product</th>
+584: <th>Qty</th>
+585: <th>Purchase Price</th>
+586: <th>Discount</th>
+587: <th>Tax %</th>
+588: <th>Tax Amount</th>
+589: <th>Unit Cost</th>
+590: <th>Total Cost</th>
+596: <td>{i.productName}</td>
+597: <td>{i.quantity}</td>
+598: <td>{fmt(i.purchasePrice)}</td>
+599: <td>{fmt(i.discount)}</td>
+600: <td>{i.taxPercent.toFixed(2)}%</td>
+601: <td>{fmt(i.taxAmount)}</td>
+602: <td>{fmt(i.unitCost)}</td>
+603: <td>{fmt(i.totalCost)}</td>
+614: <li className="list-group-item d-flex justify-content-between"><span>Order Tax</span><span>{fmt(detailQuotation.orderTax)}</span></li>
+615: <li className="list-group-item d-flex justify-content-between"><span>Discount</span><span>{fmt(detailQuotation.discount)}</span></li>
+616: <li className="list-group-item d-flex justify-content-between"><span>Shipping</span><span>{fmt(detailQuotation.shipping)}</span></li>
+617: <li className="list-group-item d-flex justify-content-between"><strong>Grand Total</strong><strong>{fmt(detailQuotation.grandTotal)}</strong></li>
+623: <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>Close</button>
+640: <h4 className="mt-3 mb-2">Delete Quotation</h4>
+641: <p className="fs-16 mb-3">Are you sure you want to delete quotation?</p>
+643: <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>No, Cancel</button>
+644: <button type="button" className="btn btn-primary" onClick={confirmDelete}>Yes, Delete</button>
+Hardcoded string lines: 94
+
+========================================
+FILE: src/pages/purchases/PurchaseList.tsx
+TOTAL LINES: 1174
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect } from 'react';
+2: import { 
+3:   getPurchases, 
+4:   createPurchase, 
+5:   updatePurchase, 
+--- Hardcoded English strings ---
+351: return <span className={`badge ${cls[status] || 'badge-secondary'}`}>{status}</span>;
+367: <h4>Purchases</h4>
+368: <h6>Manage Your Purchases</h6>
+374: <span className="visually-hidden">Loading...</span>
+387: <h4>Purchases</h4>
+388: <h6>Manage Your Purchases</h6>
+392: <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); handleAddPurchase(); }}>
+407: placeholder="Search"
+423: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+425: <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setStatusFilter(s); }}>{s}</a></li>
+435: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setPaymentStatusFilter(''); }}>All</a></li>
+437: <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setPaymentStatusFilter(s); }}>{s}</a></li>
+447: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+448: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+449: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+463: <th>Supplier Name</th>
+464: <th>Reference</th>
+465: <th>Date</th>
+466: <th>Status</th>
+467: <th>Total</th>
+468: <th>Paid</th>
+469: <th>Due</th>
+470: <th>Payment Status</th>
+471: <th className="text-center">Actions</th>
+481: <td>{purchase.supplierName}</td>
+482: <td>{purchase.reference}</td>
+483: <td>{new Date(purchase.date).toLocaleDateString()}</td>
+484: <td>{getStatusBadge(purchase.status)}</td>
+485: <td>{fmt(purchase.total)}</td>
+486: <td>{fmt(purchase.paid)}</td>
+487: <td>{fmt(purchase.total - purchase.paid)}</td>
+488: <td>{getPaymentStatusBadge(purchase.paymentStatus)}</td>
+495: <a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); handleEditPurchase(purchase); }}>
+500: <a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); handleDeletePurchase(purchase.id); }}>
+564: <h4 className="modal-title">Add Purchase</h4>
+585: <option value="">Select</option>
+635: placeholder="Search Product by name or SKU..."
+652: <span>{product.productName}</span>
+662: <span className="dropdown-item text-muted">No products found</span>
+674: placeholder="Qty"
+685: placeholder="Price($)"
+696: placeholder="Discount($)"
+707: placeholder="Tax(%)"
+726: <th>Product</th>
+727: <th>Qty</th>
+728: <th>Price($)</th>
+729: <th>Discount($)</th>
+730: <th>Tax(%)</th>
+731: <th>Tax Amt($)</th>
+732: <th>Unit Cost($)</th>
+733: <th>Total($)</th>
+734: <th>Act</th>
+740: <td>{item.productName}</td>
+741: <td>{item.quantity}</td>
+742: <td>${item.purchasePrice.toFixed(2)}</td>
+743: <td>${item.discount.toFixed(2)}</td>
+744: <td>{item.taxPercentage}%</td>
+745: <td>${item.taxAmount.toFixed(2)}</td>
+746: <td>${item.unitCost.toFixed(2)}</td>
+747: <td>${item.totalCost.toFixed(2)}</td>
+765: <label className="form-label">Order Tax</label>
+778: <label className="form-label">Discount</label>
+791: <label className="form-label">Shipping</label>
+804: <label className="form-label">Status</label>
+812: <option value="">Select</option>
+824: <label className="form-label">Description</label>
+828: placeholder="Add purchase notes..."
+834: <small className="form-text text-muted">Maximum 500 characters</small>
+838: <strong>Total Amount:</strong> ${formData.total.toFixed(2)}
+872: <h4 className="modal-title">Edit Purchase</h4>
+893: <option value="">Select</option>
+943: placeholder="Search Product by name or SKU..."
+960: <span>{product.productName}</span>
+970: <span className="dropdown-item text-muted">No products found</span>
+982: placeholder="Qty"
+993: placeholder="Price($)"
+1004: placeholder="Discount($)"
+1015: placeholder="Tax(%)"
+1034: <th>Product</th>
+1035: <th>Qty</th>
+1036: <th>Price($)</th>
+1037: <th>Discount($)</th>
+1038: <th>Tax(%)</th>
+1039: <th>Tax Amt($)</th>
+1040: <th>Unit Cost($)</th>
+1041: <th>Total($)</th>
+1042: <th>Act</th>
+1048: <td>{item.productName}</td>
+1049: <td>{item.quantity}</td>
+1050: <td>${item.purchasePrice.toFixed(2)}</td>
+1051: <td>${item.discount.toFixed(2)}</td>
+1052: <td>{item.taxPercentage}%</td>
+1053: <td>${item.taxAmount.toFixed(2)}</td>
+1054: <td>${item.unitCost.toFixed(2)}</td>
+1055: <td>${item.totalCost.toFixed(2)}</td>
+1073: <label className="form-label">Order Tax</label>
+1086: <label className="form-label">Discount</label>
+1099: <label className="form-label">Shipping</label>
+1112: <label className="form-label">Status</label>
+1120: <option value="">Select</option>
+1132: <label className="form-label">Description</label>
+1136: placeholder="Add purchase notes..."
+1142: <small className="form-text text-muted">Maximum 500 characters</small>
+1146: <strong>Total Amount:</strong> ${formData.total.toFixed(2)}
+Hardcoded string lines: 104
+
+========================================
+FILE: src/pages/finance/ExpenseList.tsx
+TOTAL LINES: 216
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import { getExpenses, createExpense, updateExpense, deleteExpense, getExpenseCategories, Expense, ExpenseCategory } from '../../services/financeService';
+3: 
+4: const ExpenseList: React.FC = () => {
+5:   const [expenses, setExpenses] = useState<Expense[]>([]);
+--- Hardcoded English strings ---
+79: <div className="add-item d-flex"><div className="page-title"><h4 className="fw-bold">Expense List</h4><h6>Manage your expenses</h6></div></div>
+81: <li><a href="#" data-bs-toggle="tooltip" title="Pdf" onClick={e => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="pdf" /></a></li>
+82: <li><a href="#" data-bs-toggle="tooltip" title="Excel" onClick={e => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="excel" /></a></li>
+83: <li><a href="#" data-bs-toggle="tooltip" title="Refresh" onClick={e => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
+85: <div className="page-btn"><a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); setShowAddModal(true); }}><i className="ti ti-circle-plus me-1"></i>Add Expense</a></div>
+90: <div className="search-set"><div className="search-input"><span className="btn-searchset"><i className="ti ti-search fs-14"></i></span><input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
+93: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={e => e.preventDefault()}>{statusFilter ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) : 'Status'}</a>
+95: <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+96: <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+97: <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+104: <div className="text-center p-5"><div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div></div>
+111: <th>Reference</th>
+112: <th>Expense Name</th>
+113: <th>Category</th>
+114: <th>Description</th>
+115: <th>Date</th>
+116: <th>Amount</th>
+117: <th>Status</th>
+125: <td>{exp.reference}</td>
+126: <td>{exp.expenseName}</td>
+127: <td>{exp.categoryName}</td>
+128: <td>{exp.description}</td>
+129: <td>{exp.date}</td>
+130: <td>${exp.amount.toFixed(2)}</td>
+131: <td><span className={`badge fw-medium fs-10 ${exp.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{exp.status === 'active' ? 'Active' : 'Inactive'}</span></td>
+133: <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditModal(exp); }}><i data-feather="edit" className="feather-edit"></i></a>
+134: <a className="p-2" href="#" onClick={e => { e.preventDefault(); openDeleteModal(exp.id); }}><i data-feather="trash-2" className="feather-trash-2"></i></a>
+148: <div className="modal-header"><div className="page-title"><h4>Add Expense</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)}><span>&times;</span></button></div>
+150: <div className="mb-3"><label className="form-label">Expense Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={addForm.expenseName} onChange={e => setAddForm(p => ({ ...p, expenseName: e.target.value }))} autoFocus /></div>
+151: <div className="mb-3"><label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+153: <option value={0}>Select Category</option>
+154: {categories.filter(c => c.status === 'active').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+157: <div className="mb-3"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={addForm.description} onChange={e => setAddForm(p => ({ ...p, description: e.target.value }))} /></div>
+158: <div className="mb-3"><label className="form-label">Date<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={addForm.date} onChange={e => setAddForm(p => ({ ...p, date: e.target.value }))} /></div>
+159: <div className="mb-3"><label className="form-label">Amount<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={addForm.amount || ''} onChange={e => setAddForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
+160: <div className="mb-0"><label className="form-label">Status</label>
+162: <option value="active">Active</option>
+163: <option value="inactive">Inactive</option>
+167: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.expenseName.trim() || !addForm.expenseCategoryId || !addForm.date}>Add Expense</button></div>
+175: <div className="modal-header"><div className="page-title"><h4>Edit Expense</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)}><span>&times;</span></button></div>
+177: <div className="mb-3"><label className="form-label">Expense Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={editForm.expenseName} onChange={e => setEditForm(p => ({ ...p, expenseName: e.target.value }))} /></div>
+178: <div className="mb-3"><label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+180: <option value={0}>Select Category</option>
+181: {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+184: <div className="mb-3"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} /></div>
+185: <div className="mb-3"><label className="form-label">Date<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={editForm.date} onChange={e => setEditForm(p => ({ ...p, date: e.target.value }))} /></div>
+186: <div className="mb-3"><label className="form-label">Amount<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={editForm.amount || ''} onChange={e => setEditForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
+187: <div className="mb-0"><label className="form-label">Status</label>
+189: <option value="active">Active</option>
+190: <option value="inactive">Inactive</option>
+194: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button></div>
+203: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Expense</h4>
+204: <p className="fs-14 text-muted">Are you sure you want to delete this expense?</p>
+206: <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button><button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button></div>
+Hardcoded string lines: 54
+
+========================================
+FILE: src/pages/finance/Income.tsx
+TOTAL LINES: 208
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import { getFinanceIncomes, createFinanceIncome, updateFinanceIncome, deleteFinanceIncome, getIncomeCategories, getBankAccounts, FinanceIncome, IncomeCategory, BankAccount } from '../../services/financeService';
+3: import { getStores, DropdownOption } from '../../services/productService';
+4: 
+5: const Income: React.FC = () => {
+--- Hardcoded English strings ---
+73: <div className="add-item d-flex"><div className="page-title"><h4 className="fw-bold">Income</h4><h6>Manage your income records</h6></div></div>
+75: <li><a href="#" data-bs-toggle="tooltip" title="Pdf" onClick={e => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="pdf" /></a></li>
+76: <li><a href="#" data-bs-toggle="tooltip" title="Excel" onClick={e => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="excel" /></a></li>
+77: <li><a href="#" data-bs-toggle="tooltip" title="Refresh" onClick={e => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
+79: <div className="page-btn"><a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); setShowAddModal(true); }}><i className="ti ti-circle-plus me-1"></i>Add Income</a></div>
+84: <div className="search-set"><div className="search-input"><span className="btn-searchset"><i className="ti ti-search fs-14"></i></span><input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
+88: <div className="text-center p-5"><div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div></div>
+95: <th>Date</th>
+96: <th>Reference</th>
+97: <th>Store</th>
+98: <th>Category</th>
+99: <th>Notes</th>
+100: <th>Amount</th>
+108: <td>{inc.date}</td>
+109: <td>{inc.reference}</td>
+110: <td>{inc.store}</td>
+111: <td>{inc.categoryName}</td>
+112: <td>{inc.notes}</td>
+113: <td>${inc.amount.toFixed(2)}</td>
+115: <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditModal(inc); }}><i data-feather="edit" className="feather-edit"></i></a>
+116: <a className="p-2" href="#" onClick={e => { e.preventDefault(); openDeleteModal(inc.id); }}><i data-feather="trash-2" className="feather-trash-2"></i></a>
+130: <div className="modal-header"><div className="page-title"><h4>Add Income</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)}><span>&times;</span></button></div>
+132: <div className="mb-3"><label className="form-label">Date<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={addForm.date} onChange={e => setAddForm(p => ({ ...p, date: e.target.value }))} /></div>
+133: <div className="mb-3"><label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+135: <option value={0}>Select Category</option>
+136: {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+139: <div className="mb-3"><label className="form-label">Store</label>
+141: <option value="">Select Store</option>
+142: {stores.map(s => <option key={s.value} value={s.label}>{s.label}</option>)}
+145: <div className="mb-3"><label className="form-label">Amount<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={addForm.amount || ''} onChange={e => setAddForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
+146: <div className="mb-3"><label className="form-label">Account</label>
+148: <option value="">Select Account</option>
+149: {accounts.filter(a => a.status === 'active').map(a => <option key={a.id} value={a.bankName}>{a.bankName} - {a.holderName}</option>)}
+152: <div className="mb-0"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={addForm.notes} onChange={e => setAddForm(p => ({ ...p, notes: e.target.value }))} /></div>
+154: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.date || !addForm.incomeCategoryId}>Add Income</button></div>
+162: <div className="modal-header"><div className="page-title"><h4>Edit Income</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)}><span>&times;</span></button></div>
+164: <div className="mb-3"><label className="form-label">Date<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={editForm.date} onChange={e => setEditForm(p => ({ ...p, date: e.target.value }))} /></div>
+165: <div className="mb-3"><label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+167: <option value={0}>Select Category</option>
+168: {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+171: <div className="mb-3"><label className="form-label">Store</label>
+173: <option value="">Select Store</option>
+174: {stores.map(s => <option key={s.value} value={s.label}>{s.label}</option>)}
+177: <div className="mb-3"><label className="form-label">Amount<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={editForm.amount || ''} onChange={e => setEditForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
+178: <div className="mb-3"><label className="form-label">Account</label>
+180: <option value="">Select Account</option>
+181: {accounts.map(a => <option key={a.id} value={a.bankName}>{a.bankName} - {a.holderName}</option>)}
+184: <div className="mb-0"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={editForm.notes} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} /></div>
+186: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button></div>
+195: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Income</h4>
+196: <p className="fs-14 text-muted">Are you sure you want to delete this income record?</p>
+198: <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button><button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button></div>
+Hardcoded string lines: 52
+
+========================================
+FILE: src/pages/finance/AccountList.tsx
+TOTAL LINES: 297
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import { getBankAccounts, createBankAccount, updateBankAccount, deleteBankAccount, getAccountTypes, createAccountType, updateAccountType, deleteAccountType, BankAccount, AccountType } from '../../services/financeService';
+3: 
+4: const AccountList: React.FC = () => {
+5:   const [activeTab, setActiveTab] = useState<'accounts' | 'types'>('accounts');
+--- Hardcoded English strings ---
+95: <div className="add-item d-flex"><div className="page-title"><h4 className="fw-bold">Account List</h4><h6>Manage your bank accounts and account types</h6></div></div>
+97: <li><a href="#" data-bs-toggle="tooltip" title="Pdf" onClick={e => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="pdf" /></a></li>
+98: <li><a href="#" data-bs-toggle="tooltip" title="Excel" onClick={e => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="excel" /></a></li>
+99: <li><a href="#" data-bs-toggle="tooltip" title="Refresh" onClick={e => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
+102: <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); activeTab === 'accounts' ? setShowAddAccountModal(true) : setShowAddTypeModal(true); }}>
+110: <li className="nav-item"><a href="#" className={`nav-link ${activeTab === 'accounts' ? 'active' : ''}`} onClick={e => { e.preventDefault(); setActiveTab('accounts'); setSearchTerm(''); setSelectAll(false); setSelectedIds(new Set()); }}>Bank Accounts</a></li>
+111: <li className="nav-item"><a href="#" className={`nav-link ${activeTab === 'types' ? 'active' : ''}`} onClick={e => { e.preventDefault(); setActiveTab('types'); setSearchTerm(''); setSelectAll(false); setSelectedIds(new Set()); }}>Account Type</a></li>
+116: <div className="search-set"><div className="search-input"><span className="btn-searchset"><i className="ti ti-search fs-14"></i></span><input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
+120: <div className="text-center p-5"><div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div></div>
+127: <th>Account Holder</th>
+128: <th>Account No</th>
+129: <th>Bank Name</th>
+130: <th>Type</th>
+131: <th>Opening Balance</th>
+132: <th>Notes</th>
+133: <th>Status</th>
+141: <td>{acc.holderName}</td>
+142: <td>{acc.accountNumber}</td>
+143: <td>{acc.bankName}</td>
+144: <td>{acc.accountTypeName}</td>
+145: <td>${acc.openingBalance.toFixed(2)}</td>
+146: <td>{acc.notes}</td>
+147: <td><span className={`badge fw-medium fs-10 ${acc.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{acc.status === 'active' ? 'Active' : 'Inactive'}</span>{acc.isDefault && <span className="badge bg-info ms-1 fs-10">Default</span>}</td>
+149: <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditAccount(acc); }}><i data-feather="edit" className="feather-edit"></i></a>
+150: <a className="p-2" href="#" onClick={e => { e.preventDefault(); openDeleteModal(acc.id, 'account'); }}><i data-feather="trash-2" className="feather-trash-2"></i></a>
+163: <th>Type</th>
+164: <th>Created Date</th>
+165: <th>Status</th>
+173: <td>{t.name}</td>
+174: <td>{t.createdOn}</td>
+175: <td><span className={`badge fw-medium fs-10 ${t.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{t.status === 'active' ? 'Active' : 'Inactive'}</span></td>
+177: <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditType(t); }}><i data-feather="edit" className="feather-edit"></i></a>
+178: <a className="p-2" href="#" onClick={e => { e.preventDefault(); openDeleteModal(t.id, 'type'); }}><i data-feather="trash-2" className="feather-trash-2"></i></a>
+193: <div className="modal-header"><div className="page-title"><h4>Add Bank Account</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddAccountModal(false)}><span>&times;</span></button></div>
+196: <div className="col-md-6 mb-3"><label className="form-label">Account Holder Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={addAccountForm.holderName} onChange={e => setAddAccountForm(p => ({ ...p, holderName: e.target.value }))} autoFocus /></div>
+197: <div className="col-md-6 mb-3"><label className="form-label">Account Number<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={addAccountForm.accountNumber} onChange={e => setAddAccountForm(p => ({ ...p, accountNumber: e.target.value }))} /></div>
+198: <div className="col-md-6 mb-3"><label className="form-label">Bank Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={addAccountForm.bankName} onChange={e => setAddAccountForm(p => ({ ...p, bankName: e.target.value }))} /></div>
+199: <div className="col-md-6 mb-3"><label className="form-label">Branch</label><input type="text" className="form-control" value={addAccountForm.branch} onChange={e => setAddAccountForm(p => ({ ...p, branch: e.target.value }))} /></div>
+200: <div className="col-md-6 mb-3"><label className="form-label">IFSC</label><input type="text" className="form-control" value={addAccountForm.ifsc} onChange={e => setAddAccountForm(p => ({ ...p, ifsc: e.target.value }))} /></div>
+201: <div className="col-md-6 mb-3"><label className="form-label">Account Type<span className="text-danger ms-1">*</span></label>
+203: <option value={0}>Select Type</option>
+204: {accountTypes.filter(t => t.status === 'active').map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+207: <div className="col-md-6 mb-3"><label className="form-label">Opening Balance</label><input type="number" className="form-control" value={addAccountForm.openingBalance || ''} onChange={e => setAddAccountForm(p => ({ ...p, openingBalance: Number(e.target.value) }))} /></div>
+208: <div className="col-md-6 mb-3"><label className="form-label">Notes</label><input type="text" className="form-control" value={addAccountForm.notes} onChange={e => setAddAccountForm(p => ({ ...p, notes: e.target.value }))} /></div>
+211: <div className="status-toggle modal-status d-flex align-items-center"><span className="status-label me-2">Status</span><input type="checkbox" id="add-acc-status" className="check" checked={addAccountForm.status === 'active'} onChange={e => setAddAccountForm(p => ({ ...p, status: e.target.checked ? 'active' : 'inactive' }))} /><label htmlFor="add-acc-status" className="checktoggle"></label></div>
+212: <div className="status-toggle modal-status d-flex align-items-center"><span className="status-label me-2">Default</span><input type="checkbox" id="add-acc-default" className="check" checked={addAccountForm.isDefault} onChange={e => setAddAccountForm(p => ({ ...p, isDefault: e.target.checked }))} /><label htmlFor="add-acc-default" className="checktoggle"></label></div>
+215: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddAccountModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleAddAccount} disabled={!addAccountForm.holderName.trim() || !addAccountForm.accountNumber.trim() || !addAccountForm.bankName.trim() || !addAccountForm.accountTypeId}>Add Account</button></div>
+224: <div className="modal-header"><div className="page-title"><h4>Edit Bank Account</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditAccountModal(false)}><span>&times;</span></button></div>
+227: <div className="col-md-6 mb-3"><label className="form-label">Account Holder Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={editAccountForm.holderName} onChange={e => setEditAccountForm(p => ({ ...p, holderName: e.target.value }))} /></div>
+228: <div className="col-md-6 mb-3"><label className="form-label">Account Number<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={editAccountForm.accountNumber} onChange={e => setEditAccountForm(p => ({ ...p, accountNumber: e.target.value }))} /></div>
+229: <div className="col-md-6 mb-3"><label className="form-label">Bank Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={editAccountForm.bankName} onChange={e => setEditAccountForm(p => ({ ...p, bankName: e.target.value }))} /></div>
+230: <div className="col-md-6 mb-3"><label className="form-label">Branch</label><input type="text" className="form-control" value={editAccountForm.branch} onChange={e => setEditAccountForm(p => ({ ...p, branch: e.target.value }))} /></div>
+231: <div className="col-md-6 mb-3"><label className="form-label">IFSC</label><input type="text" className="form-control" value={editAccountForm.ifsc} onChange={e => setEditAccountForm(p => ({ ...p, ifsc: e.target.value }))} /></div>
+232: <div className="col-md-6 mb-3"><label className="form-label">Account Type<span className="text-danger ms-1">*</span></label>
+234: <option value={0}>Select Type</option>
+235: {accountTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+238: <div className="col-md-6 mb-3"><label className="form-label">Opening Balance</label><input type="number" className="form-control" value={editAccountForm.openingBalance || ''} onChange={e => setEditAccountForm(p => ({ ...p, openingBalance: Number(e.target.value) }))} /></div>
+239: <div className="col-md-6 mb-3"><label className="form-label">Notes</label><input type="text" className="form-control" value={editAccountForm.notes} onChange={e => setEditAccountForm(p => ({ ...p, notes: e.target.value }))} /></div>
+242: <div className="status-toggle modal-status d-flex align-items-center"><span className="status-label me-2">Status</span><input type="checkbox" id="edit-acc-status" className="check" checked={editAccountForm.status === 'active'} onChange={e => setEditAccountForm(p => ({ ...p, status: e.target.checked ? 'active' : 'inactive' }))} /><label htmlFor="edit-acc-status" className="checktoggle"></label></div>
+243: <div className="status-toggle modal-status d-flex align-items-center"><span className="status-label me-2">Default</span><input type="checkbox" id="edit-acc-default" className="check" checked={editAccountForm.isDefault} onChange={e => setEditAccountForm(p => ({ ...p, isDefault: e.target.checked }))} /><label htmlFor="edit-acc-default" className="checktoggle"></label></div>
+246: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditAccountModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleEditAccountSave}>Save Changes</button></div>
+255: <div className="modal-header"><div className="page-title"><h4>Add Account Type</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddTypeModal(false)}><span>&times;</span></button></div>
+257: <div className="mb-3"><label className="form-label">Type Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={addTypeForm.name} onChange={e => setAddTypeForm(p => ({ ...p, name: e.target.value }))} autoFocus /></div>
+258: <div className="mb-0"><div className="status-toggle modal-status d-flex justify-content-between align-items-center"><span className="status-label">Status</span><input type="checkbox" id="add-type-status" className="check" checked={addTypeForm.status} onChange={e => setAddTypeForm(p => ({ ...p, status: e.target.checked }))} /><label htmlFor="add-type-status" className="checktoggle"></label></div></div>
+260: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddTypeModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleAddType} disabled={!addTypeForm.name.trim()}>Add Type</button></div>
+269: <div className="modal-header"><div className="page-title"><h4>Edit Account Type</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditTypeModal(false)}><span>&times;</span></button></div>
+271: <div className="mb-3"><label className="form-label">Type Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={editTypeForm.name} onChange={e => setEditTypeForm(p => ({ ...p, name: e.target.value }))} /></div>
+272: <div className="mb-0"><div className="status-toggle modal-status d-flex justify-content-between align-items-center"><span className="status-label">Status</span><input type="checkbox" id="edit-type-status" className="check" checked={editTypeForm.status} onChange={e => setEditTypeForm(p => ({ ...p, status: e.target.checked }))} /><label htmlFor="edit-type-status" className="checktoggle"></label></div></div>
+274: <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditTypeModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleEditTypeSave}>Save Changes</button></div>
+284: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete {deleteTarget?.type === 'account' ? 'Bank Account' : 'Account Type'}</h4>
+285: <p className="fs-14 text-muted">Are you sure you want to delete this {deleteTarget?.type === 'account' ? 'bank account' : 'account type'}?</p>
+287: <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button><button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button></div>
+Hardcoded string lines: 72
+
+========================================
+FILE: src/pages/people/Customers.tsx
+TOTAL LINES: 499
+--- First 5 lines ---
+1: import React, { useState, useEffect, useMemo } from 'react';
+2: import { MEDIA_BASE_URL } from '../../services/api';
+3: import {
+4:   Customer,
+5:   getCustomers,
+--- Hardcoded English strings ---
+207: <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+208: <input type="text" className="form-control" placeholder="Customer name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+213: <label className="form-label">S/O (Father's Name)</label>
+214: <input type="text" className="form-control" placeholder="Son/Daughter of" value={form.so} onChange={(e) => setForm({ ...form, so: e.target.value })} />
+219: <label className="form-label">CNIC</label>
+220: <input type="text" className="form-control" placeholder="CNIC number" value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} />
+225: <label className="form-label">Phone</label>
+226: <input type="text" className="form-control" placeholder="Phone number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+231: <label className="form-label">Email</label>
+232: <input type="email" className="form-control" placeholder="Email address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+237: <label className="form-label">City</label>
+238: <input type="text" className="form-control" placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+243: <label className="form-label">Status</label>
+245: <option value="active">Active</option>
+246: <option value="inactive">Inactive</option>
+252: <label className="form-label">Photo</label>
+261: <label className="form-label">Address</label>
+262: <textarea className="form-control" rows={2} placeholder="Full address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+274: <h4 className="fw-bold">Customers</h4>
+275: <h6>Manage your customer list</h6>
+296: <input type="text" className="form-control" placeholder="Search customers..." value={search} onChange={(e) => setSearch(e.target.value)} />
+301: <option value="">All Status</option>
+302: <option value="active">Active</option>
+303: <option value="inactive">Inactive</option>
+305: <span className="badge bg-primary fs-12">{filtered.length} customer{filtered.length !== 1 ? 's' : ''}</span>
+321: <th>Customer</th>
+322: <th>CNIC</th>
+323: <th>Phone</th>
+324: <th>City</th>
+325: <th>Misc Balance</th>
+326: <th>Status</th>
+327: <th style={{ width: 120 }}>Actions</th>
+339: <span className="fw-medium">{c.name}</span>
+342: <td>{c.cnic || '-'}</td>
+343: <td>{c.phone || '-'}</td>
+344: <td>{c.city || '-'}</td>
+346: <span className={`fw-medium ${(c.miscBalance || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+357: <button className="btn btn-icon btn-sm" title="View" onClick={() => openView(c)}><i className="ti ti-eye text-primary"></i></button>
+358: <button className="btn btn-icon btn-sm" title="Edit" onClick={() => openEdit(c)}><i className="ti ti-edit text-info"></i></button>
+359: <button className="btn btn-icon btn-sm" title="WhatsApp" onClick={() => setWhatsappCustomer(c)}><i className="ti ti-brand-whatsapp text-success"></i></button>
+360: <button className="btn btn-icon btn-sm" title="Delete" onClick={() => openDelete(c.id)}><i className="ti ti-trash text-danger"></i></button>
+378: <h5 className="modal-title"><i className="ti ti-user-plus me-2"></i>Add Customer</h5>
+379: <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
+383: <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+385: {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</> : <><i className="ti ti-check me-1"></i>Add Customer</>}
+399: <h5 className="modal-title"><i className="ti ti-edit me-2"></i>Edit Customer</h5>
+400: <button type="button" className="btn-close" onClick={() => setShowEditModal(false)}></button>
+404: <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+406: {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>Updating...</> : <><i className="ti ti-check me-1"></i>Update Customer</>}
+421: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Customer?</h4>
+422: <p className="text-muted mb-0">This action cannot be undone.</p>
+424: <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+441: <h5 className="modal-title"><i className="ti ti-user me-2"></i>Customer Details</h5>
+442: <button type="button" className="btn-close" onClick={() => setShowViewModal(false)}></button>
+446: <h5 className="fw-bold mb-1">{viewCustomer.name}</h5>
+453: {viewCustomer.so && <tr><td className="text-muted"><i className="ti ti-user me-2"></i>S/O</td><td className="text-end fw-medium">{viewCustomer.so}</td></tr>}
+454: {viewCustomer.cnic && <tr><td className="text-muted"><i className="ti ti-id me-2"></i>CNIC</td><td className="text-end fw-medium">{viewCustomer.cnic}</td></tr>}
+456: <td className="text-muted"><i className="ti ti-wallet me-2"></i>Misc Balance</td>
+458: <span className={`${(viewCustomer.miscBalance || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+463: {viewCustomer.phone && <tr><td className="text-muted"><i className="ti ti-phone me-2"></i>Phone</td><td className="text-end fw-medium">{viewCustomer.phone}</td></tr>}
+464: {viewCustomer.email && <tr><td className="text-muted"><i className="ti ti-mail me-2"></i>Email</td><td className="text-end fw-medium">{viewCustomer.email}</td></tr>}
+465: {viewCustomer.city && <tr><td className="text-muted"><i className="ti ti-building me-2"></i>City</td><td className="text-end fw-medium">{viewCustomer.city}</td></tr>}
+466: {viewCustomer.address && <tr><td className="text-muted"><i className="ti ti-map-pin me-2"></i>Address</td><td className="text-end fw-medium">{viewCustomer.address}</td></tr>}
+472: <button className="btn btn-success" onClick={() => { setShowViewModal(false); setWhatsappCustomer(viewCustomer); }}>
+475: <button className="btn btn-secondary" onClick={() => setShowViewModal(false)}>Close</button>
+476: <button className="btn btn-primary" onClick={() => { setShowViewModal(false); openEdit(viewCustomer); }}>
+492: title="Message Customer"
+Hardcoded string lines: 67
+
+========================================
+FILE: src/pages/people/Suppliers.tsx
+TOTAL LINES: 209
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect } from 'react';
+2: import { getParties, createParty, updateParty, deleteParty, Party, CreatePartyPayload } from '../../services/partyService';
+3: import { showSuccess, showError } from '../../utils/alertUtils';
+4: 
+5: const ROLE = 'Supplier';
+--- Hardcoded English strings ---
+77: <div className="page-title"><h4>Suppliers</h4><h6>Manage your suppliers</h6></div>
+80: <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}><i className="ti ti-circle-plus me-1"></i>Add Supplier</a>
+89: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+94: <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">{filterCountry || 'Country'}</a>
+96: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCountry(''); }}>All</a></li>
+97: {countries.map(c => <li key={c}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCountry(c!); }}>{c}</a></li>)}
+101: <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">{filterStatus ? (filterStatus === 'active' ? 'Active' : 'Inactive') : 'Status'}</a>
+103: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+104: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus('active'); }}>Active</a></li>
+105: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus('inactive'); }}>Inactive</a></li>
+109: <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">Sort By: {sortBy === 'asc' ? 'Ascending' : sortBy === 'desc' ? 'Descending' : 'Recently Added'}</a>
+111: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+112: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+113: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+126: <th>Code</th><th>Supplier</th><th>Email</th><th>Phone</th><th>Country</th><th>Status</th><th className="text-center">Actions</th>
+130: {paginated.length === 0 ? <tr><td colSpan={8} className="text-center py-4">No suppliers found</td></tr> : paginated.map(p => (
+133: <td>{p.code}</td>
+134: <td><div className="d-flex align-items-center"><a href="#" className="avatar avatar-md me-2"><img src={p.picture || '/assets/img/users/user-01.jpg'} alt="" /></a><a href="#">{p.fullName}{p.lastName ? ` ${p.lastName}` : ''}</a></div></td>
+135: <td>{p.email}</td><td>{p.phone}</td><td>{p.country}</td>
+140: <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(p); }}><i data-feather="edit" className="info-img"></i>Edit</a></li>
+141: <li><a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(p.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>Delete</a></li>
+159: <h4 className="modal-title">{editingId ? 'Edit Supplier' : 'Add Supplier'}</h4>
+160: <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
+164: <div className="col-lg-6"><div className="mb-3"><label className="form-label">First Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} /></div></div>
+165: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Last Name</label><input type="text" className="form-control" value={form.lastName || ''} onChange={e => setForm({ ...form, lastName: e.target.value })} /></div></div>
+166: <div className="col-lg-12"><div className="mb-3"><label className="form-label">Email<span className="text-danger ms-1">*</span></label><input type="email" className="form-control" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} /></div></div>
+167: <div className="col-lg-12"><div className="mb-3"><label className="form-label">Phone<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div></div>
+168: <div className="col-lg-12"><div className="mb-3"><label className="form-label">Address</label><input type="text" className="form-control" value={form.address || ''} onChange={e => setForm({ ...form, address: e.target.value })} /></div></div>
+169: <div className="col-lg-6"><div className="mb-3"><label className="form-label">City</label><input type="text" className="form-control" value={form.city || ''} onChange={e => setForm({ ...form, city: e.target.value })} /></div></div>
+170: <div className="col-lg-6"><div className="mb-3"><label className="form-label">State</label><input type="text" className="form-control" value={form.state || ''} onChange={e => setForm({ ...form, state: e.target.value })} /></div></div>
+171: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Country</label><input type="text" className="form-control" value={form.country || ''} onChange={e => setForm({ ...form, country: e.target.value })} /></div></div>
+172: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Postal Code</label><input type="text" className="form-control" value={form.postalCode || ''} onChange={e => setForm({ ...form, postalCode: e.target.value })} /></div></div>
+173: <div className="col-md-12"><div className="mb-3 d-flex align-items-center"><label className="form-label me-3 mb-0">Status</label><div className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked, status: e.target.checked ? 'active' : 'inactive' })} /></div></div></div>
+177: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+178: <button type="button" className="btn btn-primary" onClick={handleSave}>{editingId ? 'Save Changes' : 'Submit'}</button>
+192: <h4>Delete Supplier</h4>
+193: <p className="text-muted">Are you sure you want to delete this supplier?</p>
+195: <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+196: <button className="btn btn-danger" onClick={confirmDelete}>Delete</button>
+Hardcoded string lines: 39
+
+========================================
+FILE: src/pages/people/Billers.tsx
+TOTAL LINES: 230
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useRef } from 'react';
+2: import { getParties, createParty, updateParty, deleteParty, uploadPartyPicture, Party, CreatePartyPayload } from '../../services/partyService';
+3: import { showSuccess, showError } from '../../utils/alertUtils';
+4: 
+5: const ROLE = 'Biller';
+--- Hardcoded English strings ---
+87: <div className="page-title"><h4>Billers</h4><h6>Manage your Billers</h6></div>
+90: <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}><i className="ti ti-circle-plus me-1"></i>Add Biller</a>
+99: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+104: <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">{filterCountry || 'Country'}</a>
+106: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCountry(''); }}>All</a></li>
+107: {countries.map(c => <li key={c}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterCountry(c); }}>{c}</a></li>)}
+111: <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">Sort By: {sortBy === 'asc' ? 'Ascending' : sortBy === 'desc' ? 'Descending' : 'Recently Added'}</a>
+113: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+114: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+115: <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+128: <th>Code</th><th>Biller</th><th>Company Name</th><th>Email</th><th>Phone</th><th>Country</th><th className="text-center">Actions</th>
+132: {paginated.length === 0 ? <tr><td colSpan={8} className="text-center py-4">No billers found</td></tr> : paginated.map(p => (
+135: <td>{p.code}</td>
+141: <span className="ms-2">{p.fullName} {p.lastName}</span>
+144: <td>{p.companyName}</td>
+145: <td>{p.email}</td>
+146: <td>{p.phone}</td>
+147: <td>{p.country}</td>
+151: <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(p); }}><i data-feather="edit" className="info-img"></i>Edit</a></li>
+152: <li><a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(p.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>Delete</a></li>
+169: <h4 className="modal-title">{editingId ? 'Edit Biller' : 'Add Biller'}</h4>
+170: <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
+179: <a href="#" className="btn btn-primary btn-sm" onClick={e => { e.preventDefault(); fileInputRef.current?.click(); }}>Upload Image</a>
+185: <div className="col-lg-6"><div className="mb-3"><label className="form-label">First Name<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} /></div></div>
+186: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Last Name</label><input type="text" className="form-control" value={form.lastName || ''} onChange={e => setForm({ ...form, lastName: e.target.value })} /></div></div>
+187: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Company Name</label><input type="text" className="form-control" value={form.companyName || ''} onChange={e => setForm({ ...form, companyName: e.target.value })} /></div></div>
+188: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Email</label><input type="email" className="form-control" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} /></div></div>
+189: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Phone</label><input type="text" className="form-control" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div></div>
+190: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Address</label><input type="text" className="form-control" value={form.address || ''} onChange={e => setForm({ ...form, address: e.target.value })} /></div></div>
+191: <div className="col-lg-6"><div className="mb-3"><label className="form-label">City</label><input type="text" className="form-control" value={form.city || ''} onChange={e => setForm({ ...form, city: e.target.value })} /></div></div>
+192: <div className="col-lg-6"><div className="mb-3"><label className="form-label">State</label><input type="text" className="form-control" value={form.state || ''} onChange={e => setForm({ ...form, state: e.target.value })} /></div></div>
+193: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Country</label><input type="text" className="form-control" value={form.country || ''} onChange={e => setForm({ ...form, country: e.target.value })} /></div></div>
+194: <div className="col-lg-6"><div className="mb-3"><label className="form-label">Postal Code</label><input type="text" className="form-control" value={form.postalCode || ''} onChange={e => setForm({ ...form, postalCode: e.target.value })} /></div></div>
+195: <div className="col-md-12"><div className="mb-3 d-flex align-items-center"><label className="form-label me-3 mb-0">Status</label><div className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked, status: e.target.checked ? 'active' : 'inactive' })} /></div></div></div>
+199: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+200: <button type="button" className="btn btn-primary" onClick={handleSave}>{editingId ? 'Save Changes' : 'Submit'}</button>
+213: <h4>Delete Biller</h4>
+214: <p className="text-muted">Are you sure you want to delete this biller?</p>
+216: <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+217: <button className="btn btn-danger" onClick={confirmDelete}>Delete</button>
+Hardcoded string lines: 40
+
+========================================
+FILE: src/pages/installments/InstallmentPlans.tsx
+TOTAL LINES: 357
+--- First 5 lines ---
+1: import React, { useState, useEffect, useCallback } from 'react';
+2: import { Link } from 'react-router-dom';
+3: import { InstallmentPlan, getInstallmentPlans, cancelInstallment } from '../../services/installmentService';
+4: import { mediaUrl, MEDIA_BASE_URL } from '../../services/api';
+5: import WhatsAppSendModal from '../../components/WhatsAppSendModal';
+--- Hardcoded English strings ---
+101: return <span className={`badge fw-medium fs-10 ${map[status] || 'bg-secondary'}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
+123: <h4 className="fw-bold">Installment Plans</h4>
+124: <h6>Manage product installment plans &amp; repayments</h6>
+128: <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+129: <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+130: <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
+145: <p className="mb-1 text-muted">Total Plans</p>
+146: <h4 className="fw-bold">{plans.length}</h4>
+156: <p className="mb-1 text-muted">Active Plans</p>
+157: <h4 className="fw-bold">{plans.filter((p) => p.status === 'active').length}</h4>
+167: <p className="mb-1 text-muted">Total Financed</p>
+168: <h4 className="fw-bold">{fmt(plans.reduce((s, p) => s + p.financedAmount, 0))}</h4>
+178: <p className="mb-1 text-muted">Total Interest</p>
+179: <h4 className="fw-bold">{fmt(plans.reduce((s, p) => s + p.totalInterest, 0))}</h4>
+193: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+198: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+202: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+203: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+204: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('completed'); }}>Completed</a></li>
+205: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('defaulted'); }}>Defaulted</a></li>
+206: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('cancelled'); }}>Cancelled</a></li>
+214: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+224: <th>Customer</th>
+225: <th>Product</th>
+226: <th>Price</th>
+227: <th>Down Payment</th>
+228: <th>EMI</th>
+229: <th>Tenure</th>
+230: <th>Interest</th>
+231: <th>Total Payable</th>
+232: <th>Paid</th>
+233: <th>Status</th>
+253: <span className="text-gray-9 fw-medium">{plan.customerName}</span>
+254: <br /><small className="text-muted">{plan.customerPhone}</small>
+261: <span>{plan.productName}</span>
+264: <td>{fmt(plan.productPrice)}</td>
+265: <td>{fmt(plan.downPayment)}</td>
+266: <td className="fw-medium">{fmt(plan.emiAmount)}</td>
+267: <td>{plan.tenure} mo</td>
+268: <td>{plan.interestRate}%</td>
+269: <td className="fw-medium">{fmt(plan.totalPayable)}</td>
+270: <td>{plan.paidInstallments}/{plan.tenure}</td>
+271: <td>{statusBadge(plan.status)}</td>
+274: <Link to={`/installment-details/${plan.id}`} className="me-2 p-2" title="View Details">
+277: <a className="me-2 p-2 text-success" href="#" onClick={(e) => { e.preventDefault(); setWhatsappPlan(plan); }} title="Send WhatsApp">
+281: <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openCancelModal(plan.id); }} title="Cancel Plan">
+304: <h4 className="fs-20 fw-bold mb-2 mt-1">Cancel Installment Plan</h4>
+305: <p className="mb-0 fs-16">Are you sure you want to cancel this installment plan?</p>
+307: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowCancelModal(false)}>No, Keep It</button>
+308: <button type="button" className="btn btn-danger fs-13 fw-medium p-2 px-3" onClick={handleCancel}>Yes, Cancel Plan</button>
+324: title="Send Installment Reminder"
+Hardcoded string lines: 51
+
+========================================
+FILE: src/pages/installments/CreateInstallment.tsx
+TOTAL LINES: 1247
+--- First 5 lines ---
+1: import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+2: import { useNavigate } from 'react-router-dom';
+3: import { mediaUrl, MEDIA_BASE_URL } from '../../services/api';
+4: import {
+5:   CreateInstallmentPayload,
+--- Hardcoded English strings ---
+433: <h4 className="fw-bold">Create Installment Plan</h4>
+434: <h6>Set up a new product installment with repayment schedule</h6>
+438: <a href="#" className="btn btn-secondary" onClick={(e) => { e.preventDefault(); navigate('/installment-plans'); }}>
+477: <label className="form-label">Search Customer<span className="text-danger ms-1">*</span></label>
+484: placeholder="Type customer name, phone, email or city..."
+505: <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> Loading customers...</div>
+507: <div className="text-center p-3 text-muted">No customers found</div>
+526: <h6 className="mb-0 fs-13 fw-medium">{customer.name}</h6>
+527: <small className="text-muted">{customer.phone} &bull; {customer.email || '-'}</small>
+530: <small className="text-muted">{customer.city || '-'}</small>
+552: <h6 className="mb-1 fw-bold">{selectedCustomer.name}</h6>
+555: {selectedCustomer.cnic && <small><strong>CNIC:</strong> {selectedCustomer.cnic}</small>}
+556: <small><strong>Phone:</strong> {selectedCustomer.phone}</small>
+557: <small><strong>Email:</strong> {selectedCustomer.email || '-'}</small>
+558: <small><strong>City:</strong> {selectedCustomer.city || '-'}</small>
+566: <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
+567: <input type="text" className="form-control" value={selectedCustomer?.name ?? ''} readOnly placeholder="Select a customer from search above" />
+570: <label className="form-label">Phone Number<span className="text-danger ms-1">*</span></label>
+571: <input type="text" className="form-control" value={selectedCustomer?.phone ?? ''} readOnly placeholder="Auto-filled from customer" />
+574: <label className="form-label">Address</label>
+575: <textarea className="form-control" rows={2} value={selectedCustomer?.address ?? ''} readOnly placeholder="Auto-filled from customer" />
+615: <p className="text-muted text-center mb-0">No guarantors added. Click "Add Guarantor" to add one.</p>
+646: <label className="form-label">Search Existing Person</label>
+653: placeholder="Type name, phone, or CNIC to search..."
+663: <button type="button" className="btn btn-outline-secondary" onClick={() => handleClearGuarantor(idx)}>
+671: <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> Searching...</div>
+673: <div className="text-center p-3 text-muted">No results found. Fill in details below to create new.</div>
+692: <h6 className="mb-0 fs-13 fw-medium">{party.name}</h6>
+693: <small className="text-muted">{party.phone || '-'} &bull; {party.cnic || '-'}</small>
+696: <span className="badge bg-secondary-transparent">{party.role}</span>
+704: <small className="text-muted">Select an existing person or fill in details below to create new</small>
+718: <h6 className="mb-1 fw-bold">{g.name}</h6>
+721: {g.cnic && <small><strong>CNIC:</strong> {g.cnic}</small>}
+722: {g.phone && <small><strong>Phone:</strong> {g.phone}</small>}
+730: <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+731: <input type="text" className="form-control" placeholder="Guarantor name" value={g.name}
+735: <label className="form-label">S/O (Father's Name)</label>
+736: <input type="text" className="form-control" placeholder="Son/Daughter of" value={g.so}
+740: <label className="form-label">Phone</label>
+741: <input type="text" className="form-control" placeholder="Phone number" value={g.phone}
+745: <label className="form-label">CNIC / ID Number</label>
+746: <input type="text" className="form-control" placeholder="CNIC or ID number" value={g.cnic}
+750: <label className="form-label">Relationship</label>
+753: <option value="">Select Relationship</option>
+754: <option value="Father">Father</option>
+755: <option value="Brother">Brother</option>
+756: <option value="Uncle">Uncle</option>
+757: <option value="Friend">Friend</option>
+758: <option value="Colleague">Colleague</option>
+759: <option value="Employer">Employer</option>
+760: <option value="Neighbor">Neighbor</option>
+761: <option value="Other">Other</option>
+765: <label className="form-label">Address</label>
+766: <textarea className="form-control" rows={2} placeholder="Full address" value={g.address}
+770: <label className="form-label">Photo / ID Picture</label>
+830: <label className="form-label">Search Product from Inventory<span className="text-danger ms-1">*</span></label>
+837: placeholder="Type product name, SKU, category or brand..."
+858: <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> Loading products...</div>
+860: <div className="text-center p-3 text-muted">No products found</div>
+875: <h6 className="mb-0 fs-13 fw-medium">{product.productName}</h6>
+876: <small className="text-muted">{product.sku || '-'} &bull; {product.category || '-'} &bull; {product.brand || '-'}</small>
+879: <span className="fw-bold text-primary">Rs {fmt(product.price)}</span>
+881: {product.quantity !== undefined && <small className="text-muted">Qty: {product.quantity}</small>}
+899: <h6 className="mb-1 fw-bold">{selectedProduct.productName}</h6>
+901: <small><strong>SKU:</strong> {selectedProduct.sku || '-'}</small>
+902: <small><strong>Category:</strong> {selectedProduct.category || '-'}</small>
+903: <small><strong>Brand:</strong> {selectedProduct.brand || '-'}</small>
+904: <small><strong>Price:</strong> Rs {fmt(selectedProduct.price)}</small>
+912: <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+913: <input type="text" className="form-control" value={selectedProduct?.productName ?? ''} readOnly placeholder="Select a product from search above" />
+916: <label className="form-label">Product Price (Rs)<span className="text-danger ms-1">*</span></label>
+917: <input type="number" className="form-control" value={productPrice || ''} readOnly placeholder="Auto-filled from product" />
+921: <label className="form-label">Finance Amount (Rs)</label>
+922: <input type="number" className="form-control" min={0} step="0.01" value={form.financeAmount ?? ''} onChange={(e) => set('financeAmount', parseFloat(e.target.value) || 0)} placeholder="Leave blank to use product price" />
+923: <small className="text-muted">Custom finance amount (defaults to product price if blank)</small>
+957: <label className="form-label">Down Payment (Rs)<span className="text-danger ms-1">*</span></label>
+959: {productPrice > 0 && <small className="text-muted">{((form.downPayment / baseAmount) * 100).toFixed(1)}% of {form.financeAmount && form.financeAmount > 0 ? 'finance' : 'product'} amount</small>}
+964: <label className="form-label">Interest Rate (% per annum)</label>
+966: <small className="text-muted">Set 0 for interest-free plan</small>
+971: <label className="form-label">Tenure (Months)<span className="text-danger ms-1">*</span></label>
+974: <option key={m} value={m}>{m} Months</option>
+981: <label className="form-label">Start Date<span className="text-danger ms-1">*</span></label>
+1018: <tr><td className="text-muted">Product Price</td><td className="text-end fw-medium">Rs {fmt(productPrice)}</td></tr>
+1020: <tr><td className="text-muted">Finance Amount</td><td className="text-end fw-medium text-info">Rs {fmt(form.financeAmount)}</td></tr>
+1022: <tr><td className="text-muted">Down Payment</td><td className="text-end fw-medium text-success">- Rs {fmt(form.downPayment)}</td></tr>
+1023: <tr className="border-top"><td className="text-muted">Financed Amount</td><td className="text-end fw-bold">Rs {fmt(financedAmount)}</td></tr>
+1024: <tr><td className="text-muted">Interest Rate</td><td className="text-end">{form.interestRate}% p.a.</td></tr>
+1025: <tr><td className="text-muted">Tenure</td><td className="text-end">{form.tenure} months</td></tr>
+1026: <tr className="border-top"><td className="text-muted">Monthly EMI</td><td className="text-end fw-bold fs-16 text-primary">Rs {fmt(Math.round(emi * 100) / 100)}</td></tr>
+1027: <tr><td className="text-muted">Total Interest</td><td className="text-end text-danger">Rs {fmt(Math.round(totalInterest * 100) / 100)}</td></tr>
+1028: <tr className="border-top"><td className="fw-bold">Total Payable</td><td className="text-end fw-bold fs-16">Rs {fmt(Math.round(totalPayable * 100) / 100)}</td></tr>
+1037: <h6 className="mb-0"><i className="ti ti-calendar me-2"></i>Repayment Schedule</h6>
+1038: <span className="badge bg-primary">{schedule.length} installments</span>
+1045: <th>Due Date</th>
+1046: <th>EMI</th>
+1047: <th>Balance</th>
+1053: <td>{entry.installmentNo}</td>
+1054: <td>{entry.dueDate}</td>
+1055: <td className="fw-medium">{fmt(entry.emiAmount)}</td>
+1056: <td>{fmt(entry.balance)}</td>
+1062: <td colSpan={2}>Total</td>
+1063: <td>{fmt(schedule.reduce((s, e) => s + e.emiAmount, 0))}</td>
+1077: {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>Creating...</> : <><i className="ti ti-check me-1"></i>Create Installment Plan</>}
+1089: <button type="button" className="btn btn-secondary" onClick={() => navigate('/installment-plans')}>Cancel</button>
+1091: {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>Creating...</> : <><i className="ti ti-check me-1"></i>Create Installment Plan</>}
+1103: <h5 className="modal-title"><i className="ti ti-box me-2"></i>Add New Product</h5>
+1104: <button type="button" className="btn-close" onClick={() => setShowNewProductModal(false)}></button>
+1109: <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+1110: <input type="text" className="form-control" placeholder="Product name" value={newProduct.productName}
+1114: <label className="form-label">Price (Rs)<span className="text-danger ms-1">*</span></label>
+1119: <label className="form-label">SKU</label>
+1120: <input type="text" className="form-control" placeholder="Auto-generated if blank" value={newProduct.sku}
+1124: <label className="form-label">Quantity</label>
+1129: <label className="form-label">Category</label>
+1130: <input type="text" className="form-control" placeholder="e.g. Electronics" value={newProduct.category}
+1134: <label className="form-label">Brand</label>
+1135: <input type="text" className="form-control" placeholder="e.g. Samsung" value={newProduct.brand}
+1139: <label className="form-label">Description</label>
+1140: <textarea className="form-control" rows={2} placeholder="Brief product description" value={newProduct.description}
+1144: <label className="form-label">Product Image</label>
+1160: <button type="button" className="btn btn-secondary" onClick={() => setShowNewProductModal(false)}>Cancel</button>
+1162: {newProductSaving ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</> : <><i className="ti ti-check me-1"></i>Add Product</>}
+1176: <h5 className="modal-title"><i className="ti ti-user-plus me-2"></i>Add New Customer</h5>
+1177: <button type="button" className="btn-close" onClick={() => setShowNewCustomerModal(false)}></button>
+1182: <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+1183: <input type="text" className="form-control" placeholder="Customer name" value={newCustomer.name}
+1187: <label className="form-label">S/O (Father's Name)</label>
+1188: <input type="text" className="form-control" placeholder="Son/Daughter of" value={newCustomer.so}
+1192: <label className="form-label">CNIC</label>
+1193: <input type="text" className="form-control" placeholder="CNIC number" value={newCustomer.cnic}
+1197: <label className="form-label">Phone<span className="text-danger ms-1">*</span></label>
+1198: <input type="text" className="form-control" placeholder="Phone number" value={newCustomer.phone}
+1202: <label className="form-label">Email</label>
+1203: <input type="email" className="form-control" placeholder="Email address" value={newCustomer.email}
+1207: <label className="form-label">City</label>
+1208: <input type="text" className="form-control" placeholder="City" value={newCustomer.city}
+1212: <label className="form-label">Address</label>
+1213: <textarea className="form-control" rows={2} placeholder="Full address" value={newCustomer.address}
+1217: <label className="form-label">Photo</label>
+1233: <button type="button" className="btn btn-secondary" onClick={() => setShowNewCustomerModal(false)}>Cancel</button>
+1235: {newCustomerSaving ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</> : <><i className="ti ti-check me-1"></i>Add Customer</>}
+Hardcoded string lines: 141
+
+========================================
+FILE: src/pages/installments/InstallmentDetails.tsx
+TOTAL LINES: 845
+--- First 5 lines ---
+1: import React, { useState, useEffect, useMemo } from 'react';
+2: import { useParams, useNavigate, Link } from 'react-router-dom';
+3: import { mediaUrl, MEDIA_BASE_URL } from '../../services/api';
+4: import {
+5:   InstallmentPlan,
+--- Hardcoded English strings ---
+146: return <span className={`badge fw-medium fs-10 ${m.cls}`}>{m.label}</span>;
+152: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+160: <h4>Plan not found</h4>
+161: <Link to="/installment-plans" className="btn btn-primary mt-3">Back to Plans</Link>
+172: <h4 className="fw-bold">Installment Details</h4>
+173: <h6>Plan #{plan.id} &mdash; {plan.customerName}</h6>
+177: <button className="btn btn-secondary" onClick={() => navigate('/installment-plans')}>
+180: <button className="btn btn-outline-primary" onClick={() => setShowPlanPrint(true)}>
+218: }} title="Send Plan Summary via WhatsApp">
+229: <p className="mb-1 text-muted">Finance Amount</p>
+230: <h4 className="fw-bold">Rs {fmt(plan.financeAmount ?? plan.financedAmount)}</h4>
+237: <p className="mb-1 text-muted">Monthly EMI</p>
+238: <h4 className="fw-bold text-primary">Rs {fmt(plan.emiAmount)}</h4>
+245: <p className="mb-1 text-muted">Total Paid</p>
+246: <h4 className="fw-bold text-success">Rs {fmt(totalPaid)}</h4>
+253: <p className="mb-1 text-muted">Remaining</p>
+254: <h4 className="fw-bold text-danger">Rs {fmt(totalRemaining)}</h4>
+276: <h6 className="fw-bold mb-1">{plan.customerName}</h6>
+277: <small className="text-muted">{plan.customerPhone}</small>
+286: <div className="card-header"><h5 className="card-title mb-0"><i className="ti ti-box me-2"></i>Product</h5></div>
+291: <h6 className="fw-bold mb-1">{plan.productName}</h6>
+292: <span className="text-muted">Rs {fmt(plan.productPrice)}</span>
+300: <div className="card-header"><h5 className="card-title mb-0"><i className="ti ti-settings me-2"></i>Plan Details</h5></div>
+305: <tr><td className="text-muted">Finance Amount</td><td className="text-end text-info fw-bold">Rs {fmt(plan.financeAmount)}</td></tr>
+307: <tr><td className="text-muted">Down Payment</td><td className="text-end">Rs {fmt(plan.downPayment)}</td></tr>
+308: <tr><td className="text-muted">Financed Amount</td><td className="text-end">Rs {fmt(plan.financedAmount)}</td></tr>
+309: <tr><td className="text-muted">Interest Rate</td><td className="text-end">{plan.interestRate}% p.a.</td></tr>
+310: <tr><td className="text-muted">Tenure</td><td className="text-end">{plan.tenure} months</td></tr>
+311: <tr><td className="text-muted">Monthly EMI</td><td className="text-end fw-bold text-primary">Rs {fmt(plan.emiAmount)}</td></tr>
+312: <tr className="border-top"><td className="text-muted">Total Interest</td><td className="text-end text-danger">Rs {fmt(plan.totalInterest)}</td></tr>
+313: <tr><td className="fw-bold">Total Payable</td><td className="text-end fw-bold">Rs {fmt(plan.totalPayable)}</td></tr>
+314: <tr><td className="text-muted">Start Date</td><td className="text-end">{plan.startDate}</td></tr>
+315: <tr><td className="text-muted">Status</td><td className="text-end">
+329: <span className="fw-medium">Repayment Progress</span>
+330: <span className="fw-bold">{plan.paidInstallments}/{plan.tenure}</span>
+335: {plan.nextDueDate && <p className="mt-2 mb-0 text-muted"><small>Next due: <strong>{plan.nextDueDate}</strong></small></p>}
+357: <h6 className="fw-bold mb-1">{g.name}</h6>
+359: {g.relationship && <span className="badge bg-primary-transparent text-primary me-2 mb-1">{g.relationship}</span>}
+362: <button className="btn btn-sm btn-outline-danger" title="Remove guarantor" onClick={(e) => {
+383: <h5 className="card-title mb-0"><i className="ti ti-calendar me-2"></i>Repayment Schedule</h5>
+385: <span className="badge bg-success me-1">Paid: {plan.paidInstallments}</span>
+386: <span className="badge bg-secondary">Remaining: {plan.remainingInstallments}</span>
+395: <th>Due Date</th>
+396: <th>EMI Amount</th>
+397: <th>Paid</th>
+398: <th>Balance</th>
+399: <th>Status</th>
+400: <th>Paid Date</th>
+408: <td>{plan.startDate}</td>
+409: <td className="fw-medium">Rs {fmt(plan.downPayment)}</td>
+410: <td className="text-success">Rs {fmt(plan.downPayment)}</td>
+411: <td>Rs {fmt(plan.financedAmount)}</td>
+412: <td><span className="badge bg-success fw-medium fs-10">Down Payment</span></td>
+413: <td>{plan.startDate}</td>
+418: <td className="fw-medium">{entry.installmentNo}</td>
+419: <td>{entry.dueDate}</td>
+420: <td className="fw-medium">Rs {fmt(entry.emiAmount)}</td>
+423: ? <>Rs {fmt(entry.actualPaidAmount)}{entry.status === 'partial' && <small className="text-muted d-block">/ Rs {fmt(entry.emiAmount)}</small>}</>
+425: ? <small className="text-muted">Misc only</small>
+431: <td>Rs {fmt(entry.balance)}</td>
+432: <td>{statusBadgeEntry(entry.status)}</td>
+433: <td>{entry.paidDate || '-'}</td>
+451: title="Share Due Installment via WhatsApp"
+460: title="Generate Deposit Slip"
+472: <td colSpan={2}>Total</td>
+473: <td>Rs {fmt(plan.schedule.reduce((s, e) => s + e.emiAmount, 0))}</td>
+477: <td>Rs {fmt(plan.schedule.reduce((s, e) => s + e.principal, 0))}</td>
+478: <td className="text-danger">Rs {fmt(plan.schedule.reduce((s, e) => s + e.interest, 0))}</td>
+496: <button type="button" className="btn-close" onClick={() => setShowPayModal(false)}></button>
+501: <label className="form-label">EMI Amount<span className="text-danger ms-1">*</span></label>
+529: placeholder="Enter payment amount"
+537: <label className="form-label">Payment Method</label>
+543: <option value="Cash">Cash</option>
+544: <option value="Card">Card</option>
+545: <option value="Bank Transfer">Bank Transfer</option>
+546: <option value="Check">Check</option>
+550: <label className="form-label">Customer Misc Balance</label>
+552: <span className="input-group-text">Rs</span>
+578: <label className="form-label">Notes</label>
+582: placeholder="Optional payment notes"
+602: <strong>Overpayment:</strong> Rs {excess.toFixed(2)} will be added to the customer's misc account.
+609: <strong>Underpayment:</strong> This installment will be marked as <strong>Partial</strong>.
+618: <button type="button" className="btn btn-secondary" onClick={() => setShowPayModal(false)}>Cancel</button>
+626: <><span className="spinner-border spinner-border-sm me-2"></span>Processing...</>
+628: <><i className="ti ti-check me-1"></i>Process Payment</>
+658: <h5 className="modal-title fw-bold"><i className="ti ti-user me-2"></i>Customer Details</h5>
+659: <button type="button" className="btn-close" onClick={() => setShowCustomerModal(false)}></button>
+666: <span className="fs-1 fw-bold">{plan.customerName.charAt(0).toUpperCase()}</span>
+669: <h4 className="fw-bold mb-1">{plan.customerName}</h4>
+670: <p className="text-muted mb-3">Customer</p>
+678: <small className="text-muted d-block">S/O (Father's Name)</small>
+679: <span className="fw-medium">{plan.customerSo}</span>
+689: <small className="text-muted d-block">CNIC</small>
+690: <span className="fw-medium">{plan.customerCnic}</span>
+699: <small className="text-muted d-block">Phone</small>
+700: <span className="fw-medium">{plan.customerPhone || 'N/A'}</span>
+708: <small className="text-muted d-block">Address</small>
+709: <span className="fw-medium">{plan.customerAddress || 'N/A'}</span>
+717: <button type="button" className="btn btn-secondary" onClick={() => setShowCustomerModal(false)}>Close</button>
+730: <h5 className="modal-title fw-bold"><i className="ti ti-shield-check me-2"></i>Guarantor Details</h5>
+731: <button type="button" className="btn-close" onClick={() => setSelectedGuarantor(null)}></button>
+738: <span className="fs-1 fw-bold">{selectedGuarantor.name.charAt(0).toUpperCase()}</span>
+741: <h4 className="fw-bold mb-1">{selectedGuarantor.name}</h4>
+742: {selectedGuarantor.so && <p className="text-muted mb-1">S/O: {selectedGuarantor.so}</p>}
+743: {selectedGuarantor.relationship && <span className="badge bg-primary-transparent text-primary mb-3">{selectedGuarantor.relationship}</span>}
+750: <small className="text-muted d-block">Phone</small>
+751: <span className="fw-medium">{selectedGuarantor.phone || 'N/A'}</span>
+759: <small className="text-muted d-block">CNIC / ID Number</small>
+760: <span className="fw-medium">{selectedGuarantor.cnic || 'N/A'}</span>
+768: <small className="text-muted d-block">Address</small>
+769: <span className="fw-medium">{selectedGuarantor.address || 'N/A'}</span>
+777: <small className="text-muted d-block">Relationship</small>
+778: <span className="fw-medium">{selectedGuarantor.relationship || 'N/A'}</span>
+796: <button type="button" className="btn btn-secondary" onClick={() => setSelectedGuarantor(null)}>Close</button>
+811: title="Send WhatsApp Message"
+Hardcoded string lines: 115
+
+========================================
+FILE: src/pages/users/Users.tsx
+TOTAL LINES: 500
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback } from 'react';
+2: import { userService, UserDto, CreateUserPayload, UpdateUserPayload } from '../../services/userService';
+3: 
+4: const ROLES = ['Admin', 'Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
+5: 
+--- Hardcoded English strings ---
+162: <h4 className="fw-bold">Users</h4>
+163: <h6>Manage your users</h6>
+168: <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchUsers(); }}>
+174: <button className="btn btn-primary" onClick={() => { resetAddForm(); setShowAdd(true); }}>
+184: <button type="button" className="btn-close" onClick={() => setError('')}></button>
+197: placeholder="Search"
+214: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+215: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
+216: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+225: <span className="visually-hidden">Loading...</span>
+234: <th>User Name</th>
+235: <th>Phone</th>
+236: <th>Email</th>
+237: <th>Role</th>
+238: <th>Status</th>
+252: <td>{idx + 1}</td>
+258: <span>{user.fullName}</span>
+261: <td>{user.phone || '—'}</td>
+262: <td>{user.email}</td>
+263: <td>{user.role}</td>
+312: <h4>Add User</h4>
+314: <button type="button" className="close" onClick={() => setShowAdd(false)}>
+315: <span aria-hidden="true">&times;</span>
+324: <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+330: <label className="form-label">Role<span className="text-danger ms-1">*</span></label>
+338: <label className="form-label">Email<span className="text-danger ms-1">*</span></label>
+344: <label className="form-label">Phone</label>
+350: <label className="form-label">Password<span className="text-danger ms-1">*</span></label>
+356: <label className="form-label">Confirm Password<span className="text-danger ms-1">*</span></label>
+362: <span className="status-label">Status</span>
+371: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAdd(false)}>Cancel</button>
+393: <h4>Edit User</h4>
+395: <button type="button" className="close" onClick={() => setShowEdit(false)}>
+396: <span aria-hidden="true">&times;</span>
+405: <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+411: <label className="form-label">Role<span className="text-danger ms-1">*</span></label>
+419: <label className="form-label">Email<span className="text-danger ms-1">*</span></label>
+425: <label className="form-label">Phone</label>
+431: <label className="form-label">Password <small className="text-muted">(leave blank to keep current)</small></label>
+437: <label className="form-label">Confirm Password</label>
+443: <span className="status-label">Status</span>
+452: <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEdit(false)}>Cancel</button>
+475: <h4 className="fs-20 fw-bold mb-2 mt-1">Delete User</h4>
+476: <p className="mb-0 fs-16">Are you sure you want to delete <strong>{deleteName}</strong>?</p>
+478: <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDelete(false)}>Cancel</button>
+Hardcoded string lines: 45
+
+========================================
+FILE: src/pages/stock/ManageStocks.tsx
+TOTAL LINES: 620
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface DropdownOption { value: string; label: string; }
+--- Hardcoded English strings ---
+196: <label className="form-label">{label}<span className="text-danger ms-1">*</span></label>
+201: placeholder="Search Product"
+236: <h4>Manage Stock</h4>
+237: <h6>Manage your stock</h6>
+241: <li><a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+242: <li><a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+243: <li><a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
+244: <li><a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
+247: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); setShowAddModal(true); }}>
+259: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+265: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+269: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(''); }}>All</a></li>
+271: <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(w); }}>{w}</a></li>
+277: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+281: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(''); }}>All</a></li>
+283: <li key={s}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(s); }}>{s}</a></li>
+289: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+293: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterProduct(''); }}>All</a></li>
+295: <li key={p}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterProduct(p); }}>{p}</a></li>
+304: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+317: <th>Warehouse</th>
+318: <th>Store</th>
+319: <th>Product</th>
+320: <th>Date</th>
+321: <th>Person</th>
+322: <th>Qty</th>
+335: <td>{entry.warehouse}</td>
+336: <td>{entry.store}</td>
+342: <span>{entry.productName}</span>
+345: <td>{entry.date}</td>
+346: <td>{entry.person}</td>
+347: <td>{entry.quantity}</td>
+350: <a className="me-2 border rounded d-flex align-items-center p-2" href="#" onClick={(e) => { e.preventDefault(); openEditModal(entry); }}>
+353: <a className="p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(entry.id); }}>
+373: <div className="page-title"><h4>Add Stock</h4></div>
+374: <button type="button" className="close" onClick={() => { setShowAddModal(false); resetAdd(); }} aria-label="Close">
+375: <span aria-hidden="true">&times;</span>
+382: <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+384: <option value="">Select</option>
+385: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+391: <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+393: <option value="">Select</option>
+394: {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
+400: <label className="form-label">Responsible Person<span className="text-danger ms-1">*</span></label>
+401: <input type="text" className="form-control" value={addForm.person} onChange={(e) => setAddForm((p) => ({ ...p, person: e.target.value }))} placeholder="Enter person name" />
+426: <th>Product</th>
+427: <th>SKU</th>
+428: <th>Category</th>
+429: <th>Qty</th>
+440: <span>{addSelectedProduct.productName}</span>
+443: <td>{addSelectedProduct.sku}</td>
+444: <td>{addSelectedProduct.category}</td>
+447: <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setAddForm((p) => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}>
+452: <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setAddForm((p) => ({ ...p, quantity: p.quantity + 1 }))}>
+459: <a className="d-flex align-items-center border rounded p-2" href="#" onClick={(e) => { e.preventDefault(); setAddSelectedProduct(null); setAddSearchTerm(''); setAddForm((p) => ({ ...p, productId: 0, quantity: 1 })); }}>
+472: <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>Cancel</button>
+473: <button type="button" className="btn btn-primary" onClick={handleAddSave}>Add Stock</button>
+486: <div className="page-title"><h4>Edit Stock</h4></div>
+487: <button type="button" className="close" onClick={() => setShowEditModal(false)} aria-label="Close">
+488: <span aria-hidden="true">&times;</span>
+495: <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+497: <option value="">Select</option>
+498: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+504: <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+506: <option value="">Select</option>
+507: {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
+513: <label className="form-label">Responsible Person<span className="text-danger ms-1">*</span></label>
+514: <input type="text" className="form-control" value={editForm.person} onChange={(e) => setEditForm((p) => ({ ...p, person: e.target.value }))} placeholder="Enter person name" />
+539: <th>Product</th>
+540: <th>SKU</th>
+541: <th>Category</th>
+542: <th>Qty</th>
+553: <span>{editSelectedProduct.productName}</span>
+556: <td>{editSelectedProduct.sku}</td>
+557: <td>{editSelectedProduct.category}</td>
+560: <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setEditForm((p) => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}>
+565: <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setEditForm((p) => ({ ...p, quantity: p.quantity + 1 }))}>
+572: <a className="d-flex align-items-center border rounded p-2" href="#" onClick={(e) => { e.preventDefault(); setEditSelectedProduct(null); setEditSearchTerm(''); setEditForm((p) => ({ ...p, productId: 0, quantity: 1 })); }}>
+585: <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>Cancel</button>
+586: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+603: <h3 className="mb-2">Delete Stock</h3>
+604: <p className="fs-16 mb-3">Are you sure you want to delete product from stock?</p>
+606: <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>No, Cancel</button>
+607: <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>Yes, Delete</button>
+Hardcoded string lines: 84
+
+========================================
+FILE: src/pages/stock/StockAdjustment.tsx
+TOTAL LINES: 582
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface DropdownOption { value: string; label: string; }
+--- Hardcoded English strings ---
+203: <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
+205: <input type="text" className="form-control" placeholder="Search Product" value={term}
+233: <h4>Stock Adjustment</h4>
+234: <h6>Manage your stock adjustment</h6>
+238: <li><a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+239: <li><a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+240: <li><a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
+241: <li><a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
+244: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); setShowAddModal(true); }}>
+256: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+262: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+266: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(''); }}>All</a></li>
+268: <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(w); }}>{w}</a></li>
+274: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+278: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+279: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+280: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+288: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+301: <th>Warehouse</th>
+302: <th>Store</th>
+303: <th>Product</th>
+304: <th>Date</th>
+305: <th>Person</th>
+306: <th>Qty</th>
+319: <td>{entry.warehouse}</td>
+320: <td>{entry.store}</td>
+326: <span>{entry.productName}</span>
+329: <td>{entry.date}</td>
+330: <td>{entry.person}</td>
+331: <td>{entry.quantity}</td>
+334: <a className="me-2 border rounded d-flex align-items-center p-2" href="#" onClick={(e) => { e.preventDefault(); openNotesModal(entry.notes || 'No notes available.'); }}>
+337: <a className="me-2 border rounded d-flex align-items-center p-2" href="#" onClick={(e) => { e.preventDefault(); openEditModal(entry); }}>
+340: <a className="p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(entry.id); }}>
+360: <div className="page-title"><h4>Add Adjustment</h4></div>
+361: <button type="button" className="close" onClick={() => { setShowAddModal(false); resetAdd(); }} aria-label="Close">
+362: <span aria-hidden="true">&times;</span>
+373: <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+375: <option value="">Select</option>
+376: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+382: <label className="form-label">Reference Number<span className="text-danger ms-1">*</span></label>
+388: <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+390: <option value="">Select</option>
+391: {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
+397: <label className="form-label">Responsible Person<span className="text-danger ms-1">*</span></label>
+398: <input type="text" className="form-control" value={addForm.person} onChange={(e) => setAddForm((p) => ({ ...p, person: e.target.value }))} placeholder="Enter person name" />
+404: <label className="form-label">Notes<span className="text-danger ms-1">*</span></label>
+410: <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>Cancel</button>
+411: <button type="button" className="btn btn-primary" onClick={handleAddSave}>Create Adjustment</button>
+424: <div className="page-title"><h4>Edit Adjustment</h4></div>
+425: <button type="button" className="close" onClick={() => setShowEditModal(false)} aria-label="Close">
+426: <span aria-hidden="true">&times;</span>
+438: <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+440: <option value="">Select</option>
+441: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+447: <label className="form-label">Reference Number<span className="text-danger ms-1">*</span></label>
+459: <th>Product</th>
+460: <th>SKU</th>
+461: <th>Category</th>
+462: <th>Qty</th>
+473: <span>{editSelectedProduct.productName}</span>
+476: <td>{editSelectedProduct.sku}</td>
+477: <td>{editSelectedProduct.category}</td>
+480: <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setEditForm((p) => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}>
+485: <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setEditForm((p) => ({ ...p, quantity: p.quantity + 1 }))}>
+492: <a className="p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); setEditSelectedProduct(null); setEditSearchTerm(''); setEditForm((p) => ({ ...p, productId: 0, quantity: 1 })); }}>
+506: <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+508: <option value="">Select</option>
+509: {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
+515: <label className="form-label">Responsible Person<span className="text-danger ms-1">*</span></label>
+516: <input type="text" className="form-control" value={editForm.person} onChange={(e) => setEditForm((p) => ({ ...p, person: e.target.value }))} placeholder="Enter person name" />
+521: <label className="form-label">Notes<span className="text-danger ms-1">*</span></label>
+528: <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>Cancel</button>
+529: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+542: <div className="page-title"><h4>Notes</h4></div>
+543: <button type="button" className="close" onClick={() => setShowNotesModal(false)} aria-label="Close">
+544: <span aria-hidden="true">&times;</span>
+548: <p>{viewNotes}</p>
+565: <h3 className="mb-2">Delete Stock Adjustment</h3>
+566: <p className="fs-16 mb-3">Are you sure you want to delete stock adjustment?</p>
+568: <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>No, Cancel</button>
+569: <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>Yes, Delete</button>
+Hardcoded string lines: 81
+
+========================================
+FILE: src/pages/stock/StockTransfer.tsx
+TOTAL LINES: 597
+--- First 5 lines ---
+1: ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+2: import api, { mediaUrl } from '../../services/api';
+3: 
+4: /* ---------- Types ---------- */
+5: interface DropdownOption { value: string; label: string; }
+--- Hardcoded English strings ---
+239: <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
+241: <input type="text" className="form-control" placeholder="Search Product" value={term}
+271: <th>Product</th>
+272: <th>SKU</th>
+273: <th>Category</th>
+274: <th>Qty</th>
+275: <th>Action</th>
+286: <span>{item.productName}</span>
+289: <td>{item.sku}</td>
+290: <td>{item.category}</td>
+307: <a className="p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); setItems((prev) => prev.filter((i) => i.productId !== item.productId)); }}>
+327: <h4>Stock Transfer</h4>
+328: <h6>Manage your stock transfer</h6>
+332: <li><a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+333: <li><a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+334: <li><a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
+335: <li><a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
+338: <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); setShowAddModal(true); }}>
+350: <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+356: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+360: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterFrom(''); }}>All</a></li>
+362: <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterFrom(w); }}>{w}</a></li>
+368: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+372: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterTo(''); }}>All</a></li>
+374: <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterTo(w); }}>{w}</a></li>
+380: <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
+384: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
+385: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
+386: <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+394: <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+407: <th>From Warehouse</th>
+408: <th>To Warehouse</th>
+409: <th>No of Products</th>
+410: <th>Quantity Transferred</th>
+411: <th>Ref Number</th>
+412: <th>Date</th>
+425: <td>{t.warehouseFrom}</td>
+426: <td>{t.warehouseTo}</td>
+427: <td>{t.noOfProducts}</td>
+428: <td>{t.quantityTransferred}</td>
+429: <td>{t.referenceNumber}</td>
+430: <td>{t.date}</td>
+433: <a className="me-2 p-2 d-flex align-items-center justify-content-between border rounded" href="#" onClick={(e) => { e.preventDefault(); openEditModal(t); }}>
+436: <a className="p-2 d-flex align-items-center justify-content-between border rounded" href="#" onClick={(e) => { e.preventDefault(); openDeleteModal(t.id); }}>
+456: <div className="page-title"><h4>Add Transfer</h4></div>
+457: <button type="button" className="close" onClick={() => { setShowAddModal(false); resetAdd(); }} aria-label="Close">
+458: <span aria-hidden="true">&times;</span>
+465: <label className="form-label">Warehouse From<span className="text-danger ms-1">*</span></label>
+467: <option value="">Select</option>
+468: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+474: <label className="form-label">Warehouse To<span className="text-danger ms-1">*</span></label>
+476: <option value="">Select</option>
+477: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+483: <label className="form-label">Reference Number<span className="text-danger ms-1">*</span></label>
+495: <label className="form-label">Notes<span className="text-danger ms-1">*</span></label>
+502: <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>Cancel</button>
+503: <button type="button" className="btn btn-primary" onClick={handleAddSave}>Create</button>
+516: <div className="page-title"><h4>Edit Transfer</h4></div>
+517: <button type="button" className="close" onClick={() => setShowEditModal(false)} aria-label="Close">
+518: <span aria-hidden="true">&times;</span>
+525: <label className="form-label">Warehouse From<span className="text-danger ms-1">*</span></label>
+527: <option value="">Select</option>
+528: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+534: <label className="form-label">Warehouse To<span className="text-danger ms-1">*</span></label>
+536: <option value="">Select</option>
+537: {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
+543: <label className="form-label">Reference No<span className="text-danger ms-1">*</span></label>
+555: <label className="form-label">Notes<span className="text-danger ms-1">*</span></label>
+562: <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>Cancel</button>
+563: <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+580: <h3 className="mb-2">Delete Stock Transfer</h3>
+581: <p className="fs-16 mb-3">Are you sure you want to delete stock transfer?</p>
+583: <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>No, Cancel</button>
+584: <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>Yes, Delete</button>
+Hardcoded string lines: 74

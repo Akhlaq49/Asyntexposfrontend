@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { InstallmentPlan, getInstallmentPlans, cancelInstallment } from '../../services/installmentService';
 import { mediaUrl, MEDIA_BASE_URL } from '../../services/api';
 import WhatsAppSendModal from '../../components/WhatsAppSendModal';
 
 const InstallmentPlans: React.FC = () => {
+  const { t } = useTranslation();
   const [plans, setPlans] = useState<InstallmentPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,18 +122,18 @@ const InstallmentPlans: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Installment Plans</h4>
-            <h6>Manage product installment plans &amp; repayments</h6>
+            <h4 className="fw-bold">{t('installment_plans.title')}</h4>
+            <h6>{t('installment_plans.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
-          <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
-          <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
-          <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
+          <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+          <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+          <li><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
         </ul>
         <div className="page-btn">
           <Link to="/create-installment" className="btn btn-primary">
-            <i className="ti ti-circle-plus me-1"></i>Create Installment Plan
+            <i className="ti ti-circle-plus me-1"></i>{t('installment_plans.create_plan')}
           </Link>
         </div>
       </div>
@@ -142,7 +144,7 @@ const InstallmentPlans: React.FC = () => {
           <div className="card">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-1 text-muted">Total Plans</p>
+                <p className="mb-1 text-muted">{t('installment_plans.total_plans')}</p>
                 <h4 className="fw-bold">{plans.length}</h4>
               </div>
               <span className="rounded-circle d-inline-flex p-2 bg-primary-transparent"><i className="ti ti-file-text fs-24 text-primary"></i></span>
@@ -153,7 +155,7 @@ const InstallmentPlans: React.FC = () => {
           <div className="card">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-1 text-muted">Active Plans</p>
+                <p className="mb-1 text-muted">{t('installment_plans.active_plans')}</p>
                 <h4 className="fw-bold">{plans.filter((p) => p.status === 'active').length}</h4>
               </div>
               <span className="rounded-circle d-inline-flex p-2 bg-success-transparent"><i className="ti ti-check fs-24 text-success"></i></span>
@@ -164,7 +166,7 @@ const InstallmentPlans: React.FC = () => {
           <div className="card">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-1 text-muted">Total Financed</p>
+                <p className="mb-1 text-muted">{t('installment_plans.total_financed')}</p>
                 <h4 className="fw-bold">{fmt(plans.reduce((s, p) => s + p.financedAmount, 0))}</h4>
               </div>
               <span className="rounded-circle d-inline-flex p-2 bg-warning-transparent"><i className="ti ti-currency-dollar fs-24 text-warning"></i></span>
@@ -175,7 +177,7 @@ const InstallmentPlans: React.FC = () => {
           <div className="card">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-1 text-muted">Total Interest</p>
+                <p className="mb-1 text-muted">{t('installment_plans.total_interest')}</p>
                 <h4 className="fw-bold">{fmt(plans.reduce((s, p) => s + p.totalInterest, 0))}</h4>
               </div>
               <span className="rounded-circle d-inline-flex p-2 bg-info-transparent"><i className="ti ti-percentage fs-24 text-info"></i></span>
@@ -190,18 +192,18 @@ const InstallmentPlans: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {statusFilter ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) : 'Status'}
+                {statusFilter ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) : t('installment_plans.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('completed'); }}>Completed</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>{t('common.active')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('completed'); }}>{t('common.completed')}</a></li>
                 <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('defaulted'); }}>Defaulted</a></li>
                 <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('cancelled'); }}>Cancelled</a></li>
               </ul>
@@ -211,7 +213,7 @@ const InstallmentPlans: React.FC = () => {
         <div className="card-body p-0">
           {loading ? (
             <div className="text-center p-5">
-              <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+              <div className="spinner-border text-primary" role="status"><span className="visually-hidden">{t('common.loading')}</span></div>
             </div>
           ) : (
             <div className="table-responsive">
@@ -221,16 +223,16 @@ const InstallmentPlans: React.FC = () => {
                     <th className="no-sort">
                       <label className="checkboxs"><input type="checkbox" checked={selectAll} onChange={(e) => handleSelectAll(e.target.checked)} /><span className="checkmarks"></span></label>
                     </th>
-                    <th>Customer</th>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Down Payment</th>
-                    <th>EMI</th>
-                    <th>Tenure</th>
-                    <th>Interest</th>
-                    <th>Total Payable</th>
-                    <th>Paid</th>
-                    <th>Status</th>
+                    <th>{t('installment_plans.customer')}</th>
+                    <th>{t('installment_plans.product')}</th>
+                    <th>{t('installment_plans.price')}</th>
+                    <th>{t('installment_plans.down_payment')}</th>
+                    <th>{t('installment_plans.emi')}</th>
+                    <th>{t('installment_plans.tenure')}</th>
+                    <th>{t('installment_plans.interest')}</th>
+                    <th>{t('installment_plans.total_payable')}</th>
+                    <th>{t('installment_plans.paid')}</th>
+                    <th>{t('installment_plans.status')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -264,21 +266,21 @@ const InstallmentPlans: React.FC = () => {
                       <td>{fmt(plan.productPrice)}</td>
                       <td>{fmt(plan.downPayment)}</td>
                       <td className="fw-medium">{fmt(plan.emiAmount)}</td>
-                      <td>{plan.tenure} mo</td>
+                      <td>{plan.tenure} {t('common.mo')}</td>
                       <td>{plan.interestRate}%</td>
                       <td className="fw-medium">{fmt(plan.totalPayable)}</td>
                       <td>{plan.paidInstallments}/{plan.tenure}</td>
                       <td>{statusBadge(plan.status)}</td>
                       <td className="action-table-data">
                         <div className="edit-delete-action">
-                          <Link to={`/installment-details/${plan.id}`} className="me-2 p-2" title="View Details">
+                          <Link to={`/installment-details/${plan.id}`} className="me-2 p-2" title={t('installment_plans.view_details')}>
                             <i data-feather="eye" className="feather-eye"></i>
                           </Link>
-                          <a className="me-2 p-2 text-success" href="#" onClick={(e) => { e.preventDefault(); setWhatsappPlan(plan); }} title="Send WhatsApp">
+                          <a className="me-2 p-2 text-success" href="#" onClick={(e) => { e.preventDefault(); setWhatsappPlan(plan); }} title={t('installment_plans.send_whatsapp')}>
                             <i className="ti ti-brand-whatsapp fs-16"></i>
                           </a>
                           {plan.status === 'active' && (
-                            <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openCancelModal(plan.id); }} title="Cancel Plan">
+                            <a className="p-2" href="#" onClick={(e) => { e.preventDefault(); openCancelModal(plan.id); }} title={t('installment_plans.cancel_plan')}>
                               <i data-feather="trash-2" className="feather-trash-2"></i>
                             </a>
                           )}
@@ -301,11 +303,11 @@ const InstallmentPlans: React.FC = () => {
               <div className="page-wrapper-new p-0">
                 <div className="content p-5 px-3 text-center">
                   <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Cancel Installment Plan</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to cancel this installment plan?</p>
+                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('installment_plans.cancel_plan_title')}</h4>
+                  <p className="mb-0 fs-16">{t('installment_plans.cancel_confirm')}</p>
                   <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowCancelModal(false)}>No, Keep It</button>
-                    <button type="button" className="btn btn-danger fs-13 fw-medium p-2 px-3" onClick={handleCancel}>Yes, Cancel Plan</button>
+                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowCancelModal(false)}>{t('common.no_cancel_keep')}</button>
+                    <button type="button" className="btn btn-danger fs-13 fw-medium p-2 px-3" onClick={handleCancel}>{t('installment_plans.yes_cancel')}</button>
                   </div>
                 </div>
               </div>
@@ -321,7 +323,7 @@ const InstallmentPlans: React.FC = () => {
         phoneNumber={whatsappPlan?.customerPhone || ''}
         recipientName={whatsappPlan?.customerName || ''}
         defaultMessage={whatsappPlan ? buildWhatsAppMessage(whatsappPlan) : ''}
-        title="Send Installment Reminder"
+        title={t('installment_plans.whatsapp_title')}
         planData={whatsappPlan ? {
           customerName: whatsappPlan.customerName,
           customerPhone: whatsappPlan.customerPhone,

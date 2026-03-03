@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getDailyCashFlowReport, DailyCashFlowReport as IReport } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const DailyCashFlowReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<IReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState('');
@@ -21,36 +23,36 @@ const DailyCashFlowReport: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Daily Cash Flow Report" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Financial' }]} />
+      <PageHeader title={t('reports.daily_cash_flow_report')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.financial') }]} />
 
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
-              <label className="form-label">From Date</label>
+              <label className="form-label">{t('reports.from_date')}</label>
               <input type="date" className="form-control" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <label className="form-label">To Date</label>
+              <label className="form-label">{t('reports.to_date')}</label>
               <input type="date" className="form-control" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <button className="btn btn-primary" onClick={fetchData}>Apply Filter</button>
+              <button className="btn btn-primary" onClick={fetchData}>{t('reports.apply_filter')}</button>
             </div>
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['Date', 'Cash Collected', 'Online Payments', 'Down Payments', 'Expenses', 'Net Flow'];
+                  const cols = [t('common.date'), t('reports.cash_collected'), t('reports.online_payments'), t('reports.down_payments'), t('reports.expenses'), t('reports.net_flow')];
                   const rows = data.dailyEntries.map(e => [new Date(e.date).toLocaleDateString(), e.cashCollected, e.onlinePayments, e.downPayments, e.expenses, e.netFlow]);
                   exportToExcel(cols, rows, 'Daily-Cash-Flow-Report');
                 }}
                 onExportPDF={() => {
-                  const cols = ['Date', 'Cash Collected', 'Online Payments', 'Down Payments', 'Expenses', 'Net Flow'];
+                  const cols = [t('common.date'), t('reports.cash_collected'), t('reports.online_payments'), t('reports.down_payments'), t('reports.expenses'), t('reports.net_flow')];
                   const rows = data.dailyEntries.map(e => [new Date(e.date).toLocaleDateString(), `Rs ${e.cashCollected.toLocaleString()}`, `Rs ${e.onlinePayments.toLocaleString()}`, `Rs ${e.downPayments.toLocaleString()}`, `Rs ${e.expenses.toLocaleString()}`, `Rs ${e.netFlow.toLocaleString()}`]);
-                  exportToPDF(cols, rows, 'Daily-Cash-Flow-Report', 'Daily Cash Flow Report', [
-                    { label: 'Opening Balance', value: `Rs ${data.openingBalance.toLocaleString()}` },
-                    { label: 'Cash Collected', value: `Rs ${data.cashCollected.toLocaleString()}` },
-                    { label: 'Closing Balance', value: `Rs ${data.closingBalance.toLocaleString()}` },
+                  exportToPDF(cols, rows, 'Daily-Cash-Flow-Report', t('reports.daily_cash_flow_report'), [
+                    { label: t('reports.opening_balance'), value: `Rs ${data.openingBalance.toLocaleString()}` },
+                    { label: t('reports.cash_collected'), value: `Rs ${data.cashCollected.toLocaleString()}` },
+                    { label: t('reports.closing_balance'), value: `Rs ${data.closingBalance.toLocaleString()}` },
                   ]);
                 }}
               />}
@@ -66,11 +68,11 @@ const DailyCashFlowReport: React.FC = () => {
           {/* Summary Cards */}
           <div className="row mb-4">
             {[
-              { label: 'Opening Balance', value: data.openingBalance, color: 'info' },
-              { label: 'Cash Collected', value: data.cashCollected, color: 'success' },
-              { label: 'Down Payments', value: data.downPayments, color: 'primary' },
-              { label: 'Expenses', value: data.expenses, color: 'danger' },
-              { label: 'Closing Balance', value: data.closingBalance, color: 'dark' },
+              { label: t('reports.opening_balance'), value: data.openingBalance, color: 'info' },
+              { label: t('reports.cash_collected'), value: data.cashCollected, color: 'success' },
+              { label: t('reports.down_payments'), value: data.downPayments, color: 'primary' },
+              { label: t('reports.expenses'), value: data.expenses, color: 'danger' },
+              { label: t('reports.closing_balance'), value: data.closingBalance, color: 'dark' },
             ].map((c, i) => (
               <div className="col mb-3" key={i}>
                 <div className={`card border-${c.color}`}>
@@ -85,18 +87,18 @@ const DailyCashFlowReport: React.FC = () => {
 
           {/* Daily Entries Table */}
           <div className="card">
-            <div className="card-header"><h5 className="card-title mb-0">Daily Breakdown</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.daily_breakdown')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Cash Collected</th>
-                      <th>Online Payments</th>
-                      <th>Down Payments</th>
-                      <th>Expenses</th>
-                      <th>Net Flow</th>
+                      <th>{t('common.date')}</th>
+                      <th>{t('reports.cash_collected')}</th>
+                      <th>{t('reports.online_payments')}</th>
+                      <th>{t('reports.down_payments')}</th>
+                      <th>{t('reports.expenses')}</th>
+                      <th>{t('reports.net_flow')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -111,7 +113,7 @@ const DailyCashFlowReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.dailyEntries.length === 0 && (
-                      <tr><td colSpan={6} className="text-center text-muted">No data available</td></tr>
+                      <tr><td colSpan={6} className="text-center text-muted">{t('reports.no_data_available')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -120,7 +122,7 @@ const DailyCashFlowReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

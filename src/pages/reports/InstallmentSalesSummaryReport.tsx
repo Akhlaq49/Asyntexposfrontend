@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getInstallmentSalesSummary, InstallmentSalesSummary } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const InstallmentSalesSummaryReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<InstallmentSalesSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState('');
@@ -21,38 +23,38 @@ const InstallmentSalesSummaryReport: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Installment Sales Summary" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Sales' }]} />
+      <PageHeader title={t('reports.installment_sales_summary')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.sales') }]} />
 
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
-              <label className="form-label">From Date</label>
+              <label className="form-label">{t('common.from_date')}</label>
               <input type="date" className="form-control" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <label className="form-label">To Date</label>
+              <label className="form-label">{t('common.to_date')}</label>
               <input type="date" className="form-control" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <button className="btn btn-primary" onClick={fetchData}>Apply Filter</button>
+              <button className="btn btn-primary" onClick={fetchData}>{t('reports.apply_filter')}</button>
             </div>
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['Month', 'Contracts', 'Down Payments', 'Financed Amount'];
+                  const cols = [t('reports.month'), t('reports.contracts'), t('reports.down_payments'), t('reports.financed_amount')];
                   const rows = data.monthlySales.map(m => [m.month, m.contracts, m.downPayments, m.financedAmount]);
                   exportToExcel(cols, rows, 'Installment-Sales-Summary');
                 }}
                 onExportPDF={() => {
-                  const cols = ['Month', 'Contracts', 'Down Payments', 'Financed Amount'];
+                  const cols = [t('reports.month'), t('reports.contracts'), t('reports.down_payments'), t('reports.financed_amount')];
                   const rows = data.monthlySales.map(m => [m.month, m.contracts, `Rs ${m.downPayments.toLocaleString()}`, `Rs ${m.financedAmount.toLocaleString()}`]);
-                  exportToPDF(cols, rows, 'Installment-Sales-Summary', 'Installment Sales Summary', [
-                    { label: 'Total Contracts', value: data.totalContracts },
-                    { label: 'Active', value: data.activeContracts },
-                    { label: 'Completed', value: data.completedContracts },
-                    { label: 'Total Down Payments', value: `Rs ${data.totalDownPayments.toLocaleString()}` },
-                    { label: 'Total Revenue', value: `Rs ${data.totalRevenue.toLocaleString()}` },
+                  exportToPDF(cols, rows, 'Installment-Sales-Summary', t('reports.installment_sales_summary'), [
+                    { label: t('reports.total_contracts'), value: data.totalContracts },
+                    { label: t('common.active'), value: data.activeContracts },
+                    { label: t('common.completed'), value: data.completedContracts },
+                    { label: t('reports.total_down_payments'), value: `Rs ${data.totalDownPayments.toLocaleString()}` },
+                    { label: t('reports.total_revenue'), value: `Rs ${data.totalRevenue.toLocaleString()}` },
                   ]);
                 }}
               />}
@@ -68,10 +70,10 @@ const InstallmentSalesSummaryReport: React.FC = () => {
           {/* Contract Summary */}
           <div className="row mb-4">
             {[
-              { label: 'Total Contracts', value: data.totalContracts, color: 'primary' },
-              { label: 'Active', value: data.activeContracts, color: 'success' },
-              { label: 'Completed', value: data.completedContracts, color: 'info' },
-              { label: 'Cancelled', value: data.cancelledContracts, color: 'danger' },
+              { label: t('reports.total_contracts'), value: data.totalContracts, color: 'primary' },
+              { label: t('common.active'), value: data.activeContracts, color: 'success' },
+              { label: t('common.completed'), value: data.completedContracts, color: 'info' },
+              { label: t('reports.cancelled'), value: data.cancelledContracts, color: 'danger' },
             ].map((c, i) => (
               <div className="col-md-3 mb-3" key={i}>
                 <div className={`card border-${c.color}`}>
@@ -87,9 +89,9 @@ const InstallmentSalesSummaryReport: React.FC = () => {
           {/* Financial Summary */}
           <div className="row mb-4">
             {[
-              { label: 'Total Down Payments', value: data.totalDownPayments },
-              { label: 'Total Financed', value: data.totalFinancedAmount },
-              { label: 'Total Revenue', value: data.totalRevenue },
+              { label: t('reports.total_down_payments'), value: data.totalDownPayments },
+              { label: t('reports.total_financed'), value: data.totalFinancedAmount },
+              { label: t('reports.total_revenue'), value: data.totalRevenue },
             ].map((c, i) => (
               <div className="col-md-4 mb-3" key={i}>
                 <div className="card">
@@ -104,12 +106,12 @@ const InstallmentSalesSummaryReport: React.FC = () => {
 
           {/* Tenure Breakdown */}
           <div className="card mb-4">
-            <div className="card-header"><h5 className="card-title mb-0">Tenure Breakdown</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.tenure_breakdown')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
-                    <tr><th>Tenure</th><th>Contracts</th><th>Total Amount</th></tr>
+                    <tr><th>{t('reports.tenure')}</th><th>{t('reports.contracts')}</th><th>{t('reports.total_amount')}</th></tr>
                   </thead>
                   <tbody>
                     {data.tenureBreakdown.map((t, i) => (
@@ -120,7 +122,7 @@ const InstallmentSalesSummaryReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.tenureBreakdown.length === 0 && (
-                      <tr><td colSpan={3} className="text-center text-muted">No data</td></tr>
+                      <tr><td colSpan={3} className="text-center text-muted">{t('reports.no_data')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -130,12 +132,12 @@ const InstallmentSalesSummaryReport: React.FC = () => {
 
           {/* Monthly Sales */}
           <div className="card">
-            <div className="card-header"><h5 className="card-title mb-0">Monthly Sales Trend</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.monthly_sales_trend')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
-                    <tr><th>Month</th><th>Contracts</th><th>Down Payments</th><th>Financed Amount</th></tr>
+                    <tr><th>{t('reports.month')}</th><th>{t('reports.contracts')}</th><th>{t('reports.down_payments')}</th><th>{t('reports.financed_amount')}</th></tr>
                   </thead>
                   <tbody>
                     {data.monthlySales.map((m, i) => (
@@ -147,7 +149,7 @@ const InstallmentSalesSummaryReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.monthlySales.length === 0 && (
-                      <tr><td colSpan={4} className="text-center text-muted">No data</td></tr>
+                      <tr><td colSpan={4} className="text-center text-muted">{t('reports.no_data')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -156,7 +158,7 @@ const InstallmentSalesSummaryReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

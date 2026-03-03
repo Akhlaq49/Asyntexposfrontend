@@ -1,8 +1,10 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getFinanceIncomes, createFinanceIncome, updateFinanceIncome, deleteFinanceIncome, getIncomeCategories, getBankAccounts, FinanceIncome, IncomeCategory, BankAccount } from '../../services/financeService';
 import { getStores, DropdownOption } from '../../services/productService';
 
 const Income: React.FC = () => {
+  const { t } = useTranslation();
   const [incomes, setIncomes] = useState<FinanceIncome[]>([]);
   const [categories, setCategories] = useState<IncomeCategory[]>([]);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
@@ -70,18 +72,18 @@ const Income: React.FC = () => {
   return (
     <>
       <div className="page-header">
-        <div className="add-item d-flex"><div className="page-title"><h4 className="fw-bold">Income</h4><h6>Manage your income records</h6></div></div>
+        <div className="add-item d-flex"><div className="page-title"><h4 className="fw-bold">{t('income.title')}</h4><h6>{t('income.subtitle')}</h6></div></div>
         <ul className="table-top-head">
           <li><a href="#" data-bs-toggle="tooltip" title="Pdf" onClick={e => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="pdf" /></a></li>
           <li><a href="#" data-bs-toggle="tooltip" title="Excel" onClick={e => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="excel" /></a></li>
           <li><a href="#" data-bs-toggle="tooltip" title="Refresh" onClick={e => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
         </ul>
-        <div className="page-btn"><a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); setShowAddModal(true); }}><i className="ti ti-circle-plus me-1"></i>Add Income</a></div>
+        <div className="page-btn"><a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); setShowAddModal(true); }}><i className="ti ti-circle-plus me-1"></i>{t('income.add_income')}</a></div>
       </div>
 
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-          <div className="search-set"><div className="search-input"><span className="btn-searchset"><i className="ti ti-search fs-14"></i></span><input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
+          <div className="search-set"><div className="search-input"><span className="btn-searchset"><i className="ti ti-search fs-14"></i></span><input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
         </div>
         <div className="card-body p-0">
           {loading ? (
@@ -92,12 +94,12 @@ const Income: React.FC = () => {
                 <thead className="thead-light">
                   <tr>
                     <th className="no-sort"><label className="checkboxs"><input type="checkbox" checked={selectAll} onChange={e => handleSelectAll(e.target.checked)} /><span className="checkmarks"></span></label></th>
-                    <th>Date</th>
-                    <th>Reference</th>
-                    <th>Store</th>
-                    <th>Category</th>
-                    <th>Notes</th>
-                    <th>Amount</th>
+                    <th>{t('income.date')}</th>
+                    <th>{t('income.reference')}</th>
+                    <th>{t('income.store')}</th>
+                    <th>{t('income.category')}</th>
+                    <th>{t('common.notes')}</th>
+                    <th>{t('income.amount')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -127,31 +129,31 @@ const Income: React.FC = () => {
       {showAddModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
           <div className="modal-dialog modal-dialog-centered"><div className="modal-content">
-            <div className="modal-header"><div className="page-title"><h4>Add Income</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)}><span>&times;</span></button></div>
+            <div className="modal-header"><div className="page-title"><h4>{t('income.add_income')}</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)}><span>&times;</span></button></div>
             <div className="modal-body">
-              <div className="mb-3"><label className="form-label">Date<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={addForm.date} onChange={e => setAddForm(p => ({ ...p, date: e.target.value }))} /></div>
-              <div className="mb-3"><label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+              <div className="mb-3"><label className="form-label">{t('income.date')}<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={addForm.date} onChange={e => setAddForm(p => ({ ...p, date: e.target.value }))} /></div>
+              <div className="mb-3"><label className="form-label">{t('income.category')}<span className="text-danger ms-1">*</span></label>
                 <select className="form-select" value={addForm.incomeCategoryId} onChange={e => setAddForm(p => ({ ...p, incomeCategoryId: Number(e.target.value) }))}>
-                  <option value={0}>Select Category</option>
+                  <option value={0}>{t('income.select_category')}</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <div className="mb-3"><label className="form-label">Store</label>
+              <div className="mb-3"><label className="form-label">{t('income.store')}</label>
                 <select className="form-select" value={addForm.store} onChange={e => setAddForm(p => ({ ...p, store: e.target.value }))}>
-                  <option value="">Select Store</option>
+                  <option value="">{t('income.select_store')}</option>
                   {stores.map(s => <option key={s.value} value={s.label}>{s.label}</option>)}
                 </select>
               </div>
-              <div className="mb-3"><label className="form-label">Amount<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={addForm.amount || ''} onChange={e => setAddForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
-              <div className="mb-3"><label className="form-label">Account</label>
+              <div className="mb-3"><label className="form-label">{t('income.amount')}<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={addForm.amount || ''} onChange={e => setAddForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
+              <div className="mb-3"><label className="form-label">{t('income.account')}</label>
                 <select className="form-select" value={addForm.account} onChange={e => setAddForm(p => ({ ...p, account: e.target.value }))}>
-                  <option value="">Select Account</option>
+                  <option value="">{t('income.select_account')}</option>
                   {accounts.filter(a => a.status === 'active').map(a => <option key={a.id} value={a.bankName}>{a.bankName} - {a.holderName}</option>)}
                 </select>
               </div>
-              <div className="mb-0"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={addForm.notes} onChange={e => setAddForm(p => ({ ...p, notes: e.target.value }))} /></div>
+              <div className="mb-0"><label className="form-label">{t('income.description')}</label><textarea className="form-control" rows={3} value={addForm.notes} onChange={e => setAddForm(p => ({ ...p, notes: e.target.value }))} /></div>
             </div>
-            <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.date || !addForm.incomeCategoryId}>Add Income</button></div>
+            <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.date || !addForm.incomeCategoryId}>{t('income.add_income')}</button></div>
           </div></div>
         </div>
       )}
@@ -159,31 +161,31 @@ const Income: React.FC = () => {
       {showEditModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
           <div className="modal-dialog modal-dialog-centered"><div className="modal-content">
-            <div className="modal-header"><div className="page-title"><h4>Edit Income</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)}><span>&times;</span></button></div>
+            <div className="modal-header"><div className="page-title"><h4>{t('income.edit_income')}</h4></div><button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)}><span>&times;</span></button></div>
             <div className="modal-body">
-              <div className="mb-3"><label className="form-label">Date<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={editForm.date} onChange={e => setEditForm(p => ({ ...p, date: e.target.value }))} /></div>
-              <div className="mb-3"><label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+              <div className="mb-3"><label className="form-label">{t('income.date')}<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={editForm.date} onChange={e => setEditForm(p => ({ ...p, date: e.target.value }))} /></div>
+              <div className="mb-3"><label className="form-label">{t('income.category')}<span className="text-danger ms-1">*</span></label>
                 <select className="form-select" value={editForm.incomeCategoryId} onChange={e => setEditForm(p => ({ ...p, incomeCategoryId: Number(e.target.value) }))}>
-                  <option value={0}>Select Category</option>
+                  <option value={0}>{t('income.select_category')}</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <div className="mb-3"><label className="form-label">Store</label>
+              <div className="mb-3"><label className="form-label">{t('income.store')}</label>
                 <select className="form-select" value={editForm.store} onChange={e => setEditForm(p => ({ ...p, store: e.target.value }))}>
-                  <option value="">Select Store</option>
+                  <option value="">{t('income.select_store')}</option>
                   {stores.map(s => <option key={s.value} value={s.label}>{s.label}</option>)}
                 </select>
               </div>
-              <div className="mb-3"><label className="form-label">Amount<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={editForm.amount || ''} onChange={e => setEditForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
-              <div className="mb-3"><label className="form-label">Account</label>
+              <div className="mb-3"><label className="form-label">{t('income.amount')}<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={editForm.amount || ''} onChange={e => setEditForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
+              <div className="mb-3"><label className="form-label">{t('income.account')}</label>
                 <select className="form-select" value={editForm.account} onChange={e => setEditForm(p => ({ ...p, account: e.target.value }))}>
-                  <option value="">Select Account</option>
+                  <option value="">{t('income.select_account')}</option>
                   {accounts.map(a => <option key={a.id} value={a.bankName}>{a.bankName} - {a.holderName}</option>)}
                 </select>
               </div>
-              <div className="mb-0"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={editForm.notes} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} /></div>
+              <div className="mb-0"><label className="form-label">{t('income.description')}</label><textarea className="form-control" rows={3} value={editForm.notes} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} /></div>
             </div>
-            <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button></div>
+            <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button></div>
           </div></div>
         </div>
       )}
@@ -192,10 +194,10 @@ const Income: React.FC = () => {
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
           <div className="modal-dialog modal-dialog-centered"><div className="modal-content"><div className="page-wrapper-new p-0"><div className="content p-5 px-3 text-center">
             <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-            <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Income</h4>
-            <p className="fs-14 text-muted">Are you sure you want to delete this income record?</p>
+            <h4 className="fs-20 fw-bold mb-2 mt-1">{t('income.delete_income')}</h4>
+            <p className="fs-14 text-muted">{t('income.delete_confirm')}</p>
             {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
-            <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button><button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button></div>
+            <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button></div>
           </div></div></div></div>
         </div>
       )}

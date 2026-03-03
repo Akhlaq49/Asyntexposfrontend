@@ -1,8 +1,10 @@
 ﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 const Register: React.FC = () => {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,11 +17,11 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError('');
     if (!fullName || !email || !password) {
-      setError('All fields are required.');
+      setError(t('auth.all_fields_required'));
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(t('auth.password_min_chars'));
       return;
     }
     setLoading(true);
@@ -27,7 +29,7 @@ const Register: React.FC = () => {
       await register(fullName, email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || t('auth.registration_failed'));
     } finally {
       setLoading(false);
     }
@@ -40,14 +42,14 @@ const Register: React.FC = () => {
           <div className="login-content">
             <div className="login-userset">
               <div className="login-logo logo-normal">
-                <img src="/assets/img/logo.svg" alt="Logo" />
+                <img src="/assets/img/logo.png" alt="Logo" />
               </div>
               <Link to="/" className="login-logo logo-white">
-                <img src="/assets/img/logo-white.svg" alt="Logo" />
+                <img src="/assets/img/logo-white.png" alt="Logo" />
               </Link>
               <div className="login-userheading">
-                <h3>Register</h3>
-                <h4>Create your account</h4>
+                <h3>{t('auth.register')}</h3>
+                <h4>{t('auth.create_your_account')}</h4>
               </div>
               {error && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
@@ -57,47 +59,47 @@ const Register: React.FC = () => {
               )}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label className="form-label">Full Name</label>
+                  <label className="form-label">{t('common.full_name')}</label>
                   <input
                     type="text"
                     className="form-control"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder={t('auth.enter_full_name')}
                     required
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Email</label>
+                  <label className="form-label">{t('common.email')}</label>
                   <input
                     type="email"
                     className="form-control"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
+                    placeholder={t('auth.enter_email')}
                     required
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Password</label>
+                  <label className="form-label">{t('auth.password')}</label>
                   <input
                     type="password"
                     className="form-control"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password (min 6 chars)"
+                    placeholder={t('auth.enter_password_min')}
                     required
                   />
                 </div>
                 <div className="form-login">
                   <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-                    {loading ? 'Creating account...' : 'Register'}
+                    {loading ? t('auth.creating_account') : t('auth.register')}
                   </button>
                 </div>
               </form>
               <div className="signinform text-center mt-3">
-                <span>Already have an account? </span>
-                <Link to="/signin">Sign In</Link>
+                <span>{t('auth.already_have_account')} </span>
+                <Link to="/signin">{t('auth.sign_in')}</Link>
               </div>
             </div>
           </div>

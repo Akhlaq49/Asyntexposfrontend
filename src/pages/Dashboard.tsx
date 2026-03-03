@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getDashboardData, DashboardData } from '../services/dashboardService';
 
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetch = async () => {
@@ -37,14 +39,14 @@ const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="text-center p-5">
-        <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
-        <p className="mt-2 text-muted">Loading dashboard data...</p>
+        <div className="spinner-border text-primary" role="status"><span className="visually-hidden">{t('common.loading')}</span></div>
+        <p className="mt-2 text-muted">{t('common.loading_dashboard')}</p>
       </div>
     );
   }
 
   if (!data) {
-    return <div className="alert alert-danger">Failed to load dashboard data.</div>;
+    return <div className="alert alert-danger">{t('common.failed_load_dashboard')}</div>;
   }
 
   // Chart data
@@ -61,12 +63,12 @@ const Dashboard: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Installment Business Dashboard</h4>
-            <h6>Overview of your installment plans, collections &amp; performance</h6>
+            <h4 className="fw-bold">{t('dashboard.title')}</h4>
+            <h6>{t('dashboard.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
-          <li><a href="#" data-bs-toggle="tooltip" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
+          <li><a href="#" data-bs-toggle="tooltip" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); window.location.reload(); }}><i className="ti ti-refresh"></i></a></li>
         </ul>
       </div>
 
@@ -76,7 +78,7 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Total Plans</p>
+                <p className="mb-2 text-muted">{t('dashboard.total_plans')}</p>
                 <h2 className="mb-0">{fmtInt(data.totalPlans)}</h2>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-primary-transparent">
@@ -84,7 +86,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="card-footer">
-              <p className="mb-0">{pctBadge(data.plansPctChange)} vs last month ({data.plansThisMonth} new)</p>
+              <p className="mb-0">{pctBadge(data.plansPctChange)} {t('common.vs_last_month')} ({data.plansThisMonth} {t('dashboard.new')})</p>
             </div>
           </div>
         </div>
@@ -92,7 +94,7 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Active Plans</p>
+                <p className="mb-2 text-muted">{t('dashboard.active_plans')}</p>
                 <h2 className="mb-0">{fmtInt(data.activePlans)}</h2>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-success-transparent">
@@ -100,7 +102,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="card-footer">
-              <p className="mb-0">{fmtInt(data.completedPlans)} completed &bull; {fmtInt(data.statusDistribution.defaulted)} defaulted</p>
+              <p className="mb-0">{fmtInt(data.completedPlans)} {t('dashboard.completed')} &bull; {fmtInt(data.statusDistribution.defaulted)} {t('dashboard.defaulted')}</p>
             </div>
           </div>
         </div>
@@ -108,7 +110,7 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Total Customers</p>
+                <p className="mb-2 text-muted">{t('dashboard.total_customers')}</p>
                 <h2 className="mb-0">{fmtInt(data.totalCustomers)}</h2>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-warning-transparent">
@@ -116,7 +118,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="card-footer">
-              <p className="mb-0"><span className="text-success">{data.customersThisMonth}</span> new this month</p>
+              <p className="mb-0"><span className="text-success">{data.customersThisMonth}</span> {t('common.new_this_month')}</p>
             </div>
           </div>
         </div>
@@ -124,7 +126,7 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Overdue</p>
+                <p className="mb-2 text-muted">{t('dashboard.overdue')}</p>
                 <h2 className="mb-0 text-danger">{fmtInt(data.overdueCount)}</h2>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-danger-transparent">
@@ -132,7 +134,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="card-footer">
-              <p className="mb-0">Rs {fmt(data.overdueAmount)} overdue amount</p>
+              <p className="mb-0">{t('common.rs')} {fmt(data.overdueAmount)} {t('dashboard.overdue_amount')}</p>
             </div>
           </div>
         </div>
@@ -144,8 +146,8 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Total Financed</p>
-                <h3 className="mb-0">Rs {fmt(data.totalFinancedAmount)}</h3>
+                <p className="mb-2 text-muted">{t('dashboard.total_financed')}</p>
+                <h3 className="mb-0">{t('common.rs')} {fmt(data.totalFinancedAmount)}</h3>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-info-transparent">
                 <i className="ti ti-currency-dollar fs-24 text-info"></i>
@@ -157,15 +159,15 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Total Collected</p>
-                <h3 className="mb-0 text-success">Rs {fmt(data.totalCollected)}</h3>
+                <p className="mb-2 text-muted">{t('dashboard.total_collected')}</p>
+                <h3 className="mb-0 text-success">{t('common.rs')} {fmt(data.totalCollected)}</h3>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-success-transparent">
                 <i className="ti ti-cash fs-24 text-success"></i>
               </div>
             </div>
             <div className="card-footer">
-              <p className="mb-0">{pctBadge(data.collectionsPctChange)} vs last month</p>
+              <p className="mb-0">{pctBadge(data.collectionsPctChange)} {t('common.vs_last_month')}</p>
             </div>
           </div>
         </div>
@@ -173,8 +175,8 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Outstanding</p>
-                <h3 className="mb-0 text-warning">Rs {fmt(data.totalOutstanding)}</h3>
+                <p className="mb-2 text-muted">{t('dashboard.outstanding')}</p>
+                <h3 className="mb-0 text-warning">{t('common.rs')} {fmt(data.totalOutstanding)}</h3>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-warning-transparent">
                 <i className="ti ti-clock fs-24 text-warning"></i>
@@ -186,8 +188,8 @@ const Dashboard: React.FC = () => {
           <div className="card dash-widget w-100">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
-                <p className="mb-2 text-muted">Down Payments</p>
-                <h3 className="mb-0">Rs {fmt(data.totalDownPayments)}</h3>
+                <p className="mb-2 text-muted">{t('dashboard.down_payments')}</p>
+                <h3 className="mb-0">{t('common.rs')} {fmt(data.totalDownPayments)}</h3>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-primary-transparent">
                 <i className="ti ti-arrow-down-circle fs-24 text-primary"></i>
@@ -203,10 +205,10 @@ const Dashboard: React.FC = () => {
         <div className="col-xxl-8 col-lg-7 d-flex">
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0"><i className="ti ti-chart-bar me-2"></i>Monthly Collections vs Expected</h5>
+              <h5 className="card-title mb-0"><i className="ti ti-chart-bar me-2"></i>{t('dashboard.monthly_collections_vs_expected')}</h5>
               <div>
-                <span className="badge bg-success me-2"><i className="ti ti-circle-filled me-1"></i>Collected</span>
-                <span className="badge bg-light text-dark"><i className="ti ti-circle-filled me-1 text-muted"></i>Expected</span>
+                <span className="badge bg-success me-2"><i className="ti ti-circle-filled me-1"></i>{t('dashboard.collected')}</span>
+                <span className="badge bg-light text-dark"><i className="ti ti-circle-filled me-1 text-muted"></i>{t('dashboard.expected')}</span>
               </div>
             </div>
             <div className="card-body">
@@ -247,7 +249,7 @@ const Dashboard: React.FC = () => {
         <div className="col-xxl-4 col-lg-5 d-flex">
           <div className="card flex-fill">
             <div className="card-header">
-              <h5 className="card-title mb-0"><i className="ti ti-chart-donut me-2"></i>Plan Status</h5>
+              <h5 className="card-title mb-0"><i className="ti ti-chart-donut me-2"></i>{t('dashboard.plan_status')}</h5>
             </div>
             <div className="card-body">
               <div className="text-center">
@@ -266,26 +268,26 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="d-flex justify-content-center gap-3 flex-wrap">
-                  <span><i className="ti ti-circle-filled text-success me-1"></i>Active ({data.statusDistribution.active})</span>
-                  <span><i className="ti ti-circle-filled text-info me-1"></i>Completed ({data.statusDistribution.completed})</span>
-                  <span><i className="ti ti-circle-filled text-danger me-1"></i>Defaulted ({data.statusDistribution.defaulted})</span>
-                  <span><i className="ti ti-circle-filled me-1" style={{ color: '#82868B' }}></i>Cancelled ({data.statusDistribution.cancelled})</span>
+                  <span><i className="ti ti-circle-filled text-success me-1"></i>{t('common.active')} ({data.statusDistribution.active})</span>
+                  <span><i className="ti ti-circle-filled text-info me-1"></i>{t('common.completed')} ({data.statusDistribution.completed})</span>
+                  <span><i className="ti ti-circle-filled text-danger me-1"></i>{t('dashboard.defaulted')} ({data.statusDistribution.defaulted})</span>
+                  <span><i className="ti ti-circle-filled me-1" style={{ color: '#82868B' }}></i>{t('dashboard.cancelled')} ({data.statusDistribution.cancelled})</span>
                 </div>
               </div>
 
               {/* Collection rate summary */}
               <div className="mt-4 pt-3 border-top">
                 <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">This Month Collections</span>
-                  <span className="fw-bold">Rs {fmt(data.collectionsThisMonth)}</span>
+                  <span className="text-muted">{t('dashboard.this_month_collections')}</span>
+                  <span className="fw-bold">{t('common.rs')} {fmt(data.collectionsThisMonth)}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Last Month Collections</span>
-                  <span className="fw-medium">Rs {fmt(data.collectionsLastMonth)}</span>
+                  <span className="text-muted">{t('dashboard.last_month_collections')}</span>
+                  <span className="fw-medium">{t('common.rs')} {fmt(data.collectionsLastMonth)}</span>
                 </div>
                 <div className="d-flex justify-content-between">
-                  <span className="text-muted">Interest Expected</span>
-                  <span className="fw-medium">Rs {fmt(data.totalInterestExpected)}</span>
+                  <span className="text-muted">{t('dashboard.interest_expected')}</span>
+                  <span className="fw-medium">{t('common.rs')} {fmt(data.totalInterestExpected)}</span>
                 </div>
               </div>
             </div>
@@ -299,15 +301,15 @@ const Dashboard: React.FC = () => {
         <div className="col-xxl-4 col-xl-6 d-flex">
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0"><i className="ti ti-calendar-due me-2 text-warning"></i>Upcoming Dues</h5>
-              <span className="badge bg-warning">{data.dueCount} due</span>
+              <h5 className="card-title mb-0"><i className="ti ti-calendar-due me-2 text-warning"></i>{t('dashboard.upcoming_dues')}</h5>
+              <span className="badge bg-warning">{data.dueCount} {t('dashboard.due')}</span>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
                 <table className="table table-borderless mb-0">
                   <tbody>
                     {data.upcomingDues.length === 0 ? (
-                      <tr><td className="text-center text-muted py-4">No upcoming dues</td></tr>
+                      <tr><td className="text-center text-muted py-4">{t('dashboard.no_upcoming_dues')}</td></tr>
                     ) : (
                       data.upcomingDues.map((d, i) => (
                         <tr key={i}>
@@ -316,7 +318,7 @@ const Dashboard: React.FC = () => {
                             <p className="fs-12 text-muted mb-0">{d.productName} &bull; #{d.installmentNo}</p>
                           </td>
                           <td className="text-end pe-3">
-                            <h6 className="fs-13 fw-bold mb-1">Rs {fmt(d.emiAmount)}</h6>
+                            <h6 className="fs-13 fw-bold mb-1">{t('common.rs')} {fmt(d.emiAmount)}</h6>
                             <p className="fs-12 text-muted mb-0">{d.dueDate}</p>
                           </td>
                           <td className="text-end pe-3">
@@ -336,15 +338,15 @@ const Dashboard: React.FC = () => {
         <div className="col-xxl-4 col-xl-6 d-flex">
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0"><i className="ti ti-alert-triangle me-2 text-danger"></i>Overdue Installments</h5>
-              <span className="badge bg-danger">{data.overdueCount} overdue</span>
+              <h5 className="card-title mb-0"><i className="ti ti-alert-triangle me-2 text-danger"></i>{t('dashboard.overdue_installments')}</h5>
+              <span className="badge bg-danger">{data.overdueCount} {t('dashboard.overdue')}</span>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
                 <table className="table table-borderless mb-0">
                   <tbody>
                     {data.overdueList.length === 0 ? (
-                      <tr><td className="text-center text-muted py-4">No overdue installments</td></tr>
+                      <tr><td className="text-center text-muted py-4">{t('dashboard.no_overdue')}</td></tr>
                     ) : (
                       data.overdueList.map((d, i) => (
                         <tr key={i}>
@@ -353,7 +355,7 @@ const Dashboard: React.FC = () => {
                             <p className="fs-12 text-muted mb-0">{d.productName} &bull; #{d.installmentNo}</p>
                           </td>
                           <td className="text-end pe-3">
-                            <h6 className="fs-13 fw-bold mb-1 text-danger">Rs {fmt(d.remaining)}</h6>
+                            <h6 className="fs-13 fw-bold mb-1 text-danger">{t('common.rs')} {fmt(d.remaining)}</h6>
                             <p className="fs-12 text-muted mb-0">Due: {d.dueDate}</p>
                           </td>
                           <td className="text-end pe-3">
@@ -375,15 +377,15 @@ const Dashboard: React.FC = () => {
         <div className="col-xxl-4 col-xl-12 d-flex">
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0"><i className="ti ti-cash me-2 text-success"></i>Recent Payments</h5>
-              <Link to="/installment-plans" className="btn btn-sm btn-primary">View All</Link>
+              <h5 className="card-title mb-0"><i className="ti ti-cash me-2 text-success"></i>{t('dashboard.recent_payments')}</h5>
+              <Link to="/installment-plans" className="btn btn-sm btn-primary">{t('common.view_all')}</Link>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
                 <table className="table table-borderless mb-0">
                   <tbody>
                     {data.recentPayments.length === 0 ? (
-                      <tr><td className="text-center text-muted py-4">No payments yet</td></tr>
+                      <tr><td className="text-center text-muted py-4">{t('dashboard.no_payments')}</td></tr>
                     ) : (
                       data.recentPayments.map((p, i) => (
                         <tr key={i}>
@@ -392,7 +394,7 @@ const Dashboard: React.FC = () => {
                             <p className="fs-12 text-muted mb-0">{p.productName} &bull; #{p.installmentNo}</p>
                           </td>
                           <td className="text-end pe-3">
-                            <h6 className="fs-13 fw-bold mb-1 text-success">Rs {fmt(p.amount)}</h6>
+                            <h6 className="fs-13 fw-bold mb-1 text-success">{t('common.rs')} {fmt(p.amount)}</h6>
                             <p className="fs-12 text-muted mb-0">{p.paidDate}</p>
                           </td>
                         </tr>
@@ -411,27 +413,27 @@ const Dashboard: React.FC = () => {
         <div className="col-12">
           <div className="card">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0"><i className="ti ti-file-plus me-2"></i>Recently Created Plans</h5>
-              <Link to="/installment-plans" className="btn btn-sm btn-primary">View All Plans</Link>
+              <h5 className="card-title mb-0"><i className="ti ti-file-plus me-2"></i>{t('dashboard.recently_created_plans')}</h5>
+              <Link to="/installment-plans" className="btn btn-sm btn-primary">{t('dashboard.view_all_plans')}</Link>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
                 <table className="table mb-0">
                   <thead className="thead-light">
                     <tr>
-                      <th>Customer</th>
-                      <th>Product</th>
-                      <th>Financed</th>
-                      <th>EMI</th>
-                      <th>Tenure</th>
-                      <th>Status</th>
-                      <th>Created</th>
+                      <th>{t('dashboard.customer')}</th>
+                      <th>{t('dashboard.product')}</th>
+                      <th>{t('dashboard.financed')}</th>
+                      <th>{t('dashboard.emi')}</th>
+                      <th>{t('dashboard.tenure')}</th>
+                      <th>{t('common.status')}</th>
+                      <th>{t('dashboard.created')}</th>
                       <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.recentPlans.length === 0 ? (
-                      <tr><td colSpan={8} className="text-center text-muted py-4">No plans created yet</td></tr>
+                      <tr><td colSpan={8} className="text-center text-muted py-4">{t('dashboard.no_plans_yet')}</td></tr>
                     ) : (
                       data.recentPlans.map((p) => (
                         <tr key={p.id}>
@@ -440,14 +442,14 @@ const Dashboard: React.FC = () => {
                             <small className="text-muted">{p.customerPhone}</small>
                           </td>
                           <td>{p.productName}</td>
-                          <td className="fw-medium">Rs {fmt(p.financedAmount)}</td>
-                          <td className="fw-medium">Rs {fmt(p.emiAmount)}</td>
-                          <td>{p.tenure} mo</td>
+                          <td className="fw-medium">{t('common.rs')} {fmt(p.financedAmount)}</td>
+                          <td className="fw-medium">{t('common.rs')} {fmt(p.emiAmount)}</td>
+                          <td>{p.tenure} {t('common.mo')}</td>
                           <td>{statusBadge(p.status)}</td>
                           <td>{p.createdAt}</td>
                           <td>
                             <Link to={`/installment-details/${p.id}`} className="btn btn-sm btn-outline-primary">
-                              <i className="ti ti-eye me-1"></i>View
+                              <i className="ti ti-eye me-1"></i>{t('common.view')}
                             </Link>
                           </td>
                         </tr>

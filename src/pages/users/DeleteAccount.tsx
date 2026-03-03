@@ -1,24 +1,27 @@
 ﻿import React from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 
 const DeleteAccount: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
     <>
       <PageHeader
-        title="Delete Account"
-        breadcrumbs={[{ title: 'Users' }]}
+        title={t('users.delete_account_title')}
+        breadcrumbs={[{ title: t('users.title') }]}
       />
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <div className="search-set">
             <div className="search-input">
               <a href="#" className="btn btn-searchset"><i className="ti ti-search fs-14"></i></a>
-              <input type="text" className="form-control" placeholder="Search" />
+              <input type="text" className="form-control" placeholder={t('common.search')} />
             </div>
           </div>
         </div>
         <div className="card-body">
-          <p>Manage your delete account here.</p>
+          <p>{t('users.delete_account_subtitle')}</p>
         </div>
       </div>
     </>

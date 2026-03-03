@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 
 /* ---------- Types ---------- */
@@ -54,6 +55,7 @@ const fmt = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigi
 
 /* ======================== Component ======================== */
 const OnlineOrders: React.FC = () => {
+  const { t } = useTranslation();
   const [sales, setSales] = useState<SaleDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<CustomerResult[]>([]);
@@ -285,13 +287,13 @@ const OnlineOrders: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4>Sales</h4>
-            <h6>Manage Your Sales</h6>
+            <h4>{t('sales.title')}</h4>
+            <h6>{t('sales.subtitle')}</h6>
           </div>
         </div>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); openAddModal(); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add Sales
+            <i className="ti ti-circle-plus me-1"></i>{t('sales.add_sales')}
           </a>
         </div>
       </div>
@@ -302,16 +304,16 @@ const OnlineOrders: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <a href="#" className="btn btn-searchset"><i className="ti ti-search fs-14"></i></a>
-              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {filterStatus || 'Status'}
+                {filterStatus || t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(''); }}>{t('common.all')}</a></li>
                 {STATUS_OPTIONS.map((s) => (
                   <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
                 ))}
@@ -319,10 +321,10 @@ const OnlineOrders: React.FC = () => {
             </div>
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {filterPaymentStatus || 'Payment Status'}
+                {filterPaymentStatus || t('common.payment_status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(''); }}>All</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(''); }}>{t('common.all')}</a></li>
                 {PAYMENT_STATUS_OPTIONS.map((s) => (
                   <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterPaymentStatus(s); }}>{s}</a></li>
                 ))}
@@ -330,12 +332,12 @@ const OnlineOrders: React.FC = () => {
             </div>
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                Sort By: {sortBy === 'asc' ? 'Amount Asc' : sortBy === 'desc' ? 'Amount Desc' : 'Recent'}
+                {t('common.sort_by')} {sortBy === 'asc' ? t('common.ascending') : sortBy === 'desc' ? t('common.descending') : t('common.recently_added')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>Recent</a></li>
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>Amount Asc</a></li>
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>Amount Desc</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>{t('common.recently_added')}</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>{t('common.ascending')}</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>{t('common.descending')}</a></li>
               </ul>
             </div>
           </div>
@@ -352,21 +354,21 @@ const OnlineOrders: React.FC = () => {
                     <th className="no-sort">
                       <label className="checkboxs"><input type="checkbox" checked={selectAll} onChange={(e) => handleSelectAll(e.target.checked)} /><span className="checkmarks"></span></label>
                     </th>
-                    <th>Customer</th>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Grand Total</th>
-                    <th>Paid</th>
-                    <th>Due</th>
-                    <th>Payment Status</th>
-                    <th>Biller</th>
-                    <th className="text-center">Actions</th>
+                    <th>{t('common.customer')}</th>
+                    <th>{t('common.reference')}</th>
+                    <th>{t('common.date')}</th>
+                    <th>{t('common.status')}</th>
+                    <th>{t('common.grand_total')}</th>
+                    <th>{t('common.paid')}</th>
+                    <th>{t('common.due')}</th>
+                    <th>{t('common.payment_status')}</th>
+                    <th>{t('common.biller')}</th>
+                    <th className="text-center">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={11} className="text-center py-4">No sales found</td></tr>
+                    <tr><td colSpan={11} className="text-center py-4">{t('sales.no_sales')}</td></tr>
                   ) : filtered.map((s) => (
                     <tr key={s.id}>
                       <td>
@@ -397,11 +399,11 @@ const OnlineOrders: React.FC = () => {
                           <i className="fa fa-ellipsis-v" aria-hidden="true"></i>
                         </a>
                         <ul className="dropdown-menu">
-                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}><i data-feather="eye" className="info-img"></i>Sale Detail</a></li>
-                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openEditModal(s); }}><i data-feather="edit" className="info-img"></i>Edit Sale</a></li>
-                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}><i data-feather="dollar-sign" className="info-img"></i>Show Payments</a></li>
-                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}><i data-feather="plus-circle" className="info-img"></i>Create Payment</a></li>
-                          <li><a className="dropdown-item mb-0" href="#" onClick={(e) => { e.preventDefault(); setDeleteId(s.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>Delete Sale</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}><i data-feather="eye" className="info-img"></i>{t('sales.sale_detail')}</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openEditModal(s); }}><i data-feather="edit" className="info-img"></i>{t('sales.edit_sale')}</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}><i data-feather="dollar-sign" className="info-img"></i>{t('sales.show_payments')}</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}><i data-feather="plus-circle" className="info-img"></i>{t('sales.create_payment')}</a></li>
+                          <li><a className="dropdown-item mb-0" href="#" onClick={(e) => { e.preventDefault(); setDeleteId(s.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>{t('sales.delete_sale')}</a></li>
                         </ul>
                       </td>
                     </tr>
@@ -419,7 +421,7 @@ const OnlineOrders: React.FC = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">{editingId ? 'Edit Sales' : 'Add Sales'}</h4>
+                <h4 className="modal-title">{editingId ? t('sales.edit_sale') : t('sales.add_sales')}</h4>
                 <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
               </div>
               <div className="card border-0 mb-0">
@@ -430,14 +432,14 @@ const OnlineOrders: React.FC = () => {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Product</th>
-                            <th>Qty</th>
-                            <th>Purchase Price($)</th>
-                            <th>Discount($)</th>
-                            <th>Tax(%)</th>
-                            <th>Tax Amount($)</th>
-                            <th>Unit Cost($)</th>
-                            <th>Total Cost($)</th>
+                            <th>{t('sales.product')}</th>
+                            <th>{t('sales.qty')}</th>
+                            <th>{t('sales.purchase_price')}</th>
+                            <th>{t('sales.discount_amt')}</th>
+                            <th>{t('sales.tax_pct')}</th>
+                            <th>{t('sales.tax_amount')}</th>
+                            <th>{t('sales.unit_cost')}</th>
+                            <th>{t('sales.total_cost')}</th>
                             <th></th>
                           </tr>
                         </thead>
@@ -470,8 +472,8 @@ const OnlineOrders: React.FC = () => {
                   <div className="row">
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3" ref={customerSearchRef}>
-                        <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
-                        <input type="text" className="form-control" placeholder="Search customer..." value={customerSearchTerm}
+                        <label className="form-label">{t('sales.customer_name')}<span className="text-danger ms-1">*</span></label>
+                        <input type="text" className="form-control" placeholder={t('sales.search_customer')} value={customerSearchTerm}
                           onChange={(e) => { setCustomerSearchTerm(e.target.value); setShowCustomerDropdown(true); }}
                           onFocus={() => setShowCustomerDropdown(true)} />
                         {showCustomerDropdown && filteredCustomers.length > 0 && (
@@ -487,20 +489,20 @@ const OnlineOrders: React.FC = () => {
                     </div>
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+                        <label className="form-label">{t('sales.date')}<span className="text-danger ms-1">*</span></label>
                         <input type="date" className="form-control" defaultValue={new Date().toISOString().slice(0, 10)} />
                       </div>
                     </div>
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">Biller<span className="text-danger ms-1">*</span></label>
+                        <label className="form-label">{t('sales.biller')}<span className="text-danger ms-1">*</span></label>
                         <input type="text" className="form-control" value={form.biller} onChange={(e) => setForm({ ...form, biller: e.target.value })} />
                       </div>
                     </div>
                     <div className="col-lg-12 col-sm-6 col-12">
                       <div className="mb-3" ref={productSearchRef}>
-                        <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
-                        <input type="text" className="form-control" placeholder="Please type product code and select" value={productSearchTerm}
+                        <label className="form-label">{t('common.product')}<span className="text-danger ms-1">*</span></label>
+                        <input type="text" className="form-control" placeholder={t('common.search_placeholder')} value={productSearchTerm}
                           onChange={(e) => { setProductSearchTerm(e.target.value); setShowProductDropdown(true); }}
                           onFocus={() => setShowProductDropdown(true)} />
                         {showProductDropdown && searchProducts(productSearchTerm).length > 0 && (
@@ -521,10 +523,10 @@ const OnlineOrders: React.FC = () => {
                     <div className="col-lg-6 ms-auto">
                       <div className="total-order w-100 max-widthauto m-auto mb-4">
                         <ul className="border-1 rounded-2 list-unstyled mb-0">
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Order Tax</h6><span>{fmt(form.orderTax)}</span></li>
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Discount</h6><span>{fmt(form.discount)}</span></li>
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Shipping</h6><span>{fmt(form.shipping)}</span></li>
-                          <li className="d-flex justify-content-between p-2"><h6 className="mb-0 fw-bold">Grand Total</h6><span className="fw-bold">{fmt(grandTotal)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.order_tax')}</h6><span>{fmt(form.orderTax)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.discount')}</h6><span>{fmt(form.discount)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.shipping')}</h6><span>{fmt(form.shipping)}</span></li>
+                          <li className="d-flex justify-content-between p-2"><h6 className="mb-0 fw-bold">{t('common.grand_total')}</h6><span className="fw-bold">{fmt(grandTotal)}</span></li>
                         </ul>
                       </div>
                     </div>
@@ -534,25 +536,25 @@ const OnlineOrders: React.FC = () => {
                   <div className="row">
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">Order Tax<span className="text-danger ms-1">*</span></label>
+                        <label className="form-label">{t('common.order_tax')}<span className="text-danger ms-1">*</span></label>
                         <input type="number" className="form-control" value={form.orderTax} onChange={(e) => setForm({ ...form, orderTax: parseFloat(e.target.value) || 0 })} />
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">Discount<span className="text-danger ms-1">*</span></label>
+                        <label className="form-label">{t('common.discount')}<span className="text-danger ms-1">*</span></label>
                         <input type="number" className="form-control" value={form.discount} onChange={(e) => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })} />
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">Shipping<span className="text-danger ms-1">*</span></label>
+                        <label className="form-label">{t('common.shipping')}<span className="text-danger ms-1">*</span></label>
                         <input type="number" className="form-control" value={form.shipping} onChange={(e) => setForm({ ...form, shipping: parseFloat(e.target.value) || 0 })} />
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">Status<span className="text-danger ms-1">*</span></label>
+                        <label className="form-label">{t('common.status')}<span className="text-danger ms-1">*</span></label>
                         <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                           {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
@@ -561,7 +563,7 @@ const OnlineOrders: React.FC = () => {
                     {editingId && (
                       <div className="col-lg-12">
                         <div className="mb-3">
-                          <label className="form-label">Notes</label>
+                          <label className="form-label">{t('common.notes')}</label>
                           <textarea className="form-control" rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                         </div>
                       </div>
@@ -570,8 +572,8 @@ const OnlineOrders: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary me-3" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={saveSale}>{editingId ? 'Save Changes' : 'Submit'}</button>
+                <button type="button" className="btn btn-secondary me-3" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={saveSale}>{editingId ? t('common.save_changes') : t('common.submit')}</button>
               </div>
             </div>
           </div>
@@ -585,11 +587,11 @@ const OnlineOrders: React.FC = () => {
             <div className="modal-content">
               <div className="page-header p-4 border-bottom mb-0">
                 <div className="add-item d-flex align-items-center">
-                  <h4 className="mb-0 me-2">Sales Detail</h4>
+                  <h4 className="mb-0 me-2">{t('sales.sale_detail')}</h4>
                 </div>
                 <div className="page-btn">
                   <button className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>
-                    <i data-feather="arrow-left" className="me-2"></i>Back to Sales
+                    <i data-feather="arrow-left" className="me-2"></i>{t('sales.back_to_sales')}
                   </button>
                 </div>
               </div>
@@ -598,35 +600,35 @@ const OnlineOrders: React.FC = () => {
                   {/* Info boxes */}
                   <div className="row sales-details-items d-flex mb-3">
                     <div className="col-md-4">
-                      <h6>Customer Info</h6>
+                      <h6>{t('sales.customer_info')}</h6>
                       <h5 className="mb-1">{detailSale.customerName}</h5>
                     </div>
                     <div className="col-md-4">
-                      <h6>Invoice Info</h6>
-                      <p className="mb-0">Reference: <span className="fs-16 text-primary ms-2">#{detailSale.reference}</span></p>
-                      <p className="mb-0">Date: <span className="ms-2 text-muted">{detailSale.saleDate}</span></p>
-                      <p className="mb-0">Status: <span className={`badge ${statusBadge(detailSale.status)} ms-2`}>{detailSale.status}</span></p>
-                      <p className="mb-0">Payment Status: <span className={`badge ${paymentStatusBadge(detailSale.paymentStatus)} shadow-none badge-xs ms-2`}><i className="ti ti-point-filled"></i>{detailSale.paymentStatus}</span></p>
+                      <h6>{t('sales.invoice_info')}</h6>
+                      <p className="mb-0">{t('common.reference')}: <span className="fs-16 text-primary ms-2">#{detailSale.reference}</span></p>
+                      <p className="mb-0">{t('common.date')}: <span className="ms-2 text-muted">{detailSale.saleDate}</span></p>
+                      <p className="mb-0">{t('common.status')}: <span className={`badge ${statusBadge(detailSale.status)} ms-2`}>{detailSale.status}</span></p>
+                      <p className="mb-0">{t('common.payment_status')}: <span className={`badge ${paymentStatusBadge(detailSale.paymentStatus)} shadow-none badge-xs ms-2`}><i className="ti ti-point-filled"></i>{detailSale.paymentStatus}</span></p>
                     </div>
                     <div className="col-md-4">
-                      <h6>Biller</h6>
+                      <h6>{t('common.biller')}</h6>
                       <p className="mb-0">{detailSale.biller}</p>
                     </div>
                   </div>
 
-                  <h5 className="mb-3">Order Summary</h5>
+                  <h5 className="mb-3">{t('sales.order_summary')}</h5>
                   <div className="table-responsive no-pagination mb-3">
                     <table className="table">
                       <thead>
                         <tr>
-                          <th>Product</th>
-                          <th>Qty</th>
-                          <th>Purchase Price($)</th>
-                          <th>Discount($)</th>
-                          <th>Tax(%)</th>
-                          <th>Tax Amount($)</th>
-                          <th>Unit Cost($)</th>
-                          <th>Total Cost($)</th>
+                          <th>{t('sales.product')}</th>
+                          <th>{t('sales.qty')}</th>
+                          <th>{t('sales.purchase_price')}</th>
+                          <th>{t('sales.discount_amt')}</th>
+                          <th>{t('sales.tax_pct')}</th>
+                          <th>{t('sales.tax_amount')}</th>
+                          <th>{t('sales.unit_cost')}</th>
+                          <th>{t('sales.total_cost')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -650,11 +652,11 @@ const OnlineOrders: React.FC = () => {
                     <div className="col-lg-6 ms-auto">
                       <div className="total-order w-100 max-widthauto m-auto mb-4">
                         <ul className="border-1 rounded-1 list-unstyled mb-0">
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Order Tax</h6><span>{fmt(detailSale.orderTax)}</span></li>
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Discount</h6><span>{fmt(detailSale.discount)}</span></li>
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Grand Total</h6><span className="fw-bold">{fmt(detailSale.grandTotal)}</span></li>
-                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">Paid</h6><span>{fmt(detailSale.paid)}</span></li>
-                          <li className="d-flex justify-content-between p-2"><h6 className="mb-0">Due</h6><span>{fmt(detailSale.due)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.order_tax')}</h6><span>{fmt(detailSale.orderTax)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.discount')}</h6><span>{fmt(detailSale.discount)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.grand_total')}</h6><span className="fw-bold">{fmt(detailSale.grandTotal)}</span></li>
+                          <li className="border-bottom d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.paid')}</h6><span>{fmt(detailSale.paid)}</span></li>
+                          <li className="d-flex justify-content-between p-2"><h6 className="mb-0">{t('common.due')}</h6><span>{fmt(detailSale.due)}</span></li>
                         </ul>
                       </div>
                     </div>
@@ -662,7 +664,7 @@ const OnlineOrders: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>Close</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>{t('common.close')}</button>
               </div>
             </div>
           </div>
@@ -675,7 +677,7 @@ const OnlineOrders: React.FC = () => {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">Show Payments - {paymentsSale.reference}</h4>
+                <h4 className="modal-title">{t('sales.show_payments')} - {paymentsSale.reference}</h4>
                 <button type="button" className="close" onClick={() => setShowPaymentsModal(false)}><span>&times;</span></button>
               </div>
               <div className="modal-body">
@@ -683,16 +685,16 @@ const OnlineOrders: React.FC = () => {
                   <table className="table">
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Reference</th>
-                        <th>Amount</th>
-                        <th>Paid By</th>
+                        <th>{t('common.date')}</th>
+                        <th>{t('common.reference')}</th>
+                        <th>{t('common.amount')}</th>
+                        <th>{t('common.paid')}</th>
                         <th></th>
                       </tr>
                     </thead>
                     <tbody>
                       {paymentsSale.payments.length === 0 ? (
-                        <tr><td colSpan={5} className="text-center py-3">No payments recorded</td></tr>
+                        <tr><td colSpan={5} className="text-center py-3">{t('sales.no_payments')}</td></tr>
                       ) : paymentsSale.payments.map((p) => (
                         <tr key={p.id}>
                           <td>{p.paymentDate}</td>
@@ -726,20 +728,20 @@ const OnlineOrders: React.FC = () => {
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">{editingPaymentId ? 'Edit Payment' : 'Create Payment'}</h4>
+                <h4 className="modal-title">{editingPaymentId ? t('sales.edit_payment') : t('sales.create_payment')}</h4>
                 <button type="button" className="close" onClick={() => setShowPaymentFormModal(false)}><span>&times;</span></button>
               </div>
               <div className="modal-body">
                 <div className="row">
                   <div className="col-lg-6">
                     <div className="mb-3">
-                      <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('sales.date')}<span className="text-danger ms-1">*</span></label>
                       <input type="date" className="form-control" defaultValue={new Date().toISOString().slice(0, 10)} />
                     </div>
                   </div>
                   <div className="col-lg-6">
                     <div className="mb-3">
-                      <label className="form-label">Reference<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('common.reference')}<span className="text-danger ms-1">*</span></label>
                       <input type="text" className="form-control" value={paymentForm.reference} onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })} />
                     </div>
                   </div>
@@ -747,19 +749,19 @@ const OnlineOrders: React.FC = () => {
                 <div className="row">
                   <div className="col-lg-4">
                     <div className="mb-3">
-                      <label className="form-label">Received Amount<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('sales.received_amount')}<span className="text-danger ms-1">*</span></label>
                       <input type="number" className="form-control" value={paymentForm.receivedAmount} onChange={(e) => setPaymentForm({ ...paymentForm, receivedAmount: parseFloat(e.target.value) || 0 })} />
                     </div>
                   </div>
                   <div className="col-lg-4">
                     <div className="mb-3">
-                      <label className="form-label">Paying Amount<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('sales.paying_amount')}<span className="text-danger ms-1">*</span></label>
                       <input type="number" className="form-control" value={paymentForm.payingAmount} onChange={(e) => setPaymentForm({ ...paymentForm, payingAmount: parseFloat(e.target.value) || 0 })} />
                     </div>
                   </div>
                   <div className="col-lg-4">
                     <div className="mb-3">
-                      <label className="form-label">Payment Type<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('sales.payment_type')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={paymentForm.paymentType} onChange={(e) => setPaymentForm({ ...paymentForm, paymentType: e.target.value })}>
                         {PAYMENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                       </select>
@@ -767,16 +769,16 @@ const OnlineOrders: React.FC = () => {
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Description</label>
+                      <label className="form-label">{t('common.description')}</label>
                       <textarea className="form-control" rows={3} value={paymentForm.description} onChange={(e) => setPaymentForm({ ...paymentForm, description: e.target.value })} />
-                      <p className="text-muted mb-0">Maximum 60 Characters</p>
+                      <p className="text-muted mb-0">{t('common.max_60_chars')}</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary me-2" onClick={() => setShowPaymentFormModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={savePayment}>{editingPaymentId ? 'Save Changes' : 'Submit'}</button>
+                <button type="button" className="btn btn-secondary me-2" onClick={() => setShowPaymentFormModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={savePayment}>{editingPaymentId ? t('common.save_changes') : t('common.submit')}</button>
               </div>
             </div>
           </div>
@@ -793,11 +795,11 @@ const OnlineOrders: React.FC = () => {
                   <div className="icon-success bg-danger-transparent text-danger mb-2" style={{ width: 50, height: 50, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                     <i className="ti ti-trash fs-20"></i>
                   </div>
-                  <h3 className="mb-2">Delete Sale</h3>
-                  <p className="fs-16 mb-3">Are you sure you want to delete this sale?</p>
+                  <h3 className="mb-2">{t('sales.delete_sale')}</h3>
+                  <p className="fs-16 mb-3">{t('sales.delete_confirm')}</p>
                   <div className="d-flex align-items-center justify-content-center gap-2">
-                    <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteId(null); }}>No, Cancel</button>
-                    <button type="button" className="btn btn-primary" onClick={confirmDelete}>Yes, Delete</button>
+                    <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteId(null); }}>{t('common.no_cancel')}</button>
+                    <button type="button" className="btn btn-primary" onClick={confirmDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>

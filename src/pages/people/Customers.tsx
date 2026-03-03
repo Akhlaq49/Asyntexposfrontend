@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MEDIA_BASE_URL } from '../../services/api';
 import {
   Customer,
@@ -14,6 +15,7 @@ import WhatsAppSendModal from '../../components/WhatsAppSendModal';
 const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; status: 'active' | 'inactive' } = { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', status: 'active' };
 
 const Customers: React.FC = () => {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -204,52 +206,52 @@ const Customers: React.FC = () => {
     <div className="row">
       {isVisible('name') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
-        <input type="text" className="form-control" placeholder="Customer name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <label className="form-label">{t('customers.full_name_label')}<span className="text-danger ms-1">*</span></label>
+        <input type="text" className="form-control" placeholder={t('customers.customer_name_placeholder')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
       </div>
       )}
       {isVisible('so') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">S/O (Father's Name)</label>
-        <input type="text" className="form-control" placeholder="Son/Daughter of" value={form.so} onChange={(e) => setForm({ ...form, so: e.target.value })} />
+        <label className="form-label">{t('customers.so_father')}</label>
+        <input type="text" className="form-control" placeholder={t('customers.so_placeholder')} value={form.so} onChange={(e) => setForm({ ...form, so: e.target.value })} />
       </div>
       )}
       {isVisible('cnic') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">CNIC</label>
-        <input type="text" className="form-control" placeholder="CNIC number" value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} />
+        <label className="form-label">{t('customers.cnic')}</label>
+        <input type="text" className="form-control" placeholder={t('customers.cnic_placeholder')} value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} />
       </div>
       )}
       {isVisible('phone') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">Phone</label>
-        <input type="text" className="form-control" placeholder="Phone number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <label className="form-label">{t('customers.phone')}</label>
+        <input type="text" className="form-control" placeholder={t('customers.phone_placeholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
       </div>
       )}
       {isVisible('email') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">Email</label>
-        <input type="email" className="form-control" placeholder="Email address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <label className="form-label">{t('customers.email')}</label>
+        <input type="email" className="form-control" placeholder={t('customers.email_placeholder')} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
       </div>
       )}
       {isVisible('city') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">City</label>
-        <input type="text" className="form-control" placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        <label className="form-label">{t('customers.city')}</label>
+        <input type="text" className="form-control" placeholder={t('customers.city_placeholder')} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
       </div>
       )}
       {isVisible('status') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">Status</label>
+        <label className="form-label">{t('customers.status')}</label>
         <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'inactive' })}>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="active">{t('common.active')}</option>
+          <option value="inactive">{t('common.inactive')}</option>
         </select>
       </div>
       )}
       {isVisible('picture') && (
       <div className="col-lg-6 mb-3">
-        <label className="form-label">Photo</label>
+        <label className="form-label">{t('common.photo')}</label>
         <div className="d-flex align-items-center gap-3">
           <input type="file" className="form-control" accept="image/*" onChange={handlePictureChange} />
           {picturePreview && <img src={picturePreview} alt="Preview" className="rounded-circle border" style={{ width: 40, height: 40, objectFit: 'cover' }} />}
@@ -258,8 +260,8 @@ const Customers: React.FC = () => {
       )}
       {isVisible('address') && (
       <div className="col-lg-12 mb-0">
-        <label className="form-label">Address</label>
-        <textarea className="form-control" rows={2} placeholder="Full address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+        <label className="form-label">{t('customers.address')}</label>
+        <textarea className="form-control" rows={2} placeholder={t('customers.address_placeholder')} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
       </div>
       )}
     </div>
@@ -271,18 +273,18 @@ const Customers: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Customers</h4>
-            <h6>Manage your customer list</h6>
+            <h4 className="fw-bold">{t('customers.title')}</h4>
+            <h6>{t('customers.subtitle')}</h6>
           </div>
         </div>
         <div className="page-btn d-flex gap-2">
           {selectedIds.size > 0 && (
             <button className="btn btn-outline-danger" onClick={handleBulkDelete} disabled={saving}>
-              <i className="ti ti-trash me-1"></i>Delete ({selectedIds.size})
+              <i className="ti ti-trash me-1"></i>{t('customers.delete_count', { count: selectedIds.size })}
             </button>
           )}
           <button className="btn btn-primary" onClick={openAdd}>
-            <i className="ti ti-circle-plus me-1"></i>Add Customer
+            <i className="ti ti-circle-plus me-1"></i>{t('customers.add_customer')}
           </button>
         </div>
       </div>
@@ -293,23 +295,23 @@ const Customers: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn btn-searchset"><i className="ti ti-search fs-14"></i></span>
-              <input type="text" className="form-control" placeholder="Search customers..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('customers.search_customers')} value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
           </div>
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <select className="form-select form-select-sm" style={{ width: 'auto' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="">{t('customers.all_status')}</option>
+              <option value="active">{t('common.active')}</option>
+              <option value="inactive">{t('common.inactive')}</option>
             </select>
-            <span className="badge bg-primary fs-12">{filtered.length} customer{filtered.length !== 1 ? 's' : ''}</span>
+            <span className="badge bg-primary fs-12">{filtered.length} {t('customers.customer_count')}</span>
           </div>
         </div>
         <div className="card-body p-0">
           {loading ? (
             <div className="text-center p-5"><div className="spinner-border text-primary"></div></div>
           ) : filtered.length === 0 ? (
-            <div className="text-center p-5 text-muted">{search || statusFilter ? 'No customers match your filters.' : 'No customers yet. Add your first customer!'}</div>
+            <div className="text-center p-5 text-muted">{search || statusFilter ? t('customers.no_match') : t('customers.no_customers')}</div>
           ) : (
             <div className="table-responsive">
               <table className="table table-hover mb-0">
@@ -318,13 +320,13 @@ const Customers: React.FC = () => {
                     <th style={{ width: 40 }}>
                       <label className="checkboxs"><input type="checkbox" checked={allSelected} onChange={toggleSelectAll} /><span className="checkmarks"></span></label>
                     </th>
-                    <th>Customer</th>
-                    <th>CNIC</th>
-                    <th>Phone</th>
-                    <th>City</th>
-                    <th>Misc Balance</th>
-                    <th>Status</th>
-                    <th style={{ width: 120 }}>Actions</th>
+                    <th>{t('customers.customer_name')}</th>
+                    <th>{t('customers.cnic')}</th>
+                    <th>{t('customers.phone')}</th>
+                    <th>{t('customers.city')}</th>
+                    <th>{t('customers.misc_balance')}</th>
+                    <th>{t('customers.status')}</th>
+                    <th style={{ width: 120 }}>{t('customers.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -354,10 +356,10 @@ const Customers: React.FC = () => {
                       </td>
                       <td>
                         <div className="d-flex align-items-center gap-1">
-                          <button className="btn btn-icon btn-sm" title="View" onClick={() => openView(c)}><i className="ti ti-eye text-primary"></i></button>
-                          <button className="btn btn-icon btn-sm" title="Edit" onClick={() => openEdit(c)}><i className="ti ti-edit text-info"></i></button>
-                          <button className="btn btn-icon btn-sm" title="WhatsApp" onClick={() => setWhatsappCustomer(c)}><i className="ti ti-brand-whatsapp text-success"></i></button>
-                          <button className="btn btn-icon btn-sm" title="Delete" onClick={() => openDelete(c.id)}><i className="ti ti-trash text-danger"></i></button>
+                          <button className="btn btn-icon btn-sm" title={t('common.view')} onClick={() => openView(c)}><i className="ti ti-eye text-primary"></i></button>
+                          <button className="btn btn-icon btn-sm" title={t('common.edit')} onClick={() => openEdit(c)}><i className="ti ti-edit text-info"></i></button>
+                          <button className="btn btn-icon btn-sm" title={t('customers.whatsapp')} onClick={() => setWhatsappCustomer(c)}><i className="ti ti-brand-whatsapp text-success"></i></button>
+                          <button className="btn btn-icon btn-sm" title={t('common.delete')} onClick={() => openDelete(c.id)}><i className="ti ti-trash text-danger"></i></button>
                         </div>
                       </td>
                     </tr>
@@ -375,14 +377,14 @@ const Customers: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title"><i className="ti ti-user-plus me-2"></i>Add Customer</h5>
+                <h5 className="modal-title"><i className="ti ti-user-plus me-2"></i>{t('customers.add_customer')}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
               </div>
               <div className="modal-body">{formFields}</div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>{t('common.cancel')}</button>
                 <button type="button" className="btn btn-primary" disabled={!form.name.trim() || saving} onClick={handleSave}>
-                  {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</> : <><i className="ti ti-check me-1"></i>Add Customer</>}
+                  {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>{t('common.saving')}</> : <><i className="ti ti-check me-1"></i>{t('customers.add_customer')}</>}
                 </button>
               </div>
             </div>
@@ -396,14 +398,14 @@ const Customers: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title"><i className="ti ti-edit me-2"></i>Edit Customer</h5>
+                <h5 className="modal-title"><i className="ti ti-edit me-2"></i>{t('customers.edit_customer')}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowEditModal(false)}></button>
               </div>
               <div className="modal-body">{formFields}</div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
                 <button type="button" className="btn btn-primary" disabled={!form.name.trim() || saving} onClick={handleUpdate}>
-                  {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>Updating...</> : <><i className="ti ti-check me-1"></i>Update Customer</>}
+                  {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>{t('common.updating')}</> : <><i className="ti ti-check me-1"></i>{t('customers.update_customer')}</>}
                 </button>
               </div>
             </div>
@@ -418,12 +420,12 @@ const Customers: React.FC = () => {
             <div className="modal-content">
               <div className="modal-body text-center p-5">
                 <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-                <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Customer?</h4>
-                <p className="text-muted mb-0">This action cannot be undone.</p>
+                <h4 className="fs-20 fw-bold mb-2 mt-1">{t('customers.delete_customer')}</h4>
+                <p className="text-muted mb-0">{t('customers.cannot_undo')}</p>
                 <div className="mt-3 d-flex justify-content-center gap-2">
-                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
                   <button className="btn btn-danger" disabled={saving} onClick={handleDelete}>
-                    {saving ? <span className="spinner-border spinner-border-sm"></span> : 'Delete'}
+                    {saving ? <span className="spinner-border spinner-border-sm"></span> : t('common.delete')}
                   </button>
                 </div>
               </div>
@@ -438,7 +440,7 @@ const Customers: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title"><i className="ti ti-user me-2"></i>Customer Details</h5>
+                <h5 className="modal-title"><i className="ti ti-user me-2"></i>{t('customers.customer_details')}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowViewModal(false)}></button>
               </div>
               <div className="modal-body text-center">
@@ -450,31 +452,31 @@ const Customers: React.FC = () => {
                 <div className="text-start mt-3">
                   <table className="table table-borderless table-sm mb-0">
                     <tbody>
-                      {viewCustomer.so && <tr><td className="text-muted"><i className="ti ti-user me-2"></i>S/O</td><td className="text-end fw-medium">{viewCustomer.so}</td></tr>}
-                      {viewCustomer.cnic && <tr><td className="text-muted"><i className="ti ti-id me-2"></i>CNIC</td><td className="text-end fw-medium">{viewCustomer.cnic}</td></tr>}
+                      {viewCustomer.so && <tr><td className="text-muted"><i className="ti ti-user me-2"></i>{t('customers.so_label')}</td><td className="text-end fw-medium">{viewCustomer.so}</td></tr>}
+                      {viewCustomer.cnic && <tr><td className="text-muted"><i className="ti ti-id me-2"></i>{t('customers.cnic')}</td><td className="text-end fw-medium">{viewCustomer.cnic}</td></tr>}
                       <tr>
-                        <td className="text-muted"><i className="ti ti-wallet me-2"></i>Misc Balance</td>
+                        <td className="text-muted"><i className="ti ti-wallet me-2"></i>{t('customers.misc_balance')}</td>
                         <td className="text-end fw-medium">
                           <span className={`${(viewCustomer.miscBalance || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
                             ${(viewCustomer.miscBalance || 0).toFixed(2)}
                           </span>
                         </td>
                       </tr>
-                      {viewCustomer.phone && <tr><td className="text-muted"><i className="ti ti-phone me-2"></i>Phone</td><td className="text-end fw-medium">{viewCustomer.phone}</td></tr>}
-                      {viewCustomer.email && <tr><td className="text-muted"><i className="ti ti-mail me-2"></i>Email</td><td className="text-end fw-medium">{viewCustomer.email}</td></tr>}
-                      {viewCustomer.city && <tr><td className="text-muted"><i className="ti ti-building me-2"></i>City</td><td className="text-end fw-medium">{viewCustomer.city}</td></tr>}
-                      {viewCustomer.address && <tr><td className="text-muted"><i className="ti ti-map-pin me-2"></i>Address</td><td className="text-end fw-medium">{viewCustomer.address}</td></tr>}
+                      {viewCustomer.phone && <tr><td className="text-muted"><i className="ti ti-phone me-2"></i>{t('customers.phone')}</td><td className="text-end fw-medium">{viewCustomer.phone}</td></tr>}
+                      {viewCustomer.email && <tr><td className="text-muted"><i className="ti ti-mail me-2"></i>{t('customers.email')}</td><td className="text-end fw-medium">{viewCustomer.email}</td></tr>}
+                      {viewCustomer.city && <tr><td className="text-muted"><i className="ti ti-building me-2"></i>{t('customers.city')}</td><td className="text-end fw-medium">{viewCustomer.city}</td></tr>}
+                      {viewCustomer.address && <tr><td className="text-muted"><i className="ti ti-map-pin me-2"></i>{t('customers.address')}</td><td className="text-end fw-medium">{viewCustomer.address}</td></tr>}
                     </tbody>
                   </table>
                 </div>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-success" onClick={() => { setShowViewModal(false); setWhatsappCustomer(viewCustomer); }}>
-                  <i className="ti ti-brand-whatsapp me-1"></i>WhatsApp
+                  <i className="ti ti-brand-whatsapp me-1"></i>{t('customers.whatsapp')}
                 </button>
-                <button className="btn btn-secondary" onClick={() => setShowViewModal(false)}>Close</button>
+                <button className="btn btn-secondary" onClick={() => setShowViewModal(false)}>{t('common.close')}</button>
                 <button className="btn btn-primary" onClick={() => { setShowViewModal(false); openEdit(viewCustomer); }}>
-                  <i className="ti ti-edit me-1"></i>Edit
+                  <i className="ti ti-edit me-1"></i>{t('common.edit')}
                 </button>
               </div>
             </div>
@@ -489,7 +491,7 @@ const Customers: React.FC = () => {
         phoneNumber={whatsappCustomer?.phone || ''}
         recipientName={whatsappCustomer?.name || ''}
         defaultMessage={whatsappCustomer ? `Hello ${whatsappCustomer.name},\n\nThis is a message from Asyentyx.\n\nRegards` : ''}
-        title="Message Customer"
+        title={t('customers.message_customer')}
       />
     </>
   );

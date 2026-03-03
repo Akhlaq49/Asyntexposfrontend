@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 
 interface UnitDto {
@@ -29,6 +30,7 @@ const mapDto = (dto: UnitDto): UnitItem => ({
 });
 
 const Units: React.FC = () => {
+  const { t } = useTranslation();
   const [units, setUnits] = useState<UnitItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -155,28 +157,28 @@ const Units: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Units</h4>
-            <h6>Manage your units</h6>
+            <h4 className="fw-bold">{t('units.title')}</h4>
+            <h6>{t('units.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/pdf.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/excel.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}>
+            <a href="#" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); fetchData(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
           <li>
-            <a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}>
               <i className="ti ti-chevron-up"></i>
             </a>
           </li>
@@ -187,7 +189,7 @@ const Units: React.FC = () => {
             className="btn btn-primary"
             onClick={(e) => { e.preventDefault(); resetAddForm(); setShowAddModal(true); }}
           >
-            <i className="ti ti-circle-plus me-1"></i>Add Unit
+            <i className="ti ti-circle-plus me-1"></i>{t('units.add_unit')}
           </a>
         </div>
       </div>
@@ -201,7 +203,7 @@ const Units: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search"
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -210,12 +212,12 @@ const Units: React.FC = () => {
           <div className="table-dropdown my-xl-auto right-content">
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {statusFilter || 'Status'}
+                {statusFilter || t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>{t('common.active')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>{t('common.inactive')}</a></li>
               </ul>
             </div>
           </div>
@@ -224,7 +226,7 @@ const Units: React.FC = () => {
           {loading ? (
             <div className="text-center p-5">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('common.loading')}</span>
               </div>
             </div>
           ) : (
@@ -238,11 +240,11 @@ const Units: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>Unit</th>
-                    <th>Short Name</th>
-                    <th>No of Products</th>
-                    <th>Created Date</th>
-                    <th>Status</th>
+                    <th>{t('units.unit_name')}</th>
+                    <th>{t('units.short_name')}</th>
+                    <th>{t('units.no_of_products')}</th>
+                    <th>{t('common.created_date')}</th>
+                    <th>{t('common.status')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -265,7 +267,7 @@ const Units: React.FC = () => {
                       <td>{item.createdAt}</td>
                       <td>
                         <span className={`badge table-badge fw-medium fs-10 ${item.status === 'active' ? 'bg-success' : 'bg-danger'}`}>
-                          {item.status === 'active' ? 'Active' : 'Inactive'}
+                          {item.status === 'active' ? t('common.active') : t('common.inactive')}
                         </span>
                       </td>
                       <td className="action-table-data">
@@ -293,14 +295,14 @@ const Units: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Add Unit</h4></div>
+                <div className="page-title"><h4>{t('units.add_unit')}</h4></div>
                 <button type="button" className="close bg-danger text-white fs-16" onClick={() => { setShowAddModal(false); resetAddForm(); }} aria-label="Close">
                   <span aria-hidden="true" className="fs-16">&times;</span>
                 </button>
               </div>
               <div className="modal-body">
                 <div className="mb-3">
-                  <label className="form-label">Unit<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('units.unit_name')}<span className="text-danger ms-1">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -309,7 +311,7 @@ const Units: React.FC = () => {
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Short Name<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('units.short_name')}<span className="text-danger ms-1">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -319,7 +321,7 @@ const Units: React.FC = () => {
                 </div>
                 <div className="mb-0">
                   <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                    <span className="status-label">Status</span>
+                    <span className="status-label">{t('common.status')}</span>
                     <input
                       type="checkbox"
                       id="add-unit-status"
@@ -332,8 +334,8 @@ const Units: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => { setShowAddModal(false); resetAddForm(); }}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleAddSave}>Add Unit</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => { setShowAddModal(false); resetAddForm(); }}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleAddSave}>{t('units.add_unit')}</button>
               </div>
             </div>
           </div>
@@ -346,14 +348,14 @@ const Units: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Edit Unit</h4></div>
+                <div className="page-title"><h4>{t('units.edit_unit')}</h4></div>
                 <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
                   <span aria-hidden="true" className="fs-16">&times;</span>
                 </button>
               </div>
               <div className="modal-body">
                 <div className="mb-3">
-                  <label className="form-label">Unit<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('units.unit_name')}<span className="text-danger ms-1">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -362,7 +364,7 @@ const Units: React.FC = () => {
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Short Name<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('units.short_name')}<span className="text-danger ms-1">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -372,7 +374,7 @@ const Units: React.FC = () => {
                 </div>
                 <div className="mb-0">
                   <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                    <span className="status-label">Status</span>
+                    <span className="status-label">{t('common.status')}</span>
                     <input
                       type="checkbox"
                       id="edit-unit-status"
@@ -385,8 +387,8 @@ const Units: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -403,11 +405,11 @@ const Units: React.FC = () => {
                   <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
                     <i className="ti ti-trash fs-24 text-danger"></i>
                   </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Unit</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to delete unit?</p>
+                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('units.delete_unit')}</h4>
+                  <p className="mb-0 fs-16">{t('units.delete_confirm')}</p>
                   <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>

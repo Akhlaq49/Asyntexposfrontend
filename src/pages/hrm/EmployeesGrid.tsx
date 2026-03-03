@@ -1,9 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getEmployees, deleteEmployee, getDepartments, getDesignations, Employee, Department, Designation as DesignationType } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 
 const EmployeesGrid: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [items, setItems] = useState<Employee[]>([]);
   const [, setDepartments] = useState<Department[]>([]);
@@ -23,7 +25,7 @@ const EmployeesGrid: React.FC = () => {
     try {
       const [emps, depts, desigs] = await Promise.all([getEmployees(), getDepartments(), getDesignations()]);
       setItems(emps); setDepartments(depts); setDesignations(desigs);
-    } catch { showError('Failed to load employees'); }
+    } catch { showError(t('hrm.failed_load_employees')); }
     finally { setLoading(false); }
   };
 
@@ -36,8 +38,8 @@ const EmployeesGrid: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!deleteId) return;
-    try { await deleteEmployee(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess('Employee deleted'); loadData(); }
-    catch { showError('Failed to delete'); }
+    try { await deleteEmployee(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess(t('hrm.employee_deleted')); loadData(); }
+    catch { showError(t('hrm.failed_delete')); }
   };
 
   const totalCount = items.length;
@@ -51,7 +53,7 @@ const EmployeesGrid: React.FC = () => {
   return (
     <>
       <div className="page-header">
-        <div className="add-item d-flex"><div className="page-title"><h4>Employees</h4><h6>Manage your employees</h6></div></div>
+        <div className="add-item d-flex"><div className="page-title"><h4>{t('hrm.employees')}</h4><h6>{t('hrm.manage_your_employees')}</h6></div></div>
         <ul className="table-top-head">
           <li>
             <div className="d-flex me-2 pe-2 border-end">
@@ -60,22 +62,22 @@ const EmployeesGrid: React.FC = () => {
             </div>
           </li>
         </ul>
-        <div className="page-btn"><Link to="/add-employee" className="btn btn-primary"><i className="ti ti-circle-plus me-1"></i>Add Employee</Link></div>
+        <div className="page-btn"><Link to="/add-employee" className="btn btn-primary"><i className="ti ti-circle-plus me-1"></i>{t('hrm.add_employee')}</Link></div>
       </div>
 
       {/* Stats Cards */}
       <div className="row">
         <div className="col-xl-3 col-md-6">
-          <div className="card bg-purple border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">Total Employee</p><h4 className="text-white">{totalCount}</h4></div><div><span className="avatar avatar-lg bg-purple-900"><i className="ti ti-users-group"></i></span></div></div></div>
+          <div className="card bg-purple border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">{t('hrm.total_employee')}</p><h4 className="text-white">{totalCount}</h4></div><div><span className="avatar avatar-lg bg-purple-900"><i className="ti ti-users-group"></i></span></div></div></div>
         </div>
         <div className="col-xl-3 col-md-6">
-          <div className="card bg-teal border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">Active</p><h4 className="text-white">{activeCount}</h4></div><div><span className="avatar avatar-lg bg-teal-900"><i className="ti ti-user-star"></i></span></div></div></div>
+          <div className="card bg-teal border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">{t('common.active')}</p><h4 className="text-white">{activeCount}</h4></div><div><span className="avatar avatar-lg bg-teal-900"><i className="ti ti-user-star"></i></span></div></div></div>
         </div>
         <div className="col-xl-3 col-md-6">
-          <div className="card bg-secondary border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">Inactive</p><h4 className="text-white">{inactiveCount}</h4></div><div><span className="avatar avatar-lg bg-secondary-900"><i className="ti ti-user-exclamation"></i></span></div></div></div>
+          <div className="card bg-secondary border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">{t('common.inactive')}</p><h4 className="text-white">{inactiveCount}</h4></div><div><span className="avatar avatar-lg bg-secondary-900"><i className="ti ti-user-exclamation"></i></span></div></div></div>
         </div>
         <div className="col-xl-3 col-md-6">
-          <div className="card bg-info border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">New Joiners</p><h4 className="text-white">{newJoiners}</h4></div><div><span className="avatar avatar-lg bg-info-900"><i className="ti ti-user-check"></i></span></div></div></div>
+          <div className="card bg-info border-0"><div className="card-body d-flex align-items-center justify-content-between"><div><p className="mb-1 text-white">{t('hrm.new_joiners')}</p><h4 className="text-white">{newJoiners}</h4></div><div><span className="avatar avatar-lg bg-info-900"><i className="ti ti-user-check"></i></span></div></div></div>
         </div>
       </div>
 
@@ -86,14 +88,14 @@ const EmployeesGrid: React.FC = () => {
             <div className="search-set mb-0">
               <div className="search-input">
                 <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-                <input type="search" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <input type="search" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
               </div>
             </div>
             <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
               <div className="dropdown">
-                <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">{filterDesig || 'Designation'}</a>
+                <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">{filterDesig || t('hrm.designation')}</a>
                 <ul className="dropdown-menu dropdown-menu-end p-3">
-                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterDesig(''); }}>All</a></li>
+                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterDesig(''); }}>{t('common.all')}</a></li>
                   {designations.map(d => <li key={d.id}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterDesig(d.name); }}>{d.name}</a></li>)}
                 </ul>
               </div>
@@ -120,27 +122,27 @@ const EmployeesGrid: React.FC = () => {
                       <div className="dropdown">
                         <a href="#" className="action-icon border-0" data-bs-toggle="dropdown" aria-expanded="false"><i data-feather="more-vertical" className="feather-user"></i></a>
                         <ul className="dropdown-menu dropdown-menu-end">
-                          <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); navigate(`/edit-employee?id=${emp.id}`); }}><i data-feather="edit" className="me-2"></i>Edit</a></li>
-                          <li><a className="dropdown-item confirm-text mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(emp.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="me-2"></i>Delete</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); navigate(`/edit-employee?id=${emp.id}`); }}><i data-feather="edit" className="me-2"></i>{t('common.edit')}</a></li>
+                          <li><a className="dropdown-item confirm-text mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(emp.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="me-2"></i>{t('common.delete')}</a></li>
                         </ul>
                       </div>
                     </div>
                     <div className="text-center">
-                      <p className="text-primary mb-2">EMP ID : {emp.employeeId || '—'}</p>
+                      <p className="text-primary mb-2">{t('hrm.emp_id_label')} : {emp.employeeId || '—'}</p>
                     </div>
                     <div className="text-center mb-3">
                       <h6 className="mb-1"><Link to={`/employee-details?id=${emp.id}`}>{emp.fullName}{emp.lastName ? ` ${emp.lastName}` : ''}</Link></h6>
                       <span className="badge bg-secondary-transparent text-gray-9 fs-10 fw-medium">{emp.designationName || '—'}</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between bg-light rounded p-3">
-                      <div className="text-start"><h6 className="mb-1">Joined</h6><p>{formatDate(emp.dateOfJoining)}</p></div>
-                      <div className="text-start"><h6 className="mb-1">Department</h6><p>{emp.departmentName || '—'}</p></div>
+                      <div className="text-start"><h6 className="mb-1">{t('hrm.joined')}</h6><p>{formatDate(emp.dateOfJoining)}</p></div>
+                      <div className="text-start"><h6 className="mb-1">{t('hrm.department')}</h6><p>{emp.departmentName || '—'}</p></div>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-            {filtered.length === 0 && <div className="col-12 text-center py-5"><p className="text-muted">No employees found</p></div>}
+            {filtered.length === 0 && <div className="col-12 text-center py-5"><p className="text-muted">{t('hrm.no_employees_found')}</p></div>}
           </div>
         </div>
       )}
@@ -152,11 +154,11 @@ const EmployeesGrid: React.FC = () => {
             <div className="modal-content">
               <div className="content p-5 px-3 text-center">
                 <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-                <h4 className="fs-20 text-gray-9 fw-bold mb-2 mt-1">Delete Employee</h4>
-                <p className="text-gray-6 mb-0 fs-16">Are you sure you want to delete employee?</p>
+                <h4 className="fs-20 text-gray-9 fw-bold mb-2 mt-1">{t('hrm.delete_employee')}</h4>
+                <p className="text-gray-6 mb-0 fs-16">{t('hrm.confirm_delete_employee')}</p>
                 <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                  <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                  <button type="button" className="btn btn-submit fs-13 fw-medium p-2 px-3" onClick={confirmDelete}>Yes Delete</button>
+                  <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                  <button type="button" className="btn btn-submit fs-13 fw-medium p-2 px-3" onClick={confirmDelete}>{t('common.yes_delete')}</button>
                 </div>
               </div>
             </div>

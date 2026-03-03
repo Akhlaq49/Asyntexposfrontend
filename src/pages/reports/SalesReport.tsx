@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
@@ -7,6 +8,7 @@ import { getSalesReport, SalesReportDto } from '../../services/reportService';
 const fmt = (v: number) => `Rs ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
 const SalesReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<SalesReportDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [from, setFrom] = useState('');
@@ -27,20 +29,20 @@ const SalesReport: React.FC = () => {
     i.sku.toLowerCase().includes(search.toLowerCase())
   );
 
-  const cols = ['SKU', 'Product Name', 'Brand', 'Category', 'Sold Qty', 'Sold Amount', 'In Stock Qty'];
+  const cols = [t('common.sku'), t('common.product_name'), t('common.brand'), t('common.category'), t('reports.sold_qty'), t('reports.sold_amount'), t('reports.in_stock_qty')];
   const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2), i.inStockQty]);
 
   return (
     <>
-      <PageHeader title="Sales Report" breadcrumbs={[{ title: 'Reports' }, { title: 'Sales Report' }]} />
+      <PageHeader title={t('reports.sales_report')} breadcrumbs={[{ title: t('reports.reports') }, { title: t('reports.sales_report') }]} />
 
       {data && (
         <div className="row mb-3">
           {[
-            { label: 'Total Amount', value: fmt(data.totalAmount), icon: 'ti-currency-dollar', color: 'primary' },
-            { label: 'Total Paid', value: fmt(data.totalPaid), icon: 'ti-check', color: 'success' },
-            { label: 'Total Unpaid', value: fmt(data.totalUnpaid), icon: 'ti-clock', color: 'warning' },
-            { label: 'Overdue', value: fmt(data.overdue), icon: 'ti-alert-triangle', color: 'danger' },
+            { label: t('reports.total_amount'), value: fmt(data.totalAmount), icon: 'ti-currency-dollar', color: 'primary' },
+            { label: t('reports.total_paid'), value: fmt(data.totalPaid), icon: 'ti-check', color: 'success' },
+            { label: t('reports.total_unpaid'), value: fmt(data.totalUnpaid), icon: 'ti-clock', color: 'warning' },
+            { label: t('common.overdue'), value: fmt(data.overdue), icon: 'ti-alert-triangle', color: 'danger' },
           ].map((c, i) => (
             <div className="col-xl-3 col-sm-6" key={i}>
               <div className="card"><div className="card-body d-flex align-items-center">
@@ -57,13 +59,13 @@ const SalesReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <input type="date" className="form-control form-control-sm" value={from} onChange={e => setFrom(e.target.value)} style={{ width: 160 }} />
             <input type="date" className="form-control form-control-sm" value={to} onChange={e => setTo(e.target.value)} style={{ width: 160 }} />
-            <button className="btn btn-primary btn-sm" onClick={load}>Apply</button>
+            <button className="btn btn-primary btn-sm" onClick={load}>{t('common.apply')}</button>
           </div>
           <div className="d-flex align-items-center gap-2">
-            <input type="text" className="form-control form-control-sm" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
+            <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'sales-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'sales-report', 'Sales Report', [
-                { label: 'Total Amount', value: fmt(data?.totalAmount ?? 0) }, { label: 'Total Paid', value: fmt(data?.totalPaid ?? 0) },
+              onExportPDF={() => exportToPDF(cols, rows, 'sales-report', t('reports.sales_report'), [
+                { label: t('reports.total_amount'), value: fmt(data?.totalAmount ?? 0) }, { label: t('reports.total_paid'), value: fmt(data?.totalPaid ?? 0) },
               ])} />
           </div>
         </div>
@@ -72,7 +74,7 @@ const SalesReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">No data found</td></tr>
+                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
                   : filtered.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.brand}</td><td>{item.category}</td>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../context/PermissionContext';
 import { filterMenuDataByKeys } from '../../utils/menuKeys';
+import { translateMenuTitle } from '../../i18n/menuTranslations';
 
 interface MenuItemType {
   title: string;
@@ -15,6 +17,7 @@ interface MenuItemType {
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const { allowedKeys, isLoading: permLoading } = usePermissions();
@@ -188,7 +191,7 @@ const Sidebar: React.FC = () => {
               className={`${isOpen ? 'subdrop' : ''} ${active ? 'active' : ''}`}
             >
               {item.icon && renderIcon(item.icon, item.iconType)}
-              <span>{item.title}</span>
+              <span>{translateMenuTitle(item.title, t)}</span>
               <span className={arrowClass}></span>
             </a>
             <ul style={{ display: isOpen ? 'block' : 'none' }}>
@@ -206,7 +209,7 @@ const Sidebar: React.FC = () => {
             onClick={(e) => handleNavClick(e, item.path)}
           >
             {item.icon && renderIcon(item.icon, item.iconType)}
-            <span>{item.title}</span>
+            <span>{translateMenuTitle(item.title, t)}</span>
             {item.badge && (
               <span className="badge bg-primary badge-xs text-white fs-10 ms-2">{item.badge}</span>
             )}
@@ -221,10 +224,10 @@ const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className="sidebar-logo">
         <Link to="/" className="logo logo-normal">
-          <img src="/assets/img/logo.svg" alt="Logo" />
+          <img src="/assets/img/logo.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo logo-white">
-          <img src="/assets/img/logo-white.svg" alt="Logo" />
+          <img src="/assets/img/logo-white.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo-small">
           <img src="/assets/img/logo-small.png" alt="Logo" />
@@ -316,7 +319,7 @@ const Sidebar: React.FC = () => {
               id="sidebar-search-input"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Search menu..."
+              placeholder={t('common.search') + '...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -348,7 +351,7 @@ const Sidebar: React.FC = () => {
             ) : (
             filteredMenuData.map((section, sectionIdx) => (
               <li key={sectionIdx} className="submenu-open">
-                <h6 className="submenu-hdr">{section.header}</h6>
+                <h6 className="submenu-hdr">{translateMenuTitle(section.header, t)}</h6>
                 <ul>
                   {(section.items as MenuItemType[]).map((item, idx) => {
                     const key = `s${sectionIdx}-${idx}`;
@@ -365,7 +368,7 @@ const Sidebar: React.FC = () => {
                             className={`${isOpen ? 'subdrop' : ''} ${active ? 'active' : ''}`}
                           >
                             {renderIcon(item.icon, item.iconType)}
-                            <span>{item.title}</span>
+                            <span>{translateMenuTitle(item.title, t)}</span>
                             <span className="menu-arrow"></span>
                           </a>
                           <ul style={{ display: isOpen ? 'block' : 'none' }}>
@@ -383,7 +386,7 @@ const Sidebar: React.FC = () => {
                           onClick={(e) => handleNavClick(e, item.path)}
                         >
                           {renderIcon(item.icon, item.iconType)}
-                          <span>{item.title}</span>
+                          <span>{translateMenuTitle(item.title, t)}</span>
                           {item.badge && (
                             <span className="badge bg-primary badge-xs text-white fs-10 ms-2">
                               {item.badge}
