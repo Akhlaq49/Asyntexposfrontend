@@ -883,6 +883,7 @@
 
   "create_installment": {
     "title": "قسط پلان بنائیں",
+    "plan_summary_schedule": "قسط پلان خلاصہ اور شیڈول",
     "subtitle": "نئے مصنوعات قسط کی ادائیگی شیڈول کے ساتھ ترتیب دیں",
     "back_to_plans": "پلانز پر واپس",
     "customer_info": "گاہک کی معلومات",
@@ -996,7 +997,7 @@
     "leave_blank_price": "پروڈکٹ کی قیمت استعمال کرنے کے لیے خالی چھوڑیں",
     "pa_suffix": "سالانہ",
     "months_word": "ماہ",
-    "sku_placeholder": "SKU",
+    "sku_placeholder": "سیریل نمبر",
     "quantity_label": "مقدار",
     "category_placeholder": "مثلاً الیکٹرانکس",
     "brand_placeholder": "مثلاً سام سنگ",
