@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
@@ -6,6 +7,7 @@ import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getProductReport, ProductReportItemDto } from '../../services/reportService';
 
 const ProductReport: React.FC = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ProductReportItemDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [from, setFrom] = useState('');
@@ -25,17 +27,17 @@ const ProductReport: React.FC = () => {
     !search || i.productName.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase())
   );
 
-  const cols = ['SKU', 'Product Name', 'Category', 'Brand', 'Qty', 'Price', 'Total Ordered', 'Revenue'];
+  const cols = [t('common.sku'), t('common.product_name'), t('common.category'), t('common.brand'), t('common.qty'), t('common.price'), t('reports.total_ordered'), t('reports.revenue')];
   const rows = filtered.map(i => [i.sku, i.productName, i.category, i.brand, i.qty, i.price.toFixed(2), i.totalOrdered, i.revenue.toFixed(2)]);
 
   return (
     <>
-      <PageHeader title="Product Report" breadcrumbs={[{ title: 'Reports' }, { title: 'Product Report' }]} />
+      <PageHeader title={t('reports.product_report')} breadcrumbs={[{ title: t('reports.reports') }, { title: t('reports.product_report') }]} />
 
       <ul className="nav nav-pills mb-3">
-        <li className="nav-item"><Link className="nav-link active" to="/product-report">Product Report</Link></li>
-        <li className="nav-item"><Link className="nav-link" to="/product-expiry-report">Product Expiry</Link></li>
-        <li className="nav-item"><Link className="nav-link" to="/product-quantity-alert">Quantity Alert</Link></li>
+        <li className="nav-item"><Link className="nav-link active" to="/product-report">{t('reports.product_report')}</Link></li>
+        <li className="nav-item"><Link className="nav-link" to="/product-expiry-report">{t('reports.product_expiry')}</Link></li>
+        <li className="nav-item"><Link className="nav-link" to="/product-quantity-alert">{t('reports.quantity_alert')}</Link></li>
       </ul>
 
       <div className="card">
@@ -43,12 +45,12 @@ const ProductReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <input type="date" className="form-control form-control-sm" value={from} onChange={e => setFrom(e.target.value)} style={{ width: 160 }} />
             <input type="date" className="form-control form-control-sm" value={to} onChange={e => setTo(e.target.value)} style={{ width: 160 }} />
-            <button className="btn btn-primary btn-sm" onClick={load}>Apply</button>
+            <button className="btn btn-primary btn-sm" onClick={load}>{t('reports.apply')}</button>
           </div>
           <div className="d-flex align-items-center gap-2">
-            <input type="text" className="form-control form-control-sm" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
+            <input type="text" className="form-control form-control-sm" placeholder={t('common.search')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'product-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'product-report', 'Product Report')} />
+              onExportPDF={() => exportToPDF(cols, rows, 'product-report', t('reports.product_report'))} />
           </div>
         </div>
         <div className="card-body">
@@ -56,7 +58,7 @@ const ProductReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">No data found</td></tr>
+                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
                   : filtered.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.category}</td><td>{item.brand}</td>

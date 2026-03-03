@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 
 interface ProductDto {
@@ -38,6 +39,7 @@ const mapDto = (dto: ProductDto): LowStockItem => ({
 });
 
 const LowStocks: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'low' | 'out'>('low');
   const [lowStocks, setLowStocks] = useState<LowStockItem[]>([]);
   const [outOfStocks, setOutOfStocks] = useState<LowStockItem[]>([]);
@@ -200,13 +202,13 @@ const LowStocks: React.FC = () => {
                 <span className="checkmarks"></span>
               </label>
             </th>
-            <th>Warehouse</th>
-            <th>Store</th>
-            <th>Product Name</th>
-            <th>Category</th>
-            <th>SKU</th>
-            <th>Qty</th>
-            <th>Qty Alert</th>
+            <th>{t('common.warehouse')}</th>
+            <th>{t('common.store')}</th>
+            <th>{t('low_stocks.product_name')}</th>
+            <th>{t('low_stocks.category')}</th>
+            <th>{t('low_stocks.sku')}</th>
+            <th>{t('low_stocks.qty')}</th>
+            <th>{t('low_stocks.qty_alert')}</th>
             <th className="no-sort"></th>
           </tr>
         </thead>
@@ -270,7 +272,7 @@ const LowStocks: React.FC = () => {
           <input
             type="text"
             className="form-control"
-            placeholder="Search"
+            placeholder={t('common.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -280,10 +282,10 @@ const LowStocks: React.FC = () => {
         {/* Warehouse Filter */}
         <div className="dropdown me-2">
           <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-            {warehouseFilter || 'Warehouse'}
+            {warehouseFilter || t('common.warehouse')}
           </a>
           <ul className="dropdown-menu dropdown-menu-end p-3">
-            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(''); }}>All</a></li>
+            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(''); }}>{t('common.all')}</a></li>
             {warehouses.map((w) => (
               <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(w); }}>{w}</a></li>
             ))}
@@ -292,10 +294,10 @@ const LowStocks: React.FC = () => {
         {/* Store Filter */}
         <div className="dropdown me-2">
           <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-            {storeFilter || 'Store'}
+            {storeFilter || t('common.store')}
           </a>
           <ul className="dropdown-menu dropdown-menu-end p-3">
-            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(''); }}>All</a></li>
+            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(''); }}>{t('common.all')}</a></li>
             {stores.map((s) => (
               <li key={s}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(s); }}>{s}</a></li>
             ))}
@@ -304,10 +306,10 @@ const LowStocks: React.FC = () => {
         {/* Category Filter */}
         <div className="dropdown">
           <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-            {categoryFilter || 'Category'}
+            {categoryFilter || t('common.category')}
           </a>
           <ul className="dropdown-menu dropdown-menu-end p-3">
-            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>All</a></li>
+            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>{t('common.all')}</a></li>
             {categories.map((c) => (
               <li key={c}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(c); }}>{c}</a></li>
             ))}
@@ -322,27 +324,27 @@ const LowStocks: React.FC = () => {
       {/* Page Header */}
       <div className="page-header">
         <div className="page-title me-auto">
-          <h4 className="fw-bold">Low Stocks</h4>
-          <h6>Manage your low stocks</h6>
+          <h4 className="fw-bold">{t('low_stocks.title')}</h4>
+          <h6>{t('low_stocks.subtitle')}</h6>
         </div>
         <ul className="table-top-head low-stock-top-head">
           <li>
-            <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/pdf.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/excel.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); fetchData(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}>
               <i className="ti ti-chevron-up"></i>
             </a>
           </li>
@@ -373,7 +375,7 @@ const LowStocks: React.FC = () => {
                 type="button"
                 onClick={() => { setActiveTab('out'); setSelectAll(false); setSelectedIds(new Set()); }}
               >
-                Out of Stocks
+                {t('low_stocks.out_of_stocks')}
               </button>
             </li>
           </ul>
@@ -393,7 +395,7 @@ const LowStocks: React.FC = () => {
             {loading ? (
               <div className="text-center p-5">
                 <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
+                  <span className="visually-hidden">{t('common.loading')}</span>
                 </div>
               </div>
             ) : (
@@ -419,7 +421,7 @@ const LowStocks: React.FC = () => {
               <div className="modal-body pb-0">
                 <div className="row">
                   <div className="col-sm-6 mb-3">
-                    <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('common.warehouse')}<span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -428,7 +430,7 @@ const LowStocks: React.FC = () => {
                     />
                   </div>
                   <div className="col-sm-6 mb-3">
-                    <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('common.store')}<span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -446,7 +448,7 @@ const LowStocks: React.FC = () => {
                     />
                   </div>
                   <div className="col-sm-6 mb-3">
-                    <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('common.category')}<span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -455,7 +457,7 @@ const LowStocks: React.FC = () => {
                     />
                   </div>
                   <div className="col-12 mb-3">
-                    <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('low_stocks.product_name')}<span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -464,7 +466,7 @@ const LowStocks: React.FC = () => {
                     />
                   </div>
                   <div className="col-sm-6 mb-3">
-                    <label className="form-label">Qty<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('low_stocks.qty')}<span className="text-danger ms-1">*</span></label>
                     <input
                       type="number"
                       className="form-control"
@@ -473,7 +475,7 @@ const LowStocks: React.FC = () => {
                     />
                   </div>
                   <div className="col-sm-6 mb-3">
-                    <label className="form-label">Qty Alert<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('low_stocks.qty_alert')}<span className="text-danger ms-1">*</span></label>
                     <input
                       type="number"
                       className="form-control"
@@ -484,8 +486,8 @@ const LowStocks: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -502,11 +504,11 @@ const LowStocks: React.FC = () => {
                   <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
                     <i className="ti ti-trash fs-24 text-danger"></i>
                   </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Product</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to delete product from low stock?</p>
+                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('common.delete')} {t('common.product')}</h4>
+                  <p className="mb-0 fs-16">{t('low_stocks.delete_confirm')}</p>
                   <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>
@@ -524,9 +526,9 @@ const LowStocks: React.FC = () => {
                 <span className="rounded-circle d-inline-flex p-2 bg-success-transparent mb-2">
                   <i className="ti ti-checks fs-24 text-success"></i>
                 </span>
-                <h4 className="fs-20 fw-semibold">Success</h4>
+                <h4 className="fs-20 fw-semibold">{t('common.success')}</h4>
                 <p>Email Sent Successfully</p>
-                <a href="#" className="btn btn-primary p-1 px-2 fs-13 fw-normal" onClick={(e) => { e.preventDefault(); setShowEmailModal(false); }}>Close</a>
+                <a href="#" className="btn btn-primary p-1 px-2 fs-13 fw-normal" onClick={(e) => { e.preventDefault(); setShowEmailModal(false); }}>{t('common.close')}</a>
               </div>
             </div>
           </div>

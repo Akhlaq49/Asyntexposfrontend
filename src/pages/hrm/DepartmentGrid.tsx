@@ -1,9 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment, getEmployees, Department, CreateDepartment, Employee } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 
 const DepartmentGrid: React.FC = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filtered, setFiltered] = useState<Department[]>([]);
@@ -26,7 +28,7 @@ const DepartmentGrid: React.FC = () => {
     try {
       const [depts, emps] = await Promise.all([getDepartments(), getEmployees()]);
       setItems(depts); setEmployees(emps);
-    } catch { showError('Failed to load departments'); }
+    } catch { showError(t('hrm.failed_load_departments')); }
     finally { setLoading(false); }
   };
 
@@ -46,24 +48,24 @@ const DepartmentGrid: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!form.name) { showError('Department name is required'); return; }
+    if (!form.name) { showError(t('hrm.department_name_required')); return; }
     try {
       if (editingId) await updateDepartment(editingId, form);
       else await createDepartment(form);
-      setShowModal(false); showSuccess(editingId ? 'Department updated' : 'Department created'); loadData();
-    } catch { showError('Failed to save'); }
+      setShowModal(false); showSuccess(editingId ? t('hrm.department_updated') : t('hrm.department_created')); loadData();
+    } catch { showError(t('hrm.failed_save')); }
   };
 
   const confirmDelete = async () => {
     if (!deleteId) return;
-    try { await deleteDepartment(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess('Department deleted'); loadData(); }
-    catch { showError('Failed to delete'); }
+    try { await deleteDepartment(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess(t('hrm.department_deleted')); loadData(); }
+    catch { showError(t('hrm.failed_delete')); }
   };
 
   return (
     <>
       <div className="page-header">
-        <div className="add-item d-flex"><div className="page-title"><h4>Departments</h4><h6>Manage your departments</h6></div></div>
+        <div className="add-item d-flex"><div className="page-title"><h4>{t('hrm.departments')}</h4><h6>{t('hrm.manage_your_departments')}</h6></div></div>
         <ul className="table-top-head">
           <li>
             <div className="d-flex me-2 pe-2 border-end">
@@ -72,7 +74,7 @@ const DepartmentGrid: React.FC = () => {
             </div>
           </li>
         </ul>
-        <div className="page-btn"><a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}><i className="ti ti-circle-plus me-1"></i>Add Department</a></div>
+        <div className="page-btn"><a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}><i className="ti ti-circle-plus me-1"></i>{t('hrm.add_department')}</a></div>
       </div>
 
       <div className="card">
@@ -81,18 +83,18 @@ const DepartmentGrid: React.FC = () => {
             <div className="search-set mb-0">
               <div className="search-input">
                 <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-                <input type="search" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <input type="search" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
               </div>
             </div>
             <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
               <div className="dropdown">
                 <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                  {filterStatus ? (filterStatus === 'active' ? 'Active' : 'Inactive') : 'Select Status'}
+                  {filterStatus ? (filterStatus === 'active' ? t('common.active') : t('common.inactive')) : t('hrm.select_status')}
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end p-3">
-                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(''); }}>All</a></li>
-                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus('active'); }}>Active</a></li>
-                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus('inactive'); }}>Inactive</a></li>
+                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus(''); }}>{t('common.all')}</a></li>
+                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus('active'); }}>{t('common.active')}</a></li>
+                  <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setFilterStatus('inactive'); }}>{t('common.inactive')}</a></li>
                 </ul>
               </div>
             </div>
@@ -112,8 +114,8 @@ const DepartmentGrid: React.FC = () => {
                       <div className="dropdown">
                         <a href="#" className="action-icon border-0" data-bs-toggle="dropdown" aria-expanded="false"><i data-feather="more-vertical" className="feather-user"></i></a>
                         <ul className="dropdown-menu dropdown-menu-end">
-                          <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(dept); }}><i data-feather="edit" className="info-img me-2"></i>Edit</a></li>
-                          <li><a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(dept.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img me-2"></i>Delete</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(dept); }}><i data-feather="edit" className="info-img me-2"></i>{t('common.edit')}</a></li>
+                          <li><a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(dept.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img me-2"></i>{t('common.delete')}</a></li>
                         </ul>
                       </div>
                     </div>
@@ -121,16 +123,16 @@ const DepartmentGrid: React.FC = () => {
                       <div className="avatar avatar-lg mb-2">
                         <img src={dept.hodPicture || '/assets/img/users/user-01.jpg'} alt="HOD" />
                       </div>
-                      <h4>{dept.hodName || 'Not Assigned'}</h4>
+                      <h4>{dept.hodName || t('hrm.not_assigned')}</h4>
                     </div>
                     <div className="d-flex align-items-center justify-content-between">
-                      <p className="mb-0">Total Members: {String(dept.memberCount).padStart(2, '0')}</p>
+                      <p className="mb-0">{t('hrm.total_members')}: {String(dept.memberCount).padStart(2, '0')}</p>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-            {filtered.length === 0 && <div className="col-12 text-center py-5"><p className="text-muted">No departments found</p></div>}
+            {filtered.length === 0 && <div className="col-12 text-center py-5"><p className="text-muted">{t('hrm.no_departments_found')}</p></div>}
           </div>
         </div>
       )}
@@ -140,26 +142,26 @@ const DepartmentGrid: React.FC = () => {
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
-              <div className="modal-header"><div className="page-title"><h4>{editingId ? 'Edit Department' : 'Add Department'}</h4></div><button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button></div>
+              <div className="modal-header"><div className="page-title"><h4>{editingId ? t('hrm.edit_department') : t('hrm.add_department')}</h4></div><button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button></div>
               <div className="modal-body">
                 <div className="row">
-                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">Department <span className="text-danger">*</span></label><input type="text" className="form-control" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div></div>
-                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">HOD</label>
+                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('hrm.department')} <span className="text-danger">*</span></label><input type="text" className="form-control" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div></div>
+                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('hrm.hod')}</label>
                     <select className="form-select" value={form.hodId || ''} onChange={e => setForm({ ...form, hodId: e.target.value ? parseInt(e.target.value) : undefined })}>
-                      <option value="">Choose</option>
+                      <option value="">{t('common.choose')}</option>
                       {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.fullName}{emp.lastName ? ` ${emp.lastName}` : ''}</option>)}
                     </select>
                   </div></div>
-                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">Description</label><textarea className="form-control" rows={3} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })}></textarea></div></div>
+                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('common.description')}</label><textarea className="form-control" rows={3} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })}></textarea></div></div>
                   <div className="input-blocks m-0">
                     <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                      <span className="status-label">Status</span>
+                      <span className="status-label">{t('common.status')}</span>
                       <div className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked, status: e.target.checked ? 'active' : 'inactive' })} /></div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="modal-footer"><button type="button" className="btn btn-secondary me-2" onClick={() => setShowModal(false)}>Cancel</button><button type="button" className="btn btn-primary" onClick={handleSave}>Save Changes</button></div>
+              <div className="modal-footer"><button type="button" className="btn btn-secondary me-2" onClick={() => setShowModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-primary" onClick={handleSave}>{t('common.save_changes')}</button></div>
             </div>
           </div>
         </div>
@@ -172,11 +174,11 @@ const DepartmentGrid: React.FC = () => {
             <div className="modal-content">
               <div className="content p-5 px-3 text-center">
                 <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-                <h4 className="fs-20 text-gray-9 fw-bold mb-2 mt-1">Delete Department</h4>
-                <p className="text-gray-6 mb-0 fs-16">Are you sure you want to delete department?</p>
+                <h4 className="fs-20 text-gray-9 fw-bold mb-2 mt-1">{t('hrm.delete_department')}</h4>
+                <p className="text-gray-6 mb-0 fs-16">{t('hrm.confirm_delete_department')}</p>
                 <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                  <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                  <button type="button" className="btn btn-submit fs-13 fw-medium p-2 px-3" onClick={confirmDelete}>Yes Delete</button>
+                  <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                  <button type="button" className="btn btn-submit fs-13 fw-medium p-2 px-3" onClick={confirmDelete}>{t('common.yes_delete')}</button>
                 </div>
               </div>
             </div>

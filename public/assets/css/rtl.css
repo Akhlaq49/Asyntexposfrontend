@@ -1,0 +1,206 @@
+/*
+ * RTL (Right-to-Left) support styles for Urdu and Arabic languages.
+ * Applied when body has class 'rtl-mode' (managed by i18n language change).
+ * This file supplements the existing Bootstrap RTL stylesheet.
+ */
+
+/* ── Base RTL direction ── */
+.rtl-mode {
+  direction: rtl;
+  text-align: right;
+}
+
+/* ── Sidebar RTL adjustments ── */
+.rtl-mode .sidebar {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid #e8e8e8;
+}
+
+.rtl-mode .page-wrapper {
+  margin-left: 0;
+  margin-right: 252px;
+}
+
+.rtl-mode .page-wrapper.ms-0 {
+  margin-right: 0 !important;
+}
+
+/* Mini sidebar RTL */
+.rtl-mode.mini-sidebar .page-wrapper {
+  margin-right: 80px;
+}
+
+.rtl-mode.mini-sidebar .sidebar {
+  width: 80px;
+}
+
+/* ── Header RTL adjustments ── */
+.rtl-mode .header-left {
+  float: right;
+}
+
+.rtl-mode .user-menu {
+  float: left;
+}
+
+.rtl-mode .mobile_btn {
+  float: right;
+}
+
+.rtl-mode .nav-link .badge {
+  right: auto;
+  left: -5px;
+}
+
+/* ── Dropdown RTL ── */
+.rtl-mode .dropdown-menu-right {
+  right: auto;
+  left: 0;
+}
+
+/* ── Menu arrows RTL ── */
+.rtl-mode .menu-arrow {
+  transform: rotate(180deg);
+}
+
+.rtl-mode .menu-arrow.inside-submenu {
+  transform: rotate(180deg);
+}
+
+.rtl-mode .subdrop .menu-arrow {
+  transform: rotate(90deg);
+}
+
+/* ── Icon margins RTL ── */
+.rtl-mode .me-1 {
+  margin-right: 0 !important;
+  margin-left: 0.25rem !important;
+}
+
+.rtl-mode .me-2 {
+  margin-right: 0 !important;
+  margin-left: 0.5rem !important;
+}
+
+.rtl-mode .ms-1 {
+  margin-left: 0 !important;
+  margin-right: 0.25rem !important;
+}
+
+.rtl-mode .ms-2 {
+  margin-left: 0 !important;
+  margin-right: 0.5rem !important;
+}
+
+/* ── Sidebar menu items RTL ── */
+.rtl-mode #sidebar-menu .submenu-hdr {
+  text-align: right;
+  padding-right: 15px;
+  padding-left: 0;
+}
+
+.rtl-mode #sidebar-menu ul li a {
+  text-align: right;
+}
+
+.rtl-mode #sidebar-menu ul li a i {
+  margin-right: 0;
+  margin-left: 10px;
+}
+
+/* ── Sidebar profile RTL ── */
+.rtl-mode .sidebar-profile-info {
+  text-align: right;
+}
+
+/* ── Table RTL ── */
+.rtl-mode .table th,
+.rtl-mode .table td {
+  text-align: right;
+}
+
+/* ── Form RTL ── */
+.rtl-mode .form-control,
+.rtl-mode .form-select {
+  text-align: right;
+}
+
+.rtl-mode .input-group > .form-control:not(:first-child),
+.rtl-mode .input-group > .form-select:not(:first-child) {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.rtl-mode .input-group > .form-control:not(:last-child),
+.rtl-mode .input-group > .form-select:not(:last-child) {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* ── Card and page header RTL ── */
+.rtl-mode .page-header .page-title {
+  text-align: right;
+}
+
+.rtl-mode .card-header {
+  text-align: right;
+}
+
+/* ── Breadcrumb RTL ── */
+.rtl-mode .breadcrumb {
+  direction: rtl;
+}
+
+/* ── Footer RTL ── */
+.rtl-mode .footer {
+  text-align: center;
+}
+
+/* ── Badge position RTL ── */
+.rtl-mode .badge {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* ── Slide nav (mobile) RTL ── */
+.rtl-mode.slide-nav .sidebar {
+  right: 0;
+  left: auto;
+}
+
+/* ── Search input RTL ── */
+.rtl-mode .search-input input {
+  padding-right: 2.5rem;
+  padding-left: 0.75rem;
+}
+
+/* ── Notification dot RTL ── */
+.rtl-mode .notification-status-dot {
+  right: auto;
+  left: 0;
+}
+
+/* ── Flex utilities override for RTL ── */
+.rtl-mode .text-start {
+  text-align: right !important;
+}
+
+.rtl-mode .text-end {
+  text-align: left !important;
+}
+
+/* ── Select store dropdown RTL ── */
+.rtl-mode .select-store .user-detail {
+  text-align: right;
+}
+
+/* ── KPI dashboard cards RTL ── */
+.rtl-mode .dash-widget .card-body {
+  text-align: right;
+}
+
+/* Active language indicator in dropdown */
+.dropdown-item.active {
+  background-color: #f0f0f0;
+  font-weight: 600;
+}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getFormFieldConfigs,
   saveFormFieldConfigs,
@@ -8,6 +9,7 @@ import {
 } from '../../services/formFieldConfigService';
 
 const FieldVisibilitySettings: React.FC = () => {
+  const { t } = useTranslation();
   const [configs, setConfigs] = useState<FormFieldConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -37,7 +39,7 @@ const FieldVisibilitySettings: React.FC = () => {
         setActiveForm(forms[0]);
       }
     } catch {
-      setErrorMsg('Failed to load field configurations.');
+      setErrorMsg(t('settings.failed_load_field_configs'));
     } finally {
       setLoading(false);
     }
@@ -82,10 +84,10 @@ const FieldVisibilitySettings: React.FC = () => {
       }));
       const saved = await saveFormFieldConfigs(dtos);
       setConfigs(saved);
-      setSuccessMsg('Field visibility settings saved successfully!');
+      setSuccessMsg(t('settings.field_visibility_saved'));
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch {
-      setErrorMsg('Failed to save settings. Please try again.');
+      setErrorMsg(t('settings.failed_save_settings'));
     } finally {
       setSaving(false);
     }
@@ -102,20 +104,20 @@ const FieldVisibilitySettings: React.FC = () => {
         const forms = [...new Set(data.map((c) => c.formName))];
         if (!forms.includes(activeForm)) setActiveForm(forms[0]);
       }
-      setSuccessMsg('Default configurations seeded successfully!');
+      setSuccessMsg(t('settings.default_configs_seeded'));
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch {
-      setErrorMsg('Failed to seed defaults.');
+      setErrorMsg(t('settings.failed_seed_defaults'));
     } finally {
       setSeeding(false);
     }
   };
 
   const formDisplayNames: Record<string, { label: string; icon: string }> = {
-    Customer: { label: 'Customer', icon: 'ti-users' },
-    AddProduct: { label: 'Add Product', icon: 'ti-package' },
-    CreateInstallment: { label: 'Create Installment', icon: 'ti-receipt' },
-    POS: { label: 'POS', icon: 'ti-device-desktop' },
+    Customer: { label: t('settings.customer'), icon: 'ti-users' },
+    AddProduct: { label: t('settings.add_product'), icon: 'ti-package' },
+    CreateInstallment: { label: t('settings.create_installment'), icon: 'ti-receipt' },
+    POS: { label: t('settings.pos'), icon: 'ti-device-desktop' },
   };
 
   const visibleCount = activeFormConfigs.filter((c) => c.isVisible).length;
@@ -127,25 +129,25 @@ const FieldVisibilitySettings: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Field Visibility Settings</h4>
-            <h6>Configure which fields are visible on each form</h6>
+            <h4 className="fw-bold">{t('settings.field_visibility_settings')}</h4>
+            <h6>{t('settings.configure_fields_visible')}</h6>
           </div>
         </div>
         <div className="page-btn d-flex gap-2">
           {configs.length === 0 && !loading && (
             <button className="btn btn-outline-info" onClick={handleSeed} disabled={seeding}>
               {seeding ? (
-                <><span className="spinner-border spinner-border-sm me-1"></span>Seeding...</>
+                <><span className="spinner-border spinner-border-sm me-1"></span>{t('settings.seeding')}</>
               ) : (
-                <><i className="ti ti-database-plus me-1"></i>Seed Defaults</>
+                <><i className="ti ti-database-plus me-1"></i>{t('settings.seed_defaults')}</>
               )}
             </button>
           )}
           <button className="btn btn-primary" onClick={handleSave} disabled={saving || loading || configs.length === 0}>
             {saving ? (
-              <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</>
+              <><span className="spinner-border spinner-border-sm me-1"></span>{t('settings.saving')}</>
             ) : (
-              <><i className="ti ti-device-floppy me-1"></i>Save Changes</>
+              <><i className="ti ti-device-floppy me-1"></i>{t('settings.save_changes')}</>
             )}
           </button>
         </div>
@@ -168,19 +170,19 @@ const FieldVisibilitySettings: React.FC = () => {
       {loading ? (
         <div className="text-center p-5">
           <div className="spinner-border text-primary"></div>
-          <p className="mt-2 text-muted">Loading configurations...</p>
+          <p className="mt-2 text-muted">{t('settings.loading_configurations')}</p>
         </div>
       ) : configs.length === 0 ? (
         <div className="card">
           <div className="card-body text-center p-5">
             <i className="ti ti-settings-2 fs-48 text-muted mb-3 d-block"></i>
-            <h5>No Field Configurations Found</h5>
-            <p className="text-muted mb-3">Click "Seed Defaults" to initialize the default field visibility settings for all forms.</p>
+            <h5>{t('settings.no_field_configurations')}</h5>
+            <p className="text-muted mb-3">{t('settings.seed_defaults_description')}</p>
             <button className="btn btn-primary" onClick={handleSeed} disabled={seeding}>
               {seeding ? (
-                <><span className="spinner-border spinner-border-sm me-1"></span>Seeding...</>
+                <><span className="spinner-border spinner-border-sm me-1"></span>{t('settings.seeding')}</>
               ) : (
-                <><i className="ti ti-database-plus me-1"></i>Seed Defaults</>
+                <><i className="ti ti-database-plus me-1"></i>{t('settings.seed_defaults')}</>
               )}
             </button>
           </div>
@@ -191,7 +193,7 @@ const FieldVisibilitySettings: React.FC = () => {
           <div className="col-lg-3 col-md-4">
             <div className="card">
               <div className="card-header">
-                <h5 className="card-title mb-0"><i className="ti ti-forms me-2"></i>Forms</h5>
+                <h5 className="card-title mb-0"><i className="ti ti-forms me-2"></i>{t('settings.forms')}</h5>
               </div>
               <div className="card-body p-0">
                 <div className="list-group list-group-flush">
@@ -230,19 +232,19 @@ const FieldVisibilitySettings: React.FC = () => {
                 <div>
                   <h5 className="card-title mb-1">
                     <i className={`ti ${(formDisplayNames[activeForm] || { icon: 'ti-file' }).icon} me-2`}></i>
-                    {(formDisplayNames[activeForm] || { label: activeForm }).label} Form Fields
+                    {(formDisplayNames[activeForm] || { label: activeForm }).label} {t('settings.form_fields')}
                   </h5>
                   <small className="text-muted">
-                    <span className="text-success fw-medium">{visibleCount} visible</span>
-                    {hiddenCount > 0 && <> &middot; <span className="text-danger fw-medium">{hiddenCount} hidden</span></>}
+                    <span className="text-success fw-medium">{visibleCount} {t('settings.visible')}</span>
+                    {hiddenCount > 0 && <> &middot; <span className="text-danger fw-medium">{hiddenCount} {t('settings.hidden')}</span></>}
                   </small>
                 </div>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-sm btn-outline-success" onClick={() => toggleAllForForm(true)} title="Show all fields">
-                    <i className="ti ti-eye me-1"></i>Show All
+                  <button className="btn btn-sm btn-outline-success" onClick={() => toggleAllForForm(true)} title={t('settings.show_all')}>
+                    <i className="ti ti-eye me-1"></i>{t('settings.show_all')}
                   </button>
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => toggleAllForForm(false)} title="Hide all fields">
-                    <i className="ti ti-eye-off me-1"></i>Hide All
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => toggleAllForForm(false)} title={t('settings.hide_all')}>
+                    <i className="ti ti-eye-off me-1"></i>{t('settings.hide_all')}
                   </button>
                 </div>
               </div>
@@ -252,9 +254,9 @@ const FieldVisibilitySettings: React.FC = () => {
                     <thead className="thead-light">
                       <tr>
                         <th style={{ width: 50 }}>#</th>
-                        <th>Field Name</th>
-                        <th>Label</th>
-                        <th style={{ width: 120 }} className="text-center">Visibility</th>
+                        <th>{t('settings.field_name')}</th>
+                        <th>{t('settings.label')}</th>
+                        <th style={{ width: 120 }} className="text-center">{t('settings.visibility')}</th>
                       </tr>
                     </thead>
                     <tbody>

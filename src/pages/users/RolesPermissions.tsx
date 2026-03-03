@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { rolePermissionService } from '../../services/rolePermissionService';
 import { getMenuKeysBySection } from '../../utils/menuKeys';
 
@@ -7,6 +8,7 @@ const ROLES = ['Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Bi
 const allSections = getMenuKeysBySection();
 
 const RolesPermissions: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState('');
   const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ const RolesPermissions: React.FC = () => {
       const keys = await rolePermissionService.getByRole(role);
       setCheckedKeys(new Set(keys));
     } catch {
-      setMessage({ type: 'danger', text: 'Failed to load permissions.' });
+      setMessage({ type: 'danger', text: t('users.failed_load_permissions') });
     } finally {
       setLoading(false);
     }
@@ -74,9 +76,9 @@ const RolesPermissions: React.FC = () => {
     setMessage(null);
     try {
       await rolePermissionService.updateRole(selectedRole, Array.from(checkedKeys));
-      setMessage({ type: 'success', text: `Permissions saved for "${selectedRole}" role.` });
+      setMessage({ type: 'success', text: t('users.permissions_saved', { role: selectedRole }) });
     } catch (err: any) {
-      setMessage({ type: 'danger', text: err.response?.data?.message || 'Failed to save permissions.' });
+      setMessage({ type: 'danger', text: err.response?.data?.message || t('users.failed_save_permissions') });
     } finally {
       setSaving(false);
     }
@@ -91,8 +93,8 @@ const RolesPermissions: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Roles &amp; Permissions</h4>
-            <h6>Manage menu access for each role</h6>
+            <h4 className="fw-bold">{t('users.roles_permissions_title')}</h4>
+            <h6>{t('users.roles_permissions_subtitle')}</h6>
           </div>
         </div>
       </div>
@@ -102,13 +104,13 @@ const RolesPermissions: React.FC = () => {
         <div className="card-body">
           <div className="row align-items-end">
             <div className="col-md-4">
-              <label className="form-label fw-semibold">Select Role</label>
+              <label className="form-label fw-semibold">{t('users.select_role')}</label>
               <select
                 className="form-select"
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
               >
-                <option value="">-- Choose a role --</option>
+                <option value="">{t('users.choose_role')}</option>
                 {ROLES.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
@@ -123,7 +125,7 @@ const RolesPermissions: React.FC = () => {
             </div>
             <div className="col-md-4 text-md-end mt-3 mt-md-0">
               <p className="text-muted mb-0 fs-13">
-                <i className="ti ti-info-circle me-1"></i>Admin role always has full access.
+                <i className="ti ti-info-circle me-1"></i>{t('users.admin_full_access')}
               </p>
             </div>
           </div>
@@ -142,13 +144,13 @@ const RolesPermissions: React.FC = () => {
         <div className="card">
           <div className="card-body text-center py-5">
             <i className="ti ti-shield-lock fs-48 text-muted d-block mb-3"></i>
-            <h5 className="text-muted">Select a role above to manage its menu permissions</h5>
+            <h5 className="text-muted">{t('users.select_role_prompt')}</h5>
           </div>
         </div>
       ) : loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">{t('common.loading')}</span>
           </div>
         </div>
       ) : (
@@ -164,17 +166,17 @@ const RolesPermissions: React.FC = () => {
                 onChange={(e) => toggleAll(e.target.checked)}
               />
               <label className="form-check-label fw-semibold" htmlFor="selectAll">
-                Select All ({checkedKeys.size} / {totalItems})
+                {t('users.select_all')} ({checkedKeys.size} / {totalItems})
               </label>
             </div>
             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
               {saving ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-1"></span>Saving...
+                  <span className="spinner-border spinner-border-sm me-1"></span>{t('common.saving')}
                 </>
               ) : (
                 <>
-                  <i className="ti ti-device-floppy me-1"></i>Save Permissions
+                  <i className="ti ti-device-floppy me-1"></i>{t('users.save_permissions')}
                 </>
               )}
             </button>

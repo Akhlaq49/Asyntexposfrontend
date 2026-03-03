@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import LanguageSwitcher from '../common/LanguageSwitcher';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,10 +35,10 @@ const Header: React.FC = () => {
         {/* Logo */}
         <div className="header-left active">
           <Link to="/" className="logo logo-normal">
-            <img src="/assets/img/logo.svg" alt="Logo" />
+            <img src="/assets/img/logo.png" alt="Logo" />
           </Link>
           <Link to="/" className="logo logo-white">
-            <img src="/assets/img/logo-white.svg" alt="Logo" />
+            <img src="/assets/img/logo-white.png" alt="Logo" />
           </Link>
           <Link to="/" className="logo-small">
             <img src="/assets/img/logo-small.png" alt="Logo" />
@@ -87,80 +90,80 @@ const Header: React.FC = () => {
           {/* Add New */}
           <li className="nav-item dropdown link-nav">
             <a href="#" className="btn btn-primary btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
-              <i className="ti ti-circle-plus me-1"></i>Add New
+              <i className="ti ti-circle-plus me-1"></i>{t('header.add_new')}
             </a>
             <div className="dropdown-menu dropdown-xl dropdown-menu-center">
               <div className="row g-2">
                 <div className="col-md-2">
                   <Link to="/category-list" className="link-item">
                     <span className="link-icon"><i className="ti ti-brand-codepen"></i></span>
-                    <p>Category</p>
+                    <p>{t('header.category')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/add-product" className="link-item">
                     <span className="link-icon"><i className="ti ti-square-plus"></i></span>
-                    <p>Product</p>
+                    <p>{t('header.product')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/purchase-list" className="link-item">
                     <span className="link-icon"><i className="ti ti-shopping-bag"></i></span>
-                    <p>Purchase</p>
+                    <p>{t('header.purchase')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/online-orders" className="link-item">
                     <span className="link-icon"><i className="ti ti-shopping-cart"></i></span>
-                    <p>Sale</p>
+                    <p>{t('header.sale')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/expense-list" className="link-item">
                     <span className="link-icon"><i className="ti ti-file-text"></i></span>
-                    <p>Expense</p>
+                    <p>{t('header.expense')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/quotation-list" className="link-item">
                     <span className="link-icon"><i className="ti ti-device-floppy"></i></span>
-                    <p>Quotation</p>
+                    <p>{t('header.quotation')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/sales-returns" className="link-item">
                     <span className="link-icon"><i className="ti ti-copy"></i></span>
-                    <p>Return</p>
+                    <p>{t('header.return')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/users" className="link-item">
                     <span className="link-icon"><i className="ti ti-user"></i></span>
-                    <p>User</p>
+                    <p>{t('header.user')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/customers" className="link-item">
                     <span className="link-icon"><i className="ti ti-users"></i></span>
-                    <p>Customer</p>
+                    <p>{t('header.customer')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/billers" className="link-item">
                     <span className="link-icon"><i className="ti ti-shield"></i></span>
-                    <p>Biller</p>
+                    <p>{t('header.biller')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/suppliers" className="link-item">
                     <span className="link-icon"><i className="ti ti-user-check"></i></span>
-                    <p>Supplier</p>
+                    <p>{t('header.supplier')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">
                   <Link to="/stock-transfer" className="link-item">
                     <span className="link-icon"><i className="ti ti-truck"></i></span>
-                    <p>Transfer</p>
+                    <p>{t('header.transfer')}</p>
                   </Link>
                 </div>
               </div>
@@ -170,24 +173,12 @@ const Header: React.FC = () => {
           {/* POS Button */}
           <li className="nav-item pos-nav">
             <Link to="/pos" className="btn btn-dark btn-md d-inline-flex align-items-center">
-              <i className="ti ti-device-laptop me-1"></i>POS
+              <i className="ti ti-device-laptop me-1"></i>{t('header.pos')}
             </Link>
           </li>
 
-          {/* Language Flag */}
-          <li className="nav-item dropdown has-arrow flag-nav nav-item-box">
-            <a className="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
-              <img src="/assets/img/flags/us-flag.svg" alt="Language" className="img-fluid" />
-            </a>
-            <div className="dropdown-menu dropdown-menu-right">
-              <a href="#" className="dropdown-item">
-                <img src="/assets/img/flags/english.svg" alt="" height="16" />English
-              </a>
-              <a href="#" className="dropdown-item">
-                <img src="/assets/img/flags/arabic.svg" alt="" height="16" />Arabic
-              </a>
-            </div>
-          </li>
+          {/* Language Switcher */}
+          <LanguageSwitcher />
 
           {/* Fullscreen */}
           <li className="nav-item nav-item-box">
@@ -211,8 +202,8 @@ const Header: React.FC = () => {
             </a>
             <div className="dropdown-menu notifications">
               <div className="topnav-dropdown-header">
-                <h5 className="notification-title">Notifications</h5>
-                <a href="#" className="clear-noti">Mark all as read</a>
+                <h5 className="notification-title">{t('header.notifications')}</h5>
+                <a href="#" className="clear-noti">{t('header.mark_all_read')}</a>
               </div>
               <div className="noti-content">
                 <ul className="notification-list">
@@ -301,11 +292,11 @@ const Header: React.FC = () => {
                   <p>{user?.role || 'User'}</p>
                 </div>
               </div>
-              <Link className="dropdown-item" to="/profile"><i className="ti ti-user-circle me-2"></i>My Profile</Link>
-              <Link className="dropdown-item" to="/sales-report"><i className="ti ti-file-text me-2"></i>Reports</Link>
-              <Link className="dropdown-item" to="/general-settings"><i className="ti ti-settings-2 me-2"></i>Settings</Link>
+              <Link className="dropdown-item" to="/profile"><i className="ti ti-user-circle me-2"></i>{t('header.my_profile')}</Link>
+              <Link className="dropdown-item" to="/sales-report"><i className="ti ti-file-text me-2"></i>{t('header.reports')}</Link>
+              <Link className="dropdown-item" to="/general-settings"><i className="ti ti-settings-2 me-2"></i>{t('header.settings')}</Link>
               <hr className="my-2" />
-              <a className="dropdown-item logout" href="#" onClick={handleLogout}><i className="ti ti-logout me-2"></i>Logout</a>
+              <a className="dropdown-item logout" href="#" onClick={handleLogout}><i className="ti ti-logout me-2"></i>{t('auth.logout')}</a>
             </div>
           </li>
         </ul>
@@ -316,9 +307,9 @@ const Header: React.FC = () => {
             <i className="fa fa-ellipsis-v"></i>
           </a>
           <div className="dropdown-menu dropdown-menu-right">
-            <Link className="dropdown-item" to="/profile">My Profile</Link>
-            <Link className="dropdown-item" to="/general-settings">Settings</Link>
-            <a className="dropdown-item" href="#" onClick={handleLogout}>Logout</a>
+            <Link className="dropdown-item" to="/profile">{t('header.my_profile')}</Link>
+            <Link className="dropdown-item" to="/general-settings">{t('header.settings')}</Link>
+            <a className="dropdown-item" href="#" onClick={handleLogout}>{t('auth.logout')}</a>
           </div>
         </div>
       </div>

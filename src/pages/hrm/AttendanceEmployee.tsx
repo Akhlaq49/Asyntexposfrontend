@@ -1,7 +1,9 @@
 ﻿import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAttendances, Attendance } from '../../services/hrmService';
 
 const AttendanceEmployee: React.FC = () => {
+  const { t } = useTranslation();
   const [records, setRecords] = useState<Attendance[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -29,7 +31,7 @@ const AttendanceEmployee: React.FC = () => {
 
   const timeStr = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const todayStr = currentTime.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-  const greeting = currentTime.getHours() < 12 ? 'Good Morning' : currentTime.getHours() < 17 ? 'Good Afternoon' : 'Good Evening';
+  const greeting = currentTime.getHours() < 12 ? t('hrm.good_morning') : currentTime.getHours() < 17 ? t('hrm.good_afternoon') : t('hrm.good_evening');
 
   // Days overview stats for current month
   const stats = useMemo(() => {
@@ -57,7 +59,8 @@ const AttendanceEmployee: React.FC = () => {
 
   const statusBadge = (s: string) => {
     const cls = s === 'Present' ? 'badge-success' : s === 'Absent' ? 'badge-danger' : s === 'Holiday' ? 'badge-purple' : 'badge-warning';
-    return <span className={`badge ${cls} d-inline-flex align-items-center badge-xs`}><i className="ti ti-point-filled me-1"></i>{s}</span>;
+    const statusMap: Record<string, string> = { Present: t('hrm.present'), Absent: t('hrm.absent'), Holiday: t('hrm.holiday'), 'Half Day': t('hrm.half_day'), Late: t('hrm.late') };
+    return <span className={`badge ${cls} d-inline-flex align-items-center badge-xs`}><i className="ti ti-point-filled me-1"></i>{statusMap[s] || s}</span>;
   };
 
   const progressBar = (r: Attendance) => {
@@ -79,7 +82,7 @@ const AttendanceEmployee: React.FC = () => {
       {/* Greeting Header */}
       <div className="attendance-header">
         <div className="attendance-content">
-          <h3>👋 {greeting}, <span>Employee</span></h3>
+          <h3>👋 {greeting}, <span>{t('hrm.employee')}</span></h3>
         </div>
       </div>
 
@@ -89,7 +92,7 @@ const AttendanceEmployee: React.FC = () => {
           <div className="card w-100">
             <div className="card-body">
               <h5 className="mb-3 pb-3 border-bottom d-flex justify-content-between align-items-center fs-18">
-                Attendance<span className="text-purple fs-14">{todayStr}</span>
+                {t('hrm.attendance')}<span className="text-purple fs-14">{todayStr}</span>
               </h5>
               <div className="d-flex align-items-center mb-3">
                 <div className="me-3">
@@ -97,12 +100,12 @@ const AttendanceEmployee: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="mb-0">{timeStr}</h2>
-                  <p className="text-muted mb-0">Current Time</p>
+                  <p className="text-muted mb-0">{t('hrm.current_time')}</p>
                 </div>
               </div>
               <div className="d-flex align-items-center">
-                <a href="#" className="btn btn-primary w-100 me-2" onClick={e => e.preventDefault()}>Clock In</a>
-                <a href="#" className="btn btn-secondary w-100 me-2" onClick={e => e.preventDefault()}>Break</a>
+                <a href="#" className="btn btn-primary w-100 me-2" onClick={e => e.preventDefault()}>{t('hrm.clock_in')}</a>
+                <a href="#" className="btn btn-secondary w-100 me-2" onClick={e => e.preventDefault()}>{t('hrm.break_time')}</a>
               </div>
             </div>
           </div>
@@ -112,43 +115,43 @@ const AttendanceEmployee: React.FC = () => {
         <div className="col-xl-8 col-lg-12 d-flex">
           <div className="card w-100">
             <div className="card-body">
-              <h5 className="border-bottom pb-3 mb-3">Days Overview This Month</h5>
+              <h5 className="border-bottom pb-3 mb-3">{t('hrm.days_overview_this_month')}</h5>
               <div className="row gy-3">
                 <div className="col-lg-2 col-md-3 col-sm-4 text-center">
                   <span className="d-flex align-items-center justify-content-center avatar avatar-xl bg-primary-transparent fw-bold fs-20 mb-2 mx-auto">
                     {String(stats.total).padStart(2, '0')}
                   </span>
-                  <p className="fs-14">Total Working <br /> Days</p>
+                  <p className="fs-14">{t('hrm.total_working_days')}</p>
                 </div>
                 <div className="col-lg-2 col-md-3 col-sm-4 text-center">
                   <span className="d-flex align-items-center justify-content-center avatar avatar-xl bg-danger-transparent fw-bold fs-20 mb-2 mx-auto">
                     {String(stats.absent).padStart(2, '0')}
                   </span>
-                  <p className="fs-14">Absent <br />Days</p>
+                  <p className="fs-14">{t('hrm.absent_days')}</p>
                 </div>
                 <div className="col-lg-2 col-md-3 col-sm-4 text-center">
                   <span className="d-flex align-items-center justify-content-center avatar avatar-xl bg-purple-transparent text-purple fw-bold fs-20 mb-2 mx-auto">
                     {String(stats.present).padStart(2, '0')}
                   </span>
-                  <p className="fs-14">Present <br />Days</p>
+                  <p className="fs-14">{t('hrm.present_days')}</p>
                 </div>
                 <div className="col-lg-2 col-md-3 col-sm-4 text-center">
                   <span className="d-flex align-items-center justify-content-center avatar avatar-xl bg-warning-transparent fw-bold fs-20 mb-2 mx-auto">
                     {String(stats.halfDay).padStart(2, '0')}
                   </span>
-                  <p className="fs-14">Half<br /> Days</p>
+                  <p className="fs-14">{t('hrm.half_days')}</p>
                 </div>
                 <div className="col-lg-2 col-md-3 col-sm-4 text-center">
                   <span className="d-flex align-items-center justify-content-center avatar avatar-xl bg-cyan-transparent text-cyan fw-bold fs-20 mb-2 mx-auto">
                     {String(stats.late).padStart(2, '0')}
                   </span>
-                  <p className="fs-14">Late <br />Days</p>
+                  <p className="fs-14">{t('hrm.late_days')}</p>
                 </div>
                 <div className="col-lg-2 col-md-3 col-sm-4 text-center">
                   <span className="d-flex align-items-center justify-content-center avatar avatar-xl bg-success-transparent text-success fw-bold fs-20 mb-2 mx-auto">
                     {String(stats.holiday).padStart(2, '0')}
                   </span>
-                  <p className="fs-14">Holidays</p>
+                  <p className="fs-14">{t('hrm.holidays')}</p>
                 </div>
               </div>
             </div>
@@ -162,38 +165,38 @@ const AttendanceEmployee: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14"></i></span>
-              <input type="text" className="form-control" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {statusFilter || 'Select Status'}
+                {statusFilter ? {Present: t('hrm.present'), Absent: t('hrm.absent'), Holiday: t('hrm.holiday')}[statusFilter] || statusFilter : t('hrm.select_status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Present'); }}>Present</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Absent'); }}>Absent</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Holiday'); }}>Holiday</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Present'); }}>{t('hrm.present')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Absent'); }}>{t('hrm.absent')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Holiday'); }}>{t('hrm.holiday')}</a></li>
               </ul>
             </div>
           </div>
         </div>
         <div className="card-body p-0">
-          {loading ? <div className="text-center p-4">Loading...</div> : (
+          {loading ? <div className="text-center p-4">{t('common.loading')}</div> : (
             <div className="table-responsive">
               <table className="table datatable">
                 <thead className="thead-light">
                   <tr>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Clock In</th>
-                    <th>Clock Out</th>
-                    <th>Production</th>
-                    <th>Break</th>
-                    <th>Overtime</th>
-                    <th>Progress</th>
-                    <th>Total Hours</th>
+                    <th>{t('common.date')}</th>
+                    <th>{t('common.status')}</th>
+                    <th>{t('hrm.clock_in')}</th>
+                    <th>{t('hrm.clock_out')}</th>
+                    <th>{t('hrm.production')}</th>
+                    <th>{t('hrm.break_time')}</th>
+                    <th>{t('hrm.overtime')}</th>
+                    <th>{t('hrm.progress')}</th>
+                    <th>{t('hrm.total_hours')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -211,7 +214,7 @@ const AttendanceEmployee: React.FC = () => {
                     </tr>
                   ))}
                   {filtered.length === 0 && (
-                    <tr><td colSpan={9} className="text-center py-4 text-muted">No attendance records found</td></tr>
+                    <tr><td colSpan={9} className="text-center py-4 text-muted">{t('hrm.no_attendance_records')}</td></tr>
                   )}
                 </tbody>
               </table>

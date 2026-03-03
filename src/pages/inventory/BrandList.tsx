@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 
 interface BrandDto {
@@ -28,6 +29,7 @@ const mapDto = (dto: BrandDto): BrandItem => ({
 type SortMode = 'latest' | 'asc' | 'desc';
 
 const BrandList: React.FC = () => {
+  const { t } = useTranslation();
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -184,7 +186,7 @@ const BrandList: React.FC = () => {
     setDeleteId(null);
   };
 
-  const sortLabel = sortMode === 'asc' ? 'Ascending' : sortMode === 'desc' ? 'Descending' : 'Latest';
+  const sortLabel = sortMode === 'asc' ? t('common.ascending') : sortMode === 'desc' ? t('common.descending') : t('common.latest');
 
   return (
     <>
@@ -192,28 +194,28 @@ const BrandList: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Brand</h4>
-            <h6>Manage your brands</h6>
+            <h4 className="fw-bold">{t('brands.title')}</h4>
+            <h6>{t('brands.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/pdf.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/excel.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}>
+            <a href="#" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); fetchData(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
           <li>
-            <a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}>
               <i className="ti ti-chevron-up"></i>
             </a>
           </li>
@@ -224,7 +226,7 @@ const BrandList: React.FC = () => {
             className="btn btn-primary"
             onClick={(e) => { e.preventDefault(); resetAddForm(); setShowAddModal(true); }}
           >
-            <i className="ti ti-circle-plus me-1"></i>Add Brand
+            <i className="ti ti-circle-plus me-1"></i>{t('brands.add_brand')}
           </a>
         </div>
       </div>
@@ -238,7 +240,7 @@ const BrandList: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search"
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -248,23 +250,23 @@ const BrandList: React.FC = () => {
             {/* Status Filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {statusFilter || 'Status'}
+                {statusFilter || t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>{t('common.active')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>{t('common.inactive')}</a></li>
               </ul>
             </div>
             {/* Sort By */}
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                Sort By : {sortLabel}
+                {t('common.sort_by')} {sortLabel}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('latest'); }}>Latest</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('asc'); }}>Ascending</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('desc'); }}>Descending</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('latest'); }}>{t('common.latest')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('asc'); }}>{t('common.ascending')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortMode('desc'); }}>{t('common.descending')}</a></li>
               </ul>
             </div>
           </div>
@@ -273,7 +275,7 @@ const BrandList: React.FC = () => {
           {loading ? (
             <div className="text-center p-5">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('common.loading')}</span>
               </div>
             </div>
           ) : (
@@ -287,9 +289,9 @@ const BrandList: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>Brand</th>
-                    <th>Created Date</th>
-                    <th>Status</th>
+                    <th>{t('brands.brand_name')}</th>
+                    <th>{t('common.created_date')}</th>
+                    <th>{t('common.status')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -317,7 +319,7 @@ const BrandList: React.FC = () => {
                       <td>{item.createdAt}</td>
                       <td>
                         <span className={`badge table-badge fw-medium fs-10 ${item.status === 'active' ? 'bg-success' : 'bg-danger'}`}>
-                          {item.status === 'active' ? 'Active' : 'Inactive'}
+                          {item.status === 'active' ? t('common.active') : t('common.inactive')}
                         </span>
                       </td>
                       <td className="action-table-data">
@@ -345,7 +347,7 @@ const BrandList: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Add Brand</h4></div>
+                <div className="page-title"><h4>{t('brands.add_brand')}</h4></div>
                 <button type="button" className="close bg-danger text-white fs-16" onClick={() => { setShowAddModal(false); resetAddForm(); }} aria-label="Close">
                   <span aria-hidden="true" className="fs-16">&times;</span>
                 </button>
@@ -378,7 +380,7 @@ const BrandList: React.FC = () => {
                 </div>
                 <div className="mb-0">
                   <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                    <span className="status-label">Status</span>
+                    <span className="status-label">{t('common.status')}</span>
                     <input
                       type="checkbox"
                       id="add-brand-status"
@@ -391,8 +393,8 @@ const BrandList: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => { setShowAddModal(false); resetAddForm(); }}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleAddSave}>Add Brand</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => { setShowAddModal(false); resetAddForm(); }}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleAddSave}>{t('brands.add_brand')}</button>
               </div>
             </div>
           </div>
@@ -405,7 +407,7 @@ const BrandList: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Edit Brand</h4></div>
+                <div className="page-title"><h4>{t('brands.edit_brand')}</h4></div>
                 <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
                   <span aria-hidden="true" className="fs-16">&times;</span>
                 </button>
@@ -437,7 +439,7 @@ const BrandList: React.FC = () => {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Brand<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('brands.brand_name')}<span className="text-danger ms-1">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -447,7 +449,7 @@ const BrandList: React.FC = () => {
                 </div>
                 <div className="mb-0">
                   <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                    <span className="status-label">Status</span>
+                    <span className="status-label">{t('common.status')}</span>
                     <input
                       type="checkbox"
                       id="edit-brand-status"
@@ -460,8 +462,8 @@ const BrandList: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -478,11 +480,11 @@ const BrandList: React.FC = () => {
                   <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
                     <i className="ti ti-trash fs-24 text-danger"></i>
                   </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Brand</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to delete brand?</p>
+                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('brands.delete_brand')}</h4>
+                  <p className="mb-0 fs-16">{t('brands.delete_confirm')}</p>
                   <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>

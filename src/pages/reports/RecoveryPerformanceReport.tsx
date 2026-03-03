@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getRecoveryPerformance, RecoveryPerformance } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const RecoveryPerformanceReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<RecoveryPerformance | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState('');
@@ -21,36 +23,36 @@ const RecoveryPerformanceReport: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Recovery Performance" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Risk & Compliance' }]} />
+      <PageHeader title={t('reports.recovery_performance')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.risk_compliance') }]} />
 
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
-              <label className="form-label">From Date</label>
+              <label className="form-label">{t('reports.from_date')}</label>
               <input type="date" className="form-control" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <label className="form-label">To Date</label>
+              <label className="form-label">{t('reports.to_date')}</label>
               <input type="date" className="form-control" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <button className="btn btn-primary" onClick={fetchData}>Apply Filter</button>
+              <button className="btn btn-primary" onClick={fetchData}>{t('reports.apply_filter')}</button>
             </div>
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['Month', 'Overdue Amount', 'Recovered', 'Recovery Rate (%)'];
+                  const cols = [t('reports.month'), t('reports.overdue_amount'), t('reports.recovered'), t('reports.recovery_rate_pct')];
                   const rows = data.monthlyRecovery.map(m => [m.month, m.overdueAmount, m.recovered, m.recoveryRate.toFixed(1)]);
                   exportToExcel(cols, rows, 'Recovery-Performance-Report');
                 }}
                 onExportPDF={() => {
-                  const cols = ['Month', 'Overdue Amount', 'Recovered', 'Recovery Rate (%)'];
+                  const cols = [t('reports.month'), t('reports.overdue_amount'), t('reports.recovered'), t('reports.recovery_rate_pct')];
                   const rows = data.monthlyRecovery.map(m => [m.month, `Rs ${m.overdueAmount.toLocaleString()}`, `Rs ${m.recovered.toLocaleString()}`, `${m.recoveryRate.toFixed(1)}%`]);
-                  exportToPDF(cols, rows, 'Recovery-Performance-Report', 'Recovery Performance Report', [
-                    { label: 'Total Overdue', value: `Rs ${data.totalOverdueAmount.toLocaleString()}` },
-                    { label: 'Amount Recovered', value: `Rs ${data.amountRecovered.toLocaleString()}` },
-                    { label: 'Recovery Rate', value: `${data.recoveryRate.toFixed(1)}%` },
+                  exportToPDF(cols, rows, 'Recovery-Performance-Report', t('reports.recovery_performance'), [
+                    { label: t('reports.total_overdue'), value: `Rs ${data.totalOverdueAmount.toLocaleString()}` },
+                    { label: t('reports.amount_recovered'), value: `Rs ${data.amountRecovered.toLocaleString()}` },
+                    { label: t('reports.recovery_rate'), value: `${data.recoveryRate.toFixed(1)}%` },
                   ]);
                 }}
               />}
@@ -67,7 +69,7 @@ const RecoveryPerformanceReport: React.FC = () => {
             <div className="col-md-3 mb-3">
               <div className="card border-danger">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Overdue</h6>
+                  <h6 className="text-muted">{t('reports.total_overdue')}</h6>
                   <h4 className="text-danger">Rs {data.totalOverdueAmount.toLocaleString()}</h4>
                 </div>
               </div>
@@ -75,7 +77,7 @@ const RecoveryPerformanceReport: React.FC = () => {
             <div className="col-md-3 mb-3">
               <div className="card border-success">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Recovered</h6>
+                  <h6 className="text-muted">{t('reports.recovered')}</h6>
                   <h4 className="text-success">Rs {data.amountRecovered.toLocaleString()}</h4>
                 </div>
               </div>
@@ -83,7 +85,7 @@ const RecoveryPerformanceReport: React.FC = () => {
             <div className="col-md-3 mb-3">
               <div className="card border-primary">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Recovery Rate</h6>
+                  <h6 className="text-muted">{t('reports.recovery_rate')}</h6>
                   <h4 className="text-primary">{data.recoveryRate.toFixed(1)}%</h4>
                 </div>
               </div>
@@ -91,7 +93,7 @@ const RecoveryPerformanceReport: React.FC = () => {
             <div className="col-md-3 mb-3">
               <div className="card">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Entries</h6>
+                  <h6 className="text-muted">{t('reports.entries')}</h6>
                   <h4>{data.recoveredEntries} / {data.totalOverdueEntries}</h4>
                 </div>
               </div>
@@ -101,7 +103,7 @@ const RecoveryPerformanceReport: React.FC = () => {
           {/* Recovery Rate Bar */}
           <div className="card mb-4">
             <div className="card-body">
-              <h6 className="mb-2">Overall Recovery Rate</h6>
+              <h6 className="mb-2">{t('reports.overall_recovery_rate')}</h6>
               <div className="progress" style={{ height: '30px' }}>
                 <div
                   className={`progress-bar ${data.recoveryRate >= 80 ? 'bg-success' : data.recoveryRate >= 50 ? 'bg-warning' : 'bg-danger'}`}
@@ -115,16 +117,16 @@ const RecoveryPerformanceReport: React.FC = () => {
 
           {/* Monthly Recovery */}
           <div className="card">
-            <div className="card-header"><h5 className="card-title mb-0">Monthly Recovery Trend</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t('reports.monthly_recovery_trend')}</h5></div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Month</th>
-                      <th>Overdue Amount</th>
-                      <th>Recovered</th>
-                      <th>Recovery Rate</th>
+                      <th>{t('reports.month')}</th>
+                      <th>{t('reports.overdue_amount')}</th>
+                      <th>{t('reports.recovered')}</th>
+                      <th>{t('reports.recovery_rate')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -147,7 +149,7 @@ const RecoveryPerformanceReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.monthlyRecovery.length === 0 && (
-                      <tr><td colSpan={4} className="text-center text-muted">No data</td></tr>
+                      <tr><td colSpan={4} className="text-center text-muted">{t('reports.no_data')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -156,7 +158,7 @@ const RecoveryPerformanceReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import {
   getWhatsAppConfig,
@@ -8,6 +9,7 @@ import {
 } from '../../services/whatsappService';
 
 const WhatsAppSettings: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -36,7 +38,7 @@ const WhatsAppSettings: React.FC = () => {
       setPhoneNumberId(data.phoneNumberId || '');
       setBusinessAccountId(data.businessAccountId || '');
     } catch {
-      setAlert({ type: 'danger', message: 'Failed to load WhatsApp configuration.' });
+      setAlert({ type: 'danger', message: t('settings.whatsapp_load_failed') });
     } finally {
       setLoading(false);
     }
@@ -44,7 +46,7 @@ const WhatsAppSettings: React.FC = () => {
 
   const handleSave = async () => {
     if (!accessToken && !phoneNumberId && !businessAccountId) {
-      setAlert({ type: 'danger', message: 'Please fill in at least the Access Token and Phone Number ID.' });
+      setAlert({ type: 'danger', message: t('settings.whatsapp_fill_required') });
       return;
     }
     setSaving(true);
@@ -58,9 +60,9 @@ const WhatsAppSettings: React.FC = () => {
       setConfig(result.status);
       setAccessToken('');
       setShowToken(false);
-      setAlert({ type: 'success', message: 'WhatsApp Cloud API configuration saved successfully!' });
+      setAlert({ type: 'success', message: t('settings.whatsapp_save_success') });
     } catch (err: any) {
-      setAlert({ type: 'danger', message: err?.response?.data?.error || 'Failed to save configuration.' });
+      setAlert({ type: 'danger', message: err?.response?.data?.error || t('settings.whatsapp_save_failed') });
     } finally {
       setSaving(false);
     }
@@ -68,16 +70,16 @@ const WhatsAppSettings: React.FC = () => {
 
   const handleTest = async () => {
     if (!testPhone.trim()) {
-      setAlert({ type: 'danger', message: 'Please enter a phone number to send a test message.' });
+      setAlert({ type: 'danger', message: t('settings.whatsapp_enter_phone') });
       return;
     }
     setTesting(true);
     setAlert(null);
     try {
       await sendWhatsAppText(testPhone, testMessage);
-      setAlert({ type: 'success', message: `Test message sent successfully to ${testPhone}!` });
+      setAlert({ type: 'success', message: t('settings.whatsapp_test_success', { phone: testPhone }) });
     } catch (err: any) {
-      setAlert({ type: 'danger', message: err?.response?.data?.error || 'Failed to send test message. Check your configuration.' });
+      setAlert({ type: 'danger', message: err?.response?.data?.error || t('settings.whatsapp_test_failed') });
     } finally {
       setTesting(false);
     }
@@ -86,11 +88,11 @@ const WhatsAppSettings: React.FC = () => {
   if (loading) {
     return (
       <>
-        <PageHeader title="WhatsApp Cloud API" breadcrumbs={[{ title: 'Settings' }]} />
+        <PageHeader title={t('settings.whatsapp_cloud_api')} breadcrumbs={[{ title: t('settings.settings') }]} />
         <div className="card">
           <div className="card-body text-center py-5">
             <span className="spinner-border text-primary"></span>
-            <p className="mt-2 text-muted">Loading configuration...</p>
+            <p className="mt-2 text-muted">{t('settings.loading_configuration')}</p>
           </div>
         </div>
       </>
@@ -99,7 +101,7 @@ const WhatsAppSettings: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="WhatsApp Cloud API" breadcrumbs={[{ title: 'Settings' }]} />
+      <PageHeader title={t('settings.whatsapp_cloud_api')} breadcrumbs={[{ title: t('settings.settings') }]} />
 
       {alert && (
         <div className={`alert alert-${alert.type} alert-dismissible fade show`} role="alert">
@@ -118,7 +120,7 @@ const WhatsAppSettings: React.FC = () => {
             <div className="card-header">
               <h5 className="card-title mb-0">
                 <i className="ti ti-brand-whatsapp me-2 text-success"></i>
-                Connection Status
+                {t('settings.connection_status')}
               </h5>
             </div>
             <div className="card-body">
@@ -127,32 +129,32 @@ const WhatsAppSettings: React.FC = () => {
                   <i className={`ti ${config?.isConfigured ? 'ti-check' : 'ti-x'} fs-24 ${config?.isConfigured ? 'text-success' : 'text-danger'}`}></i>
                 </div>
                 <h5 className={`mt-3 ${config?.isConfigured ? 'text-success' : 'text-danger'}`}>
-                  {config?.isConfigured ? 'Connected' : 'Not Configured'}
+                  {config?.isConfigured ? t('settings.connected') : t('settings.not_configured')}
                 </h5>
                 <p className="text-muted small">
                   {config?.isConfigured
-                    ? 'WhatsApp Cloud API is ready to send messages.'
-                    : 'Configure your credentials below to enable WhatsApp messaging.'}
+                    ? t('settings.whatsapp_ready')
+                    : t('settings.whatsapp_configure_credentials')}
                 </p>
               </div>
 
               <div className="list-group list-group-flush">
                 <div className="list-group-item d-flex justify-content-between align-items-center px-0">
-                  <span className="text-muted">Access Token</span>
+                  <span className="text-muted">{t('settings.access_token')}</span>
                   <span className={`badge ${config?.hasAccessToken ? 'bg-success' : 'bg-secondary'}`}>
-                    {config?.hasAccessToken ? 'Set' : 'Not Set'}
+                    {config?.hasAccessToken ? t('settings.set') : t('settings.not_set')}
                   </span>
                 </div>
                 <div className="list-group-item d-flex justify-content-between align-items-center px-0">
-                  <span className="text-muted">Phone Number ID</span>
+                  <span className="text-muted">{t('settings.phone_number_id')}</span>
                   <span className={`badge ${config?.phoneNumberId ? 'bg-success' : 'bg-secondary'}`}>
-                    {config?.phoneNumberId || 'Not Set'}
+                    {config?.phoneNumberId || t('settings.not_set')}
                   </span>
                 </div>
                 <div className="list-group-item d-flex justify-content-between align-items-center px-0">
-                  <span className="text-muted">Business Account ID</span>
+                  <span className="text-muted">{t('settings.business_account_id')}</span>
                   <span className={`badge ${config?.businessAccountId ? 'bg-success' : 'bg-secondary'}`}>
-                    {config?.businessAccountId || 'Not Set'}
+                    {config?.businessAccountId || t('settings.not_set')}
                   </span>
                 </div>
               </div>
@@ -166,28 +168,28 @@ const WhatsAppSettings: React.FC = () => {
             <div className="card-header">
               <h5 className="card-title mb-0">
                 <i className="ti ti-settings me-2"></i>
-                API Configuration
+                {t('settings.api_configuration')}
               </h5>
             </div>
             <div className="card-body">
               <div className="alert alert-info small">
                 <i className="ti ti-info-circle me-2"></i>
-                <strong>Setup Guide:</strong> Go to{' '}
+                <strong>{t('settings.setup_guide')}</strong> {t('settings.setup_guide_goto')}{' '}
                 <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer">
-                  Meta Developer Portal
+                  {t('settings.meta_developer_portal')}
                 </a>{' '}
-                &rarr; Create/Select App &rarr; Add WhatsApp product &rarr; Get your credentials from the WhatsApp &gt; API Setup page.
+                &rarr; {t('settings.setup_guide_instructions')}
               </div>
 
               <div className="mb-3">
                 <label className="form-label fw-medium">
-                  Access Token<span className="text-danger ms-1">*</span>
+                  {t('settings.access_token')}<span className="text-danger ms-1">*</span>
                 </label>
                 <div className="input-group">
                   <input
                     type={showToken ? 'text' : 'password'}
                     className="form-control"
-                    placeholder={config?.hasAccessToken ? '••••••••••••••••••• (already set, enter new to update)' : 'Enter your permanent access token'}
+                    placeholder={config?.hasAccessToken ? t('settings.access_token_placeholder_set') : t('settings.access_token_placeholder')}
                     value={accessToken}
                     onChange={(e) => setAccessToken(e.target.value)}
                   />
@@ -200,49 +202,49 @@ const WhatsAppSettings: React.FC = () => {
                   </button>
                 </div>
                 <small className="text-muted">
-                  Your permanent WhatsApp Cloud API access token from Meta Business Suite.
+                  {t('settings.access_token_help')}
                 </small>
               </div>
 
               <div className="mb-3">
                 <label className="form-label fw-medium">
-                  Phone Number ID<span className="text-danger ms-1">*</span>
+                  {t('settings.phone_number_id')}<span className="text-danger ms-1">*</span>
                 </label>
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="e.g., 123456789012345"
+                  placeholder={t('settings.phone_number_id_placeholder')}
                   value={phoneNumberId}
                   onChange={(e) => setPhoneNumberId(e.target.value)}
                 />
                 <small className="text-muted">
-                  Found in WhatsApp &gt; API Setup &gt; Phone number ID in Meta Developer Portal.
+                  {t('settings.phone_number_id_help')}
                 </small>
               </div>
 
               <div className="mb-3">
                 <label className="form-label fw-medium">
-                  WhatsApp Business Account ID
+                  {t('settings.whatsapp_business_account_id')}
                 </label>
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="e.g., 123456789012345"
+                  placeholder={t('settings.phone_number_id_placeholder')}
                   value={businessAccountId}
                   onChange={(e) => setBusinessAccountId(e.target.value)}
                 />
-                <small className="text-muted">Optional. Used for managing templates.</small>
+                <small className="text-muted">{t('settings.business_account_id_help')}</small>
               </div>
 
               <div className="d-flex justify-content-end">
                 <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
                   {saving ? (
                     <>
-                      <span className="spinner-border spinner-border-sm me-2"></span>Saving...
+                      <span className="spinner-border spinner-border-sm me-2"></span>{t('settings.saving')}
                     </>
                   ) : (
                     <>
-                      <i className="ti ti-device-floppy me-1"></i>Save Configuration
+                      <i className="ti ti-device-floppy me-1"></i>{t('settings.save_configuration')}
                     </>
                   )}
                 </button>
@@ -262,20 +264,20 @@ const WhatsAppSettings: React.FC = () => {
               <div className="card-body">
                 <div className="mb-3">
                   <label className="form-label fw-medium">
-                    Phone Number<span className="text-danger ms-1">*</span>
+                    {t('settings.phone_number')}<span className="text-danger ms-1">*</span>
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="e.g., 03001234567 or +923001234567"
+                    placeholder={t('settings.test_phone_placeholder')}
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value)}
                   />
-                  <small className="text-muted">Enter a WhatsApp-enabled phone number to test.</small>
+                  <small className="text-muted">{t('settings.test_phone_help')}</small>
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label fw-medium">Message</label>
+                  <label className="form-label fw-medium">{t('settings.message')}</label>
                   <textarea
                     className="form-control"
                     rows={3}
@@ -288,11 +290,11 @@ const WhatsAppSettings: React.FC = () => {
                   <button className="btn btn-success" onClick={handleTest} disabled={testing}>
                     {testing ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2"></span>Sending...
+                        <span className="spinner-border spinner-border-sm me-2"></span>{t('settings.sending')}
                       </>
                     ) : (
                       <>
-                        <i className="ti ti-brand-whatsapp me-1"></i>Send Test Message
+                        <i className="ti ti-brand-whatsapp me-1"></i>{t('settings.send_test_message')}
                       </>
                     )}
                   </button>
@@ -309,9 +311,9 @@ const WhatsAppSettings: React.FC = () => {
           <div className="card h-100 border-0 bg-primary-transparent">
             <div className="card-body text-center">
               <i className="ti ti-message-circle fs-36 text-primary mb-3"></i>
-              <h6 className="fw-bold">Text Messages</h6>
+              <h6 className="fw-bold">{t('settings.text_messages')}</h6>
               <p className="text-muted small mb-0">
-                Send instant text notifications for due reminders, payment confirmations, and plan updates.
+                {t('settings.text_messages_desc')}
               </p>
             </div>
           </div>
@@ -320,9 +322,9 @@ const WhatsAppSettings: React.FC = () => {
           <div className="card h-100 border-0 bg-success-transparent">
             <div className="card-body text-center">
               <i className="ti ti-file-text fs-36 text-success mb-3"></i>
-              <h6 className="fw-bold">PDF Documents</h6>
+              <h6 className="fw-bold">{t('settings.pdf_documents')}</h6>
               <p className="text-muted small mb-0">
-                Automatically generate and send deposit slips, due notices, and repayment plans as PDF attachments.
+                {t('settings.pdf_documents_desc')}
               </p>
             </div>
           </div>
@@ -331,9 +333,9 @@ const WhatsAppSettings: React.FC = () => {
           <div className="card h-100 border-0 bg-info-transparent">
             <div className="card-body text-center">
               <i className="ti ti-template fs-36 text-info mb-3"></i>
-              <h6 className="fw-bold">Template Messages</h6>
+              <h6 className="fw-bold">{t('settings.template_messages')}</h6>
               <p className="text-muted small mb-0">
-                Use pre-approved WhatsApp templates for marketing and transactional notifications.
+                {t('settings.template_messages_desc')}
               </p>
             </div>
           </div>

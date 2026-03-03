@@ -1,9 +1,11 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { userService, UserDto, CreateUserPayload, UpdateUserPayload } from '../../services/userService';
+import { useTranslation } from 'react-i18next';
 
 const ROLES = ['Admin', 'Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
 
 const Users: React.FC = () => {
+  const { t } = useTranslation();
   // ── Data state ──
   const [users, setUsers] = useState<UserDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ const Users: React.FC = () => {
       setUsers(data);
       setError('');
     } catch {
-      setError('Failed to load users.');
+      setError(t('users.failed_load'));
     } finally {
       setLoading(false);
     }
@@ -63,15 +65,15 @@ const Users: React.FC = () => {
     e.preventDefault();
     setAddError('');
     if (!addForm.fullName || !addForm.email || !addForm.password) {
-      setAddError('Name, email and password are required.');
+      setAddError(t('users.name_email_required'));
       return;
     }
     if (addForm.password.length < 6) {
-      setAddError('Password must be at least 6 characters.');
+      setAddError(t('users.password_min'));
       return;
     }
     if (addForm.password !== addConfirmPw) {
-      setAddError('Passwords do not match.');
+      setAddError(t('users.passwords_no_match'));
       return;
     }
     setAddLoading(true);
@@ -107,15 +109,15 @@ const Users: React.FC = () => {
     if (!editId) return;
     setEditError('');
     if (!editForm.fullName || !editForm.email) {
-      setEditError('Name and email are required.');
+      setEditError(t('users.name_email_required'));
       return;
     }
     if (editForm.password && editForm.password.length < 6) {
-      setEditError('Password must be at least 6 characters.');
+      setEditError(t('users.password_min'));
       return;
     }
     if (editForm.password && editForm.password !== editConfirmPw) {
-      setEditError('Passwords do not match.');
+      setEditError(t('users.passwords_no_match'));
       return;
     }
     setEditLoading(true);
@@ -147,7 +149,7 @@ const Users: React.FC = () => {
       setShowDelete(false);
       fetchUsers();
     } catch {
-      setError('Failed to delete user.');
+      setError(t('users.failed_delete'));
     } finally {
       setDeleteLoading(false);
     }
@@ -159,20 +161,20 @@ const Users: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Users</h4>
-            <h6>Manage your users</h6>
+            <h4 className="fw-bold">{t('users.title')}</h4>
+            <h6>{t('users.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchUsers(); }}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); fetchUsers(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
         </ul>
         <div className="page-btn">
           <button className="btn btn-primary" onClick={() => { resetAddForm(); setShowAdd(true); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add User
+            <i className="ti ti-circle-plus me-1"></i>{t('users.add_user')}
           </button>
         </div>
       </div>
@@ -194,7 +196,7 @@ const Users: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search"
+                placeholder={t('users.search_users')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -208,12 +210,12 @@ const Users: React.FC = () => {
                 data-bs-toggle="dropdown"
                 onClick={(e) => e.preventDefault()}
               >
-                {statusFilter ? (statusFilter === 'active' ? 'Active' : 'Inactive') : 'Status'}
+                {statusFilter ? (statusFilter === 'active' ? t('common.active') : t('common.inactive')) : t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>{t('common.active')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>{t('common.inactive')}</a></li>
               </ul>
             </div>
           </div>
@@ -231,11 +233,11 @@ const Users: React.FC = () => {
                 <thead className="thead-light">
                   <tr>
                     <th style={{width: 40}}>#</th>
-                    <th>User Name</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
+                    <th>{t('users.user_name')}</th>
+                    <th>{t('users.phone')}</th>
+                    <th>{t('users.email')}</th>
+                    <th>{t('users.role')}</th>
+                    <th>{t('users.status')}</th>
                     <th style={{width: 120}}></th>
                   </tr>
                 </thead>
@@ -243,7 +245,7 @@ const Users: React.FC = () => {
                   {filtered.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center py-4 text-muted">
-                        {search || statusFilter ? 'No users match your filters.' : 'No users found.'}
+                        {search || statusFilter ? t('users.no_users_match') : t('users.no_users')}
                       </td>
                     </tr>
                   ) : (
@@ -264,11 +266,11 @@ const Users: React.FC = () => {
                         <td>
                           {user.isActive ? (
                             <span className="d-inline-flex align-items-center p-1 pe-2 rounded-1 text-white bg-success fs-10">
-                              <i className="ti ti-point-filled me-1 fs-11"></i>Active
+                              <i className="ti ti-point-filled me-1 fs-11"></i>{t('common.active')}
                             </span>
                           ) : (
                             <span className="d-inline-flex align-items-center p-1 pe-2 rounded-1 text-white bg-danger fs-10">
-                              <i className="ti ti-point-filled me-1 fs-11"></i>Inactive
+                              <i className="ti ti-point-filled me-1 fs-11"></i>{t('common.inactive')}
                             </span>
                           )}
                         </td>
@@ -309,7 +311,7 @@ const Users: React.FC = () => {
                 <div className="content">
                   <div className="modal-header">
                     <div className="page-title">
-                      <h4>Add User</h4>
+                      <h4>{t('users.add_user')}</h4>
                     </div>
                     <button type="button" className="close" onClick={() => setShowAdd(false)}>
                       <span aria-hidden="true">&times;</span>
@@ -321,13 +323,13 @@ const Users: React.FC = () => {
                       <div className="row">
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('common.name')}<span className="text-danger ms-1">*</span></label>
                             <input type="text" className="form-control" value={addForm.fullName} onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })} required />
                           </div>
                         </div>
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Role<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('users.role')}<span className="text-danger ms-1">*</span></label>
                             <select className="form-select" value={addForm.role} onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}>
                               {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
@@ -335,31 +337,31 @@ const Users: React.FC = () => {
                         </div>
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Email<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('users.email')}<span className="text-danger ms-1">*</span></label>
                             <input type="email" className="form-control" value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} required />
                           </div>
                         </div>
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Phone</label>
+                            <label className="form-label">{t('users.phone')}</label>
                             <input type="tel" className="form-control" value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="mb-3">
-                            <label className="form-label">Password<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('users.password')}<span className="text-danger ms-1">*</span></label>
                             <input type="password" className="form-control" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} required />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="mb-3">
-                            <label className="form-label">Confirm Password<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('users.confirm_password')}<span className="text-danger ms-1">*</span></label>
                             <input type="password" className="form-control" value={addConfirmPw} onChange={(e) => setAddConfirmPw(e.target.value)} required />
                           </div>
                         </div>
                         <div className="col-lg-12">
                           <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                            <span className="status-label">Status</span>
+                            <span className="status-label">{t('users.status')}</span>
                             <div className="form-check form-switch">
                               <input className="form-check-input" type="checkbox" checked={addForm.isActive} onChange={(e) => setAddForm({ ...addForm, isActive: e.target.checked })} />
                             </div>
@@ -368,9 +370,9 @@ const Users: React.FC = () => {
                       </div>
                     </div>
                     <div className="modal-footer">
-                      <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAdd(false)}>Cancel</button>
+                      <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAdd(false)}>{t('common.cancel')}</button>
                       <button type="submit" className="btn btn-primary" disabled={addLoading}>
-                        {addLoading ? 'Adding...' : 'Add User'}
+                        {addLoading ? t('common.saving') : t('users.add_user')}
                       </button>
                     </div>
                   </form>
@@ -390,7 +392,7 @@ const Users: React.FC = () => {
                 <div className="content">
                   <div className="modal-header">
                     <div className="page-title">
-                      <h4>Edit User</h4>
+                      <h4>{t('users.edit_user')}</h4>
                     </div>
                     <button type="button" className="close" onClick={() => setShowEdit(false)}>
                       <span aria-hidden="true">&times;</span>
@@ -402,13 +404,13 @@ const Users: React.FC = () => {
                       <div className="row">
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('common.name')}<span className="text-danger ms-1">*</span></label>
                             <input type="text" className="form-control" value={editForm.fullName} onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })} required />
                           </div>
                         </div>
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Role<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('users.role')}<span className="text-danger ms-1">*</span></label>
                             <select className="form-select" value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
                               {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
@@ -416,31 +418,31 @@ const Users: React.FC = () => {
                         </div>
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Email<span className="text-danger ms-1">*</span></label>
+                            <label className="form-label">{t('users.email')}<span className="text-danger ms-1">*</span></label>
                             <input type="email" className="form-control" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required />
                           </div>
                         </div>
                         <div className="col-lg-12">
                           <div className="mb-3">
-                            <label className="form-label">Phone</label>
+                            <label className="form-label">{t('users.phone')}</label>
                             <input type="tel" className="form-control" value={editForm.phone || ''} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="mb-3">
-                            <label className="form-label">Password <small className="text-muted">(leave blank to keep current)</small></label>
+                            <label className="form-label">{t('users.password')} <small className="text-muted">{t('users.password_hint')}</small></label>
                             <input type="password" className="form-control" value={editForm.password || ''} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="mb-3">
-                            <label className="form-label">Confirm Password</label>
+                            <label className="form-label">{t('users.confirm_password')}</label>
                             <input type="password" className="form-control" value={editConfirmPw} onChange={(e) => setEditConfirmPw(e.target.value)} />
                           </div>
                         </div>
                         <div className="col-lg-12">
                           <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                            <span className="status-label">Status</span>
+                            <span className="status-label">{t('users.status')}</span>
                             <div className="form-check form-switch">
                               <input className="form-check-input" type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} />
                             </div>
@@ -449,9 +451,9 @@ const Users: React.FC = () => {
                       </div>
                     </div>
                     <div className="modal-footer">
-                      <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEdit(false)}>Cancel</button>
+                      <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEdit(false)}>{t('common.cancel')}</button>
                       <button type="submit" className="btn btn-primary" disabled={editLoading}>
-                        {editLoading ? 'Saving...' : 'Save Changes'}
+                        {editLoading ? t('common.saving') : t('common.save_changes')}
                       </button>
                     </div>
                   </form>
@@ -472,17 +474,17 @@ const Users: React.FC = () => {
                   <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
                     <i className="ti ti-trash fs-24 text-danger"></i>
                   </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Delete User</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to delete <strong>{deleteName}</strong>?</p>
+                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('users.delete_user')}</h4>
+                  <p className="mb-0 fs-16">{t('users.delete_confirm', { name: deleteName })}</p>
                   <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDelete(false)}>Cancel</button>
+                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDelete(false)}>{t('common.cancel')}</button>
                     <button
                       type="button"
                       className="btn btn-primary fs-13 fw-medium p-2 px-3"
                       disabled={deleteLoading}
                       onClick={handleDelete}
                     >
-                      {deleteLoading ? 'Deleting...' : 'Yes Delete'}
+                      {deleteLoading ? t('common.loading') : t('common.yes') + ' ' + t('common.delete')}
                     </button>
                   </div>
                 </div>

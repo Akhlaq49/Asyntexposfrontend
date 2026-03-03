@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getProducts, deleteProduct, getCategories, getBrands, ProductResponse, DropdownOption } from '../../services/productService';
 import { mediaUrl } from '../../services/api';
 
 const fmt = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
 const ProductList: React.FC = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,7 +72,7 @@ const ProductList: React.FC = () => {
       setShowDeleteModal(false);
       setDeleteId(null);
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to delete product.';
+      const msg = err.response?.data?.message || t('products.failed_delete');
       setDeleteError(msg);
     }
   };
@@ -89,30 +91,30 @@ const ProductList: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Product List</h4>
-            <h6>Manage your products</h6>
+            <h4 className="fw-bold">{t('products.title')}</h4>
+            <h6>{t('products.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/pdf.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/excel.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
         </ul>
         <div className="page-btn">
           <Link to="/add-product" className="btn btn-primary">
-            <i className="ti ti-circle-plus me-1"></i>Add Product
+            <i className="ti ti-circle-plus me-1"></i>{t('products.add_product')}
           </Link>
         </div>
       </div>
@@ -123,16 +125,16 @@ const ProductList: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {categoryFilter || 'Category'}
+                {categoryFilter || t('common.category')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>{t('common.all')}</a></li>
                 {categoryOptions.map((c) => (
                   <li key={c.value}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(c.value); }}>{c.label}</a></li>
                 ))}
@@ -140,10 +142,10 @@ const ProductList: React.FC = () => {
             </div>
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {brandFilter || 'Brand'}
+                {brandFilter || t('common.brand')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setBrandFilter(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setBrandFilter(''); }}>{t('common.all')}</a></li>
                 {brandOptions.map((b) => (
                   <li key={b.value}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setBrandFilter(b.value); }}>{b.label}</a></li>
                 ))}
@@ -154,7 +156,7 @@ const ProductList: React.FC = () => {
         <div className="card-body p-0">
           {loading ? (
             <div className="text-center p-5">
-              <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+              <div className="spinner-border text-primary" role="status"><span className="visually-hidden">{t('common.loading')}</span></div>
             </div>
           ) : (
             <div className="table-responsive">
@@ -165,18 +167,18 @@ const ProductList: React.FC = () => {
                       <label className="checkboxs"><input type="checkbox" checked={selectAll} onChange={(e) => handleSelectAll(e.target.checked)} /><span className="checkmarks"></span></label>
                     </th>
                     <th>SKU</th>
-                    <th>Product Name</th>
-                    <th>Category</th>
-                    <th>Brand</th>
-                    <th>Price</th>
-                    <th>Unit</th>
-                    <th>Qty</th>
-                    <th className="no-sort">Actions</th>
+                    <th>{t('products.product_name')}</th>
+                    <th>{t('products.category')}</th>
+                    <th>{t('products.brand')}</th>
+                    <th>{t('products.price')}</th>
+                    <th>{t('products.unit')}</th>
+                    <th>{t('products.qty')}</th>
+                    <th className="no-sort">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-4 text-muted">No products found.</td></tr>
+                    <tr><td colSpan={9} className="text-center py-4 text-muted">{t('products.no_products')}</td></tr>
                   ) : (
                     filtered.map((p) => (
                       <tr key={p.id}>
@@ -232,11 +234,11 @@ const ProductList: React.FC = () => {
                   <i className="ti ti-trash-x fs-36 text-danger"></i>
                 </div>
                 <h4>Delete Product</h4>
-                <p className="text-muted">Are you sure you want to delete this product?</p>
+                <p className="text-muted">{t('products.delete_confirm')}</p>
                 {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
                 <div className="d-flex justify-content-center gap-2 mt-3">
-                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                  <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                  <button className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button>
                 </div>
               </div>
             </div>

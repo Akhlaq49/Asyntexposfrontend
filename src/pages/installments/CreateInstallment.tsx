@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { mediaUrl, MEDIA_BASE_URL } from '../../services/api';
 import {
@@ -16,6 +17,7 @@ import { getCustomers, Customer, createCustomer, uploadCustomerPicture } from '.
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 
 const CreateInstallment: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -259,7 +261,7 @@ const CreateInstallment: React.FC = () => {
       setNewCustomerPicture(null);
       setNewCustomerPicturePreview('');
     } catch {
-      setError('Failed to create customer.');
+      setError(t('create_installment.failed_create_customer'));
     } finally {
       setNewCustomerSaving(false);
     }
@@ -386,7 +388,7 @@ const CreateInstallment: React.FC = () => {
       setNewProductImage(null);
       setNewProductImagePreview('');
     } catch {
-      setError('Failed to create product.');
+      setError(t('create_installment.failed_create_product'));
     } finally {
       setNewProductSaving(false);
     }
@@ -418,7 +420,7 @@ const CreateInstallment: React.FC = () => {
       }
       navigate('/installment-plans');
     } catch {
-      setError('Failed to create installment plan. Please try again.');
+      setError(t('create_installment.failed_create_plan'));
     } finally {
       setSubmitting(false);
     }
@@ -430,13 +432,13 @@ const CreateInstallment: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Create Installment Plan</h4>
-            <h6>Set up a new product installment with repayment schedule</h6>
+            <h4 className="fw-bold">{t('create_installment.title')}</h4>
+            <h6>{t('create_installment.subtitle')}</h6>
           </div>
         </div>
         <div className="page-btn">
           <a href="#" className="btn btn-secondary" onClick={(e) => { e.preventDefault(); navigate('/installment-plans'); }}>
-            <i className="ti ti-arrow-left me-1"></i>Back to Plans
+            <i className="ti ti-arrow-left me-1"></i>{t('create_installment.back_to_plans')}
           </a>
         </div>
       </div>
@@ -467,21 +469,21 @@ const CreateInstallment: React.FC = () => {
                     setShowNewCustomerModal(true);
                   }}
                 >
-                  <i className="ti ti-plus me-1"></i>New Customer
+                  <i className="ti ti-plus me-1"></i>{t('create_installment.new_customer')}
                 </button>
               </div>
               <div className={`collapse ${!collapsedSections.customer ? 'show' : ''}`}>
                 <div className="card-body">
                   <div className="row">
                   <div className="col-12 mb-3">
-                    <label className="form-label">Search Customer<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.search_customer')}<span className="text-danger ms-1">*</span></label>
                     <div ref={customerSearchRef} style={{ position: 'relative' }}>
                       <div className="input-group">
                         <span className="input-group-text"><i className="ti ti-search"></i></span>
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="Type customer name, phone, email or city..."
+                          placeholder={t('create_installment.customer_search_placeholder')}
                           value={customerSearch}
                           onChange={(e) => {
                             setCustomerSearch(e.target.value);
@@ -502,9 +504,9 @@ const CreateInstallment: React.FC = () => {
                       {showCustomerDropdown && (
                         <div className="border rounded shadow-sm bg-white" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1050, maxHeight: 300, overflowY: 'auto' }}>
                           {customersLoading ? (
-                            <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> Loading customers...</div>
+                            <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> {t('create_installment.loading_customers')}</div>
                           ) : filteredCustomers.length === 0 ? (
-                            <div className="text-center p-3 text-muted">No customers found</div>
+                            <div className="text-center p-3 text-muted">{t('create_installment.no_customers')}</div>
                           ) : (
                             filteredCustomers.map((customer) => (
                               <div
@@ -551,11 +553,11 @@ const CreateInstallment: React.FC = () => {
                         <div className="flex-grow-1">
                           <h6 className="mb-1 fw-bold">{selectedCustomer.name}</h6>
                           <div className="d-flex gap-3 flex-wrap">
-                            {selectedCustomer.so && <small><strong>S/O:</strong> {selectedCustomer.so}</small>}
-                            {selectedCustomer.cnic && <small><strong>CNIC:</strong> {selectedCustomer.cnic}</small>}
-                            <small><strong>Phone:</strong> {selectedCustomer.phone}</small>
-                            <small><strong>Email:</strong> {selectedCustomer.email || '-'}</small>
-                            <small><strong>City:</strong> {selectedCustomer.city || '-'}</small>
+                            {selectedCustomer.so && <small><strong>{t('create_installment.so_label')}</strong> {selectedCustomer.so}</small>}
+                            {selectedCustomer.cnic && <small><strong>{t('create_installment.cnic_label')}</strong> {selectedCustomer.cnic}</small>}
+                            <small><strong>{t('create_installment.phone_label')}</strong> {selectedCustomer.phone}</small>
+                            <small><strong>{t('create_installment.email_label')}</strong> {selectedCustomer.email || '-'}</small>
+                            <small><strong>{t('create_installment.city_label')}</strong> {selectedCustomer.city || '-'}</small>
                           </div>
                         </div>
                       </div>
@@ -563,21 +565,21 @@ const CreateInstallment: React.FC = () => {
                   )}
 
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
-                    <input type="text" className="form-control" value={selectedCustomer?.name ?? ''} readOnly placeholder="Select a customer from search above" />
+                    <label className="form-label">{t('create_installment.customer_name')}<span className="text-danger ms-1">*</span></label>
+                    <input type="text" className="form-control" value={selectedCustomer?.name ?? ''} readOnly placeholder={t('create_installment.select_customer_hint')} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Phone Number<span className="text-danger ms-1">*</span></label>
-                    <input type="text" className="form-control" value={selectedCustomer?.phone ?? ''} readOnly placeholder="Auto-filled from customer" />
+                    <label className="form-label">{t('create_installment.phone_number')}<span className="text-danger ms-1">*</span></label>
+                    <input type="text" className="form-control" value={selectedCustomer?.phone ?? ''} readOnly placeholder={t('create_installment.auto_filled')} />
                   </div>
                   <div className="col-12 mb-0">
-                    <label className="form-label">Address</label>
-                    <textarea className="form-control" rows={2} value={selectedCustomer?.address ?? ''} readOnly placeholder="Auto-filled from customer" />
+                    <label className="form-label">{t('common.address')}</label>
+                    <textarea className="form-control" rows={2} value={selectedCustomer?.address ?? ''} readOnly placeholder={t('create_installment.auto_filled')} />
                   </div>
                   </div>
                   <div className="d-flex justify-content-end mt-3">
                     <button type="button" className="btn btn-primary" onClick={goNext}>
-                      Next <i className="ti ti-arrow-right ms-1"></i>
+                      {t('common.next')} <i className="ti ti-arrow-right ms-1"></i>
                     </button>
                   </div>
                 </div>
@@ -593,7 +595,7 @@ const CreateInstallment: React.FC = () => {
               >
                 <h5 className="card-title mb-0">
                   <i className="ti ti-shield-check me-2"></i>
-                  Guarantors
+                  {t('create_installment.guarantors')}
                   <i className={`ti ${collapsedSections.guarantor ? 'ti-chevron-down' : 'ti-chevron-up'} ms-2`}></i>
                 </h5>
                 <button 
@@ -606,13 +608,13 @@ const CreateInstallment: React.FC = () => {
                     setActiveGuarantorTab(guarantors.length);
                   }}
                 >
-                  <i className="ti ti-plus me-1"></i>Add Guarantor
+                  <i className="ti ti-plus me-1"></i>{t('create_installment.add_guarantor')}
                 </button>
               </div>
               <div className={`collapse ${!collapsedSections.guarantor ? 'show' : ''}`}>
                 <div className="card-body">
                   {guarantors.length === 0 && (
-                    <p className="text-muted text-center mb-0">No guarantors added. Click "Add Guarantor" to add one.</p>
+                    <p className="text-muted text-center mb-0">{t('create_installment.no_guarantors')}</p>
                   )}
                   {guarantors.length > 0 && (
                     <>
@@ -637,20 +639,20 @@ const CreateInstallment: React.FC = () => {
                               setGuarantorSearchTexts(prev => prev.filter((_, i) => i !== idx));
                               setActiveGuarantorTab(prev => prev >= guarantors.length - 1 ? Math.max(0, guarantors.length - 2) : prev);
                             }}>
-                              <i className="ti ti-trash me-1"></i>Remove
+                              <i className="ti ti-trash me-1"></i>{t('common.remove')}
                             </button>
                           </div>
 
                           {/* Search Existing Person */}
                           <div className="mb-3" ref={showGuarantorDropdown === idx ? guarantorSearchRef : undefined}>
-                            <label className="form-label">Search Existing Person</label>
+                            <label className="form-label">{t('create_installment.search_person')}</label>
                             <div style={{ position: 'relative' }}>
                               <div className="input-group">
                                 <span className="input-group-text"><i className="ti ti-search"></i></span>
                                 <input
                                   type="text"
                                   className="form-control"
-                                  placeholder="Type name, phone, or CNIC to search..."
+                                  placeholder={t('create_installment.person_search_placeholder')}
                                   value={guarantorSearchTexts[idx] || ''}
                                   onChange={(e) => handleGuarantorSearch(e.target.value, idx)}
                                   onFocus={() => {
@@ -668,9 +670,9 @@ const CreateInstallment: React.FC = () => {
                               {showGuarantorDropdown === idx && (guarantorSearchTexts[idx] || '').trim().length >= 2 && (
                                 <div className="border rounded shadow-sm bg-white" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1050, maxHeight: 250, overflowY: 'auto' }}>
                                   {guarantorSearchLoading ? (
-                                    <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> Searching...</div>
+                                    <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> {t('common.searching')}</div>
                                   ) : guarantorSearchResults.length === 0 ? (
-                                    <div className="text-center p-3 text-muted">No results found. Fill in details below to create new.</div>
+                                    <div className="text-center p-3 text-muted">{t('create_installment.no_results_fill')}</div>
                                   ) : (
                                     guarantorSearchResults.map((party) => (
                                       <div
@@ -701,7 +703,7 @@ const CreateInstallment: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                            <small className="text-muted">Select an existing person or fill in details below to create new</small>
+                            <small className="text-muted">{t('create_installment.select_existing')}</small>
                           </div>
 
                           {/* Selected guarantor preview */}
@@ -717,9 +719,9 @@ const CreateInstallment: React.FC = () => {
                               <div className="flex-grow-1">
                                 <h6 className="mb-1 fw-bold">{g.name}</h6>
                                 <div className="d-flex gap-3 flex-wrap">
-                                  {g.so && <small><strong>S/O:</strong> {g.so}</small>}
-                                  {g.cnic && <small><strong>CNIC:</strong> {g.cnic}</small>}
-                                  {g.phone && <small><strong>Phone:</strong> {g.phone}</small>}
+                                  {g.so && <small><strong>{t('create_installment.so_label')}</strong> {g.so}</small>}
+                                  {g.cnic && <small><strong>{t('create_installment.cnic_label')}</strong> {g.cnic}</small>}
+                                  {g.phone && <small><strong>{t('create_installment.phone_label')}</strong> {g.phone}</small>}
                                 </div>
                               </div>
                             </div>
@@ -727,47 +729,47 @@ const CreateInstallment: React.FC = () => {
 
                           <div className="row">
                             <div className="col-md-6 mb-3">
-                              <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
-                              <input type="text" className="form-control" placeholder="Guarantor name" value={g.name}
+                              <label className="form-label">{t('common.full_name')}<span className="text-danger ms-1">*</span></label>
+                              <input type="text" className="form-control" placeholder={t('create_installment.guarantor_name')} value={g.name}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, name: e.target.value } : item))} />
                             </div>
                             <div className="col-md-6 mb-3">
-                              <label className="form-label">S/O (Father's Name)</label>
-                              <input type="text" className="form-control" placeholder="Son/Daughter of" value={g.so}
+                              <label className="form-label">{t('customers.so_father')}</label>
+                              <input type="text" className="form-control" placeholder={t('customers.so_placeholder')} value={g.so}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, so: e.target.value } : item))} />
                             </div>
                             <div className="col-md-6 mb-3">
-                              <label className="form-label">Phone</label>
-                              <input type="text" className="form-control" placeholder="Phone number" value={g.phone}
+                              <label className="form-label">{t('common.phone')}</label>
+                              <input type="text" className="form-control" placeholder={t('customers.phone_placeholder')} value={g.phone}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, phone: e.target.value } : item))} />
                             </div>
                             <div className="col-md-6 mb-3">
-                              <label className="form-label">CNIC / ID Number</label>
-                              <input type="text" className="form-control" placeholder="CNIC or ID number" value={g.cnic}
+                              <label className="form-label">{t('create_installment.cnic_id')}</label>
+                              <input type="text" className="form-control" placeholder={t('create_installment.cnic_placeholder')} value={g.cnic}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, cnic: e.target.value } : item))} />
                             </div>
                             <div className="col-md-6 mb-3">
-                              <label className="form-label">Relationship</label>
+                              <label className="form-label">{t('create_installment.relationship')}</label>
                               <select className="form-select" value={g.relationship}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, relationship: e.target.value } : item))}>
-                                <option value="">Select Relationship</option>
-                                <option value="Father">Father</option>
-                                <option value="Brother">Brother</option>
-                                <option value="Uncle">Uncle</option>
-                                <option value="Friend">Friend</option>
-                                <option value="Colleague">Colleague</option>
-                                <option value="Employer">Employer</option>
-                                <option value="Neighbor">Neighbor</option>
-                                <option value="Other">Other</option>
+                                <option value="">{t('create_installment.select_relationship')}</option>
+                                <option value="Father">{t('create_installment.father')}</option>
+                                <option value="Brother">{t('create_installment.brother')}</option>
+                                <option value="Uncle">{t('create_installment.uncle')}</option>
+                                <option value="Friend">{t('create_installment.friend')}</option>
+                                <option value="Colleague">{t('create_installment.colleague')}</option>
+                                <option value="Employer">{t('create_installment.employer')}</option>
+                                <option value="Neighbor">{t('create_installment.neighbor')}</option>
+                                <option value="Other">{t('create_installment.other')}</option>
                               </select>
                             </div>
                             <div className="col-12 mb-3">
-                              <label className="form-label">Address</label>
-                              <textarea className="form-control" rows={2} placeholder="Full address" value={g.address}
+                              <label className="form-label">{t('common.address')}</label>
+                              <textarea className="form-control" rows={2} placeholder={t('customers.address_placeholder')} value={g.address}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, address: e.target.value } : item))} />
                             </div>
                             <div className="col-12 mb-0">
-                              <label className="form-label">Photo / ID Picture</label>
+                              <label className="form-label">{t('create_installment.photo_id')}</label>
                               <div className="d-flex align-items-center gap-3">
                                 <input type="file" className="form-control" accept="image/*"
                                   onChange={e => {
@@ -790,10 +792,10 @@ const CreateInstallment: React.FC = () => {
                   )}
                   <div className="d-flex justify-content-between mt-3">
                     <button type="button" className="btn btn-secondary" onClick={goBack}>
-                      <i className="ti ti-arrow-left me-1"></i> Back
+                      <i className="ti ti-arrow-left me-1"></i> {t('common.back')}
                     </button>
                     <button type="button" className="btn btn-primary" onClick={goNext}>
-                      Next <i className="ti ti-arrow-right ms-1"></i>
+                      {t('common.next')} <i className="ti ti-arrow-right ms-1"></i>
                     </button>
                   </div>
                 </div>
@@ -809,7 +811,7 @@ const CreateInstallment: React.FC = () => {
               >
                 <h5 className="card-title mb-0">
                   <i className="ti ti-box me-2"></i>
-                  Product Information
+                  {t('create_installment.product_info')}
                   <i className={`ti ${collapsedSections.product ? 'ti-chevron-down' : 'ti-chevron-up'} ms-2`}></i>
                 </h5>
                 <button 
@@ -820,21 +822,21 @@ const CreateInstallment: React.FC = () => {
                     setShowNewProductModal(true);
                   }}
                 >
-                  <i className="ti ti-plus me-1"></i>New Product
+                  <i className="ti ti-plus me-1"></i>{t('create_installment.new_product')}
                 </button>
               </div>
               <div className={`collapse ${!collapsedSections.product ? 'show' : ''}`}>
                 <div className="card-body">
                   <div className="row">
                   <div className="col-12 mb-3">
-                    <label className="form-label">Search Product from Inventory<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.search_product')}<span className="text-danger ms-1">*</span></label>
                     <div ref={productSearchRef} style={{ position: 'relative' }}>
                       <div className="input-group">
                         <span className="input-group-text"><i className="ti ti-search"></i></span>
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="Type product name, SKU, category or brand..."
+                          placeholder={t('create_installment.product_search_placeholder')}
                           value={productSearch}
                           onChange={(e) => {
                             setProductSearch(e.target.value);
@@ -855,9 +857,9 @@ const CreateInstallment: React.FC = () => {
                       {showProductDropdown && (
                         <div className="border rounded shadow-sm bg-white" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1050, maxHeight: 300, overflowY: 'auto' }}>
                           {productsLoading ? (
-                            <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> Loading products...</div>
+                            <div className="text-center p-3"><span className="spinner-border spinner-border-sm text-primary"></span> {t('create_installment.loading_products')}</div>
                           ) : filteredProducts.length === 0 ? (
-                            <div className="text-center p-3 text-muted">No products found</div>
+                            <div className="text-center p-3 text-muted">{t('create_installment.no_products')}</div>
                           ) : (
                             filteredProducts.map((product) => (
                               <div
@@ -878,7 +880,7 @@ const CreateInstallment: React.FC = () => {
                                 <div className="text-end">
                                   <span className="fw-bold text-primary">Rs {fmt(product.price)}</span>
                                   {product.quantity !== undefined && <br />}
-                                  {product.quantity !== undefined && <small className="text-muted">Qty: {product.quantity}</small>}
+                                  {product.quantity !== undefined && <small className="text-muted">{t('create_installment.qty_label')} {product.quantity}</small>}
                                 </div>
                               </div>
                             ))
@@ -898,10 +900,10 @@ const CreateInstallment: React.FC = () => {
                         <div className="flex-grow-1">
                           <h6 className="mb-1 fw-bold">{selectedProduct.productName}</h6>
                           <div className="d-flex gap-3 flex-wrap">
-                            <small><strong>SKU:</strong> {selectedProduct.sku || '-'}</small>
-                            <small><strong>Category:</strong> {selectedProduct.category || '-'}</small>
-                            <small><strong>Brand:</strong> {selectedProduct.brand || '-'}</small>
-                            <small><strong>Price:</strong> Rs {fmt(selectedProduct.price)}</small>
+                            <small><strong>{t('create_installment.sku_label')}</strong> {selectedProduct.sku || '-'}</small>
+                            <small><strong>{t('create_installment.category_label')}</strong> {selectedProduct.category || '-'}</small>
+                            <small><strong>{t('create_installment.brand_label')}</strong> {selectedProduct.brand || '-'}</small>
+                            <small><strong>{t('create_installment.price_label')}</strong> Rs {fmt(selectedProduct.price)}</small>
                           </div>
                         </div>
                       </div>
@@ -909,27 +911,27 @@ const CreateInstallment: React.FC = () => {
                   )}
 
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
-                    <input type="text" className="form-control" value={selectedProduct?.productName ?? ''} readOnly placeholder="Select a product from search above" />
+                    <label className="form-label">{t('create_installment.product_name')}<span className="text-danger ms-1">*</span></label>
+                    <input type="text" className="form-control" value={selectedProduct?.productName ?? ''} readOnly placeholder={t('create_installment.select_from_search')} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Product Price (Rs)<span className="text-danger ms-1">*</span></label>
-                    <input type="number" className="form-control" value={productPrice || ''} readOnly placeholder="Auto-filled from product" />
+                    <label className="form-label">{t('create_installment.product_price')}<span className="text-danger ms-1">*</span></label>
+                    <input type="number" className="form-control" value={productPrice || ''} readOnly placeholder={t('create_installment.auto_filled_product')} />
                   </div>
                   {isVisible('financeAmount') && (
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Finance Amount (Rs)</label>
-                    <input type="number" className="form-control" min={0} step="0.01" value={form.financeAmount ?? ''} onChange={(e) => set('financeAmount', parseFloat(e.target.value) || 0)} placeholder="Leave blank to use product price" />
-                    <small className="text-muted">Custom finance amount (defaults to product price if blank)</small>
+                    <label className="form-label">{t('create_installment.finance_amount')}</label>
+                    <input type="number" className="form-control" min={0} step="0.01" value={form.financeAmount ?? ''} onChange={(e) => set('financeAmount', parseFloat(e.target.value) || 0)} placeholder={t('create_installment.leave_blank_price')} />
+                    <small className="text-muted">{t('create_installment.custom_finance')}</small>
                   </div>
                   )}
                   </div>
                   <div className="d-flex justify-content-between mt-3">
                     <button type="button" className="btn btn-secondary" onClick={goBack}>
-                      <i className="ti ti-arrow-left me-1"></i> Back
+                      <i className="ti ti-arrow-left me-1"></i> {t('common.back')}
                     </button>
                     <button type="button" className="btn btn-primary" onClick={goNext}>
-                      Next <i className="ti ti-arrow-right ms-1"></i>
+                      {t('common.next')} <i className="ti ti-arrow-right ms-1"></i>
                     </button>
                   </div>
                 </div>
@@ -954,41 +956,41 @@ const CreateInstallment: React.FC = () => {
                   <div className="row">
                   {isVisible('downPayment') && (
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Down Payment (Rs)<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.down_payment')}<span className="text-danger ms-1">*</span></label>
                     <input type="number" className="form-control" min={0} step="0.01" value={form.downPayment || ''} onChange={(e) => set('downPayment', parseFloat(e.target.value) || 0)} placeholder="0.00" />
-                    {productPrice > 0 && <small className="text-muted">{((form.downPayment / baseAmount) * 100).toFixed(1)}% of {form.financeAmount && form.financeAmount > 0 ? 'finance' : 'product'} amount</small>}
+                    {productPrice > 0 && <small className="text-muted">{t('create_installment.down_payment_pct', { pct: ((form.downPayment / baseAmount) * 100).toFixed(1), type: form.financeAmount && form.financeAmount > 0 ? t('create_installment.finance_type') : t('create_installment.product_type') })}</small>}
                   </div>
                   )}
                   {isVisible('interestRate') && (
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Interest Rate (% per annum)</label>
+                    <label className="form-label">{t('create_installment.interest_rate')}</label>
                     <input type="number" className="form-control" min={0} max={100} step="0.1" value={form.interestRate || ''} onChange={(e) => set('interestRate', parseFloat(e.target.value) || 0)} placeholder="0" />
-                    <small className="text-muted">Set 0 for interest-free plan</small>
+                    <small className="text-muted">{t('create_installment.interest_free')}</small>
                   </div>
                   )}
                   {isVisible('tenure') && (
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Tenure (Months)<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.tenure_months')}<span className="text-danger ms-1">*</span></label>
                     <select className="form-select" value={form.tenure} onChange={(e) => set('tenure', parseInt(e.target.value))}>
                       {[3, 6, 9, 12, 15, 18, 24, 30, 36, 48, 60].map((m) => (
-                        <option key={m} value={m}>{m} Months</option>
+                        <option key={m} value={m}>{t('create_installment.months_suffix', { m })}</option>
                       ))}
                     </select>
                   </div>
                   )}
                   {isVisible('startDate') && (
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Start Date<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.start_date')}<span className="text-danger ms-1">*</span></label>
                     <input type="date" className="form-control" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} />
                   </div>
                   )}
                   </div>
                   <div className="d-flex justify-content-between mt-3">
                     <button type="button" className="btn btn-secondary" onClick={goBack}>
-                      <i className="ti ti-arrow-left me-1"></i> Back
+                      <i className="ti ti-arrow-left me-1"></i> {t('common.back')}
                     </button>
                     <button type="button" className="btn btn-primary" onClick={goNext}>
-                      Next <i className="ti ti-arrow-right ms-1"></i>
+                      {t('common.next')} <i className="ti ti-arrow-right ms-1"></i>
                     </button>
                   </div>
                 </div>
@@ -1015,17 +1017,17 @@ const CreateInstallment: React.FC = () => {
                     <div className="col-lg-5 mb-3 mb-lg-0">
                       <table className="table table-borderless mb-0">
                         <tbody>
-                          <tr><td className="text-muted">Product Price</td><td className="text-end fw-medium">Rs {fmt(productPrice)}</td></tr>
+                          <tr><td className="text-muted">{t('create_installment.product_price_label')}</td><td className="text-end fw-medium">Rs {fmt(productPrice)}</td></tr>
                           {form.financeAmount && form.financeAmount > 0 && form.financeAmount !== productPrice && (
-                            <tr><td className="text-muted">Finance Amount</td><td className="text-end fw-medium text-info">Rs {fmt(form.financeAmount)}</td></tr>
+                            <tr><td className="text-muted">{t('create_installment.finance_amount_label')}</td><td className="text-end fw-medium text-info">Rs {fmt(form.financeAmount)}</td></tr>
                           )}
-                          <tr><td className="text-muted">Down Payment</td><td className="text-end fw-medium text-success">- Rs {fmt(form.downPayment)}</td></tr>
-                          <tr className="border-top"><td className="text-muted">Financed Amount</td><td className="text-end fw-bold">Rs {fmt(financedAmount)}</td></tr>
-                          <tr><td className="text-muted">Interest Rate</td><td className="text-end">{form.interestRate}% p.a.</td></tr>
-                          <tr><td className="text-muted">Tenure</td><td className="text-end">{form.tenure} months</td></tr>
-                          <tr className="border-top"><td className="text-muted">Monthly EMI</td><td className="text-end fw-bold fs-16 text-primary">Rs {fmt(Math.round(emi * 100) / 100)}</td></tr>
-                          <tr><td className="text-muted">Total Interest</td><td className="text-end text-danger">Rs {fmt(Math.round(totalInterest * 100) / 100)}</td></tr>
-                          <tr className="border-top"><td className="fw-bold">Total Payable</td><td className="text-end fw-bold fs-16">Rs {fmt(Math.round(totalPayable * 100) / 100)}</td></tr>
+                          <tr><td className="text-muted">{t('create_installment.down_payment_label')}</td><td className="text-end fw-medium text-success">- Rs {fmt(form.downPayment)}</td></tr>
+                          <tr className="border-top"><td className="text-muted">{t('create_installment.financed_amount')}</td><td className="text-end fw-bold">Rs {fmt(financedAmount)}</td></tr>
+                          <tr><td className="text-muted">{t('create_installment.interest_rate_label')}</td><td className="text-end">{form.interestRate}% {t('create_installment.pa_suffix')}</td></tr>
+                          <tr><td className="text-muted">{t('create_installment.tenure_label')}</td><td className="text-end">{form.tenure} {t('create_installment.months_word')}</td></tr>
+                          <tr className="border-top"><td className="text-muted">{t('create_installment.monthly_emi')}</td><td className="text-end fw-bold fs-16 text-primary">Rs {fmt(Math.round(emi * 100) / 100)}</td></tr>
+                          <tr><td className="text-muted">{t('create_installment.total_interest')}</td><td className="text-end text-danger">Rs {fmt(Math.round(totalInterest * 100) / 100)}</td></tr>
+                          <tr className="border-top"><td className="fw-bold">{t('create_installment.total_payable')}</td><td className="text-end fw-bold fs-16">Rs {fmt(Math.round(totalPayable * 100) / 100)}</td></tr>
                         </tbody>
                       </table>
                     </div>
@@ -1034,17 +1036,17 @@ const CreateInstallment: React.FC = () => {
                     {schedule.length > 0 && (
                       <div className="col-lg-7">
                         <div className="d-flex align-items-center justify-content-between mb-3">
-                          <h6 className="mb-0"><i className="ti ti-calendar me-2"></i>Repayment Schedule</h6>
-                          <span className="badge bg-primary">{schedule.length} installments</span>
+                          <h6 className="mb-0"><i className="ti ti-calendar me-2"></i>{t('create_installment.repayment_schedule')}</h6>
+                          <span className="badge bg-primary">{schedule.length} {t('create_installment.installments_count')}</span>
                         </div>
                         <div className="table-responsive" style={{ maxHeight: 400, overflowY: 'auto' }}>
                           <table className="table table-sm mb-0">
                             <thead className="thead-light">
                               <tr>
                                 <th>#</th>
-                                <th>Due Date</th>
-                                <th>EMI</th>
-                                <th>Balance</th>
+                                <th>{t('create_installment.due_date')}</th>
+                                <th>{t('create_installment.emi_amount')}</th>
+                                <th>{t('create_installment.balance_label')}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1059,7 +1061,7 @@ const CreateInstallment: React.FC = () => {
                             </tbody>
                             <tfoot className="border-top">
                               <tr className="fw-bold">
-                                <td colSpan={2}>Total</td>
+                                <td colSpan={2}>{t('common.total')}</td>
                                 <td>{fmt(schedule.reduce((s, e) => s + e.emiAmount, 0))}</td>
                                 <td>-</td>
                               </tr>
@@ -1071,10 +1073,10 @@ const CreateInstallment: React.FC = () => {
                   </div>
                   <div className="d-flex justify-content-between mt-3">
                     <button type="button" className="btn btn-secondary" onClick={goBack}>
-                      <i className="ti ti-arrow-left me-1"></i> Back
+                      <i className="ti ti-arrow-left me-1"></i> {t('common.back')}
                     </button>
                     <button type="submit" className="btn btn-primary" disabled={!isValid || submitting}>
-                      {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>Creating...</> : <><i className="ti ti-check me-1"></i>Create Installment Plan</>}
+                      {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('create_installment.creating')}</> : <><i className="ti ti-check me-1"></i>{t('create_installment.create_plan_btn')}</>}
                     </button>
                   </div>
                 </div>
@@ -1086,9 +1088,9 @@ const CreateInstallment: React.FC = () => {
         {/* Submit Buttons */}
         <div className="card">
           <div className="card-body d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-secondary" onClick={() => navigate('/installment-plans')}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={() => navigate('/installment-plans')}>{t('common.cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={!isValid || submitting}>
-              {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>Creating...</> : <><i className="ti ti-check me-1"></i>Create Installment Plan</>}
+              {submitting ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('create_installment.creating')}</> : <><i className="ti ti-check me-1"></i>{t('create_installment.create_plan_btn')}</>}
             </button>
           </div>
         </div>
@@ -1100,48 +1102,48 @@ const CreateInstallment: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title"><i className="ti ti-box me-2"></i>Add New Product</h5>
+                <h5 className="modal-title"><i className="ti ti-box me-2"></i>{t('create_installment.add_new_product')}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowNewProductModal(false)}></button>
               </div>
               <div className="modal-body">
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Product Name<span className="text-danger ms-1">*</span></label>
-                    <input type="text" className="form-control" placeholder="Product name" value={newProduct.productName}
+                    <label className="form-label">{t('create_installment.product_name')}<span className="text-danger ms-1">*</span></label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.customer_name_placeholder')} value={newProduct.productName}
                       onChange={e => setNewProduct(prev => ({ ...prev, productName: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Price (Rs)<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.price_label')} (Rs)<span className="text-danger ms-1">*</span></label>
                     <input type="number" className="form-control" placeholder="0.00" min={0} step="0.01" value={newProduct.price}
                       onChange={e => setNewProduct(prev => ({ ...prev, price: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">SKU</label>
-                    <input type="text" className="form-control" placeholder="Auto-generated if blank" value={newProduct.sku}
+                    <label className="form-label">{t('create_installment.sku_placeholder')}</label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.auto_gen_sku')} value={newProduct.sku}
                       onChange={e => setNewProduct(prev => ({ ...prev, sku: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Quantity</label>
+                    <label className="form-label">{t('create_installment.quantity_label')}</label>
                     <input type="number" className="form-control" placeholder="0" min={0} value={newProduct.quantity}
                       onChange={e => setNewProduct(prev => ({ ...prev, quantity: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Category</label>
-                    <input type="text" className="form-control" placeholder="e.g. Electronics" value={newProduct.category}
+                    <label className="form-label">{t('create_installment.category_label')}</label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.category_placeholder')} value={newProduct.category}
                       onChange={e => setNewProduct(prev => ({ ...prev, category: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Brand</label>
-                    <input type="text" className="form-control" placeholder="e.g. Samsung" value={newProduct.brand}
+                    <label className="form-label">{t('create_installment.brand_label')}</label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.brand_placeholder')} value={newProduct.brand}
                       onChange={e => setNewProduct(prev => ({ ...prev, brand: e.target.value }))} />
                   </div>
                   <div className="col-12 mb-3">
-                    <label className="form-label">Description</label>
-                    <textarea className="form-control" rows={2} placeholder="Brief product description" value={newProduct.description}
+                    <label className="form-label">{t('common.description')}</label>
+                    <textarea className="form-control" rows={2} placeholder={t('create_installment.product_description')} value={newProduct.description}
                       onChange={e => setNewProduct(prev => ({ ...prev, description: e.target.value }))} />
                   </div>
                   <div className="col-12 mb-0">
-                    <label className="form-label">Product Image</label>
+                    <label className="form-label">{t('create_installment.product_image')}</label>
                     <div className="d-flex align-items-center gap-3">
                       <input type="file" className="form-control" accept="image/*"
                         onChange={e => {
@@ -1157,9 +1159,9 @@ const CreateInstallment: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowNewProductModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowNewProductModal(false)}>{t('common.cancel')}</button>
                 <button type="button" className="btn btn-primary" disabled={!newProduct.productName.trim() || !newProduct.price || newProductSaving} onClick={handleCreateProduct}>
-                  {newProductSaving ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</> : <><i className="ti ti-check me-1"></i>Add Product</>}
+                  {newProductSaving ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('create_installment.saving')}</> : <><i className="ti ti-check me-1"></i>{t('create_installment.add_product')}</>}
                 </button>
               </div>
             </div>
@@ -1173,48 +1175,48 @@ const CreateInstallment: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title"><i className="ti ti-user-plus me-2"></i>Add New Customer</h5>
+                <h5 className="modal-title"><i className="ti ti-user-plus me-2"></i>{t('create_installment.add_new_customer')}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowNewCustomerModal(false)}></button>
               </div>
               <div className="modal-body">
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Full Name<span className="text-danger ms-1">*</span></label>
-                    <input type="text" className="form-control" placeholder="Customer name" value={newCustomer.name}
+                    <label className="form-label">{t('create_installment.full_name_modal')}<span className="text-danger ms-1">*</span></label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.customer_name_placeholder')} value={newCustomer.name}
                       onChange={e => setNewCustomer(prev => ({ ...prev, name: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">S/O (Father's Name)</label>
-                    <input type="text" className="form-control" placeholder="Son/Daughter of" value={newCustomer.so}
+                    <label className="form-label">{t('create_installment.so_modal')}</label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.so_placeholder')} value={newCustomer.so}
                       onChange={e => setNewCustomer(prev => ({ ...prev, so: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">CNIC</label>
-                    <input type="text" className="form-control" placeholder="CNIC number" value={newCustomer.cnic}
+                    <label className="form-label">{t('create_installment.cnic_modal')}</label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.cnic_placeholder_modal')} value={newCustomer.cnic}
                       onChange={e => setNewCustomer(prev => ({ ...prev, cnic: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Phone<span className="text-danger ms-1">*</span></label>
-                    <input type="text" className="form-control" placeholder="Phone number" value={newCustomer.phone}
+                    <label className="form-label">{t('create_installment.phone_modal')}<span className="text-danger ms-1">*</span></label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.phone_placeholder')} value={newCustomer.phone}
                       onChange={e => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Email</label>
-                    <input type="email" className="form-control" placeholder="Email address" value={newCustomer.email}
+                    <label className="form-label">{t('create_installment.email_modal')}</label>
+                    <input type="email" className="form-control" placeholder={t('create_installment.email_placeholder')} value={newCustomer.email}
                       onChange={e => setNewCustomer(prev => ({ ...prev, email: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">City</label>
-                    <input type="text" className="form-control" placeholder="City" value={newCustomer.city}
+                    <label className="form-label">{t('create_installment.city_modal')}</label>
+                    <input type="text" className="form-control" placeholder={t('create_installment.city_modal')} value={newCustomer.city}
                       onChange={e => setNewCustomer(prev => ({ ...prev, city: e.target.value }))} />
                   </div>
                   <div className="col-12 mb-3">
-                    <label className="form-label">Address</label>
-                    <textarea className="form-control" rows={2} placeholder="Full address" value={newCustomer.address}
+                    <label className="form-label">{t('create_installment.address_modal')}</label>
+                    <textarea className="form-control" rows={2} placeholder={t('create_installment.address_placeholder')} value={newCustomer.address}
                       onChange={e => setNewCustomer(prev => ({ ...prev, address: e.target.value }))} />
                   </div>
                   <div className="col-12 mb-0">
-                    <label className="form-label">Photo</label>
+                    <label className="form-label">{t('create_installment.photo_label')}</label>
                     <div className="d-flex align-items-center gap-3">
                       <input type="file" className="form-control" accept="image/*"
                         onChange={e => {
@@ -1230,9 +1232,9 @@ const CreateInstallment: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowNewCustomerModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowNewCustomerModal(false)}>{t('common.cancel')}</button>
                 <button type="button" className="btn btn-primary" disabled={!newCustomer.name.trim() || !newCustomer.phone.trim() || newCustomerSaving} onClick={handleCreateCustomer}>
-                  {newCustomerSaving ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</> : <><i className="ti ti-check me-1"></i>Add Customer</>}
+                  {newCustomerSaving ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('create_installment.saving')}</> : <><i className="ti ti-check me-1"></i>{t('create_installment.add_customer_btn')}</>}
                 </button>
               </div>
             </div>

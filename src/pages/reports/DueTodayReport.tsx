@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getDueTodayReport, DueTodayReport as IReport } from '../../services/reportService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 const DueTodayReport: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<IReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,12 +22,13 @@ const DueTodayReport: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const m: Record<string, string> = { Paid: 'success', Pending: 'warning', Overdue: 'danger' };
-    return <span className={`badge bg-${m[status] || 'secondary'}`}>{status}</span>;
+    const statusLabels: Record<string, string> = { Paid: t('common.paid'), Pending: t('common.pending'), Overdue: t('common.overdue') };
+    return <span className={`badge bg-${m[status] || 'secondary'}`}>{statusLabels[status] || status}</span>;
   };
 
   return (
     <>
-      <PageHeader title="Due Today Report" breadcrumbs={[{ title: 'Installment Reports' }, { title: 'Operational' }]} />
+      <PageHeader title={t('reports.due_today_report')} breadcrumbs={[{ title: t('reports.installment_reports') }, { title: t('reports.operational') }]} />
 
       {loading ? (
         <div className="text-center py-5"><div className="spinner-border text-primary" /></div>
@@ -35,7 +38,7 @@ const DueTodayReport: React.FC = () => {
             <div className="col-md-6 mb-3">
               <div className="card border-primary">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Due Today</h6>
+                  <h6 className="text-muted">{t('reports.total_due_today')}</h6>
                   <h3 className="text-primary">{data.totalDueToday}</h3>
                 </div>
               </div>
@@ -43,7 +46,7 @@ const DueTodayReport: React.FC = () => {
             <div className="col-md-6 mb-3">
               <div className="card border-warning">
                 <div className="card-body text-center">
-                  <h6 className="text-muted">Total Amount Due</h6>
+                  <h6 className="text-muted">{t('reports.total_amount_due')}</h6>
                   <h3 className="text-warning">Rs {data.totalAmountDue.toLocaleString()}</h3>
                 </div>
               </div>
@@ -52,22 +55,22 @@ const DueTodayReport: React.FC = () => {
 
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="card-title mb-0">Installments Due Today</h5>
+              <h5 className="card-title mb-0">{t('reports.installments_due_today')}</h5>
               <button className="btn btn-sm btn-outline-primary" onClick={fetchData}>
-                <i className="ti ti-refresh me-1"></i>Refresh
+                <i className="ti ti-refresh me-1"></i>{t('common.refresh')}
               </button>
               <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['Plan ID', 'Customer', 'Phone', 'Address', 'Product', 'Inst #', 'Amount Due', 'Status'];
+                  const cols = [t('reports.plan_id'), t('common.customer'), t('common.phone'), t('common.address'), t('common.product'), t('reports.inst_no'), t('reports.amount_due'), t('common.status')];
                   const rows = data.items.map(item => [item.planId, item.customerName, item.phone || '-', item.address || '-', item.productName, item.installmentNo, item.amountDue, item.status]);
                   exportToExcel(cols, rows, 'Due-Today-Report');
                 }}
                 onExportPDF={() => {
-                  const cols = ['Plan ID', 'Customer', 'Phone', 'Product', 'Inst #', 'Amount Due', 'Status'];
+                  const cols = [t('reports.plan_id'), t('common.customer'), t('common.phone'), t('common.product'), t('reports.inst_no'), t('reports.amount_due'), t('common.status')];
                   const rows = data.items.map(item => [item.planId, item.customerName, item.phone || '-', item.productName, item.installmentNo, `Rs ${item.amountDue.toLocaleString()}`, item.status]);
-                  exportToPDF(cols, rows, 'Due-Today-Report', 'Due Today Report', [
-                    { label: 'Total Due Today', value: data.totalDueToday },
-                    { label: 'Total Amount Due', value: `Rs ${data.totalAmountDue.toLocaleString()}` },
+                  exportToPDF(cols, rows, 'Due-Today-Report', t('reports.due_today_report'), [
+                    { label: t('reports.total_due_today'), value: data.totalDueToday },
+                    { label: t('reports.total_amount_due'), value: `Rs ${data.totalAmountDue.toLocaleString()}` },
                   ]);
                 }}
               />
@@ -77,14 +80,14 @@ const DueTodayReport: React.FC = () => {
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Plan ID</th>
-                      <th>Customer</th>
-                      <th>Phone</th>
-                      <th>Address</th>
-                      <th>Product</th>
-                      <th>Inst #</th>
-                      <th>Amount Due</th>
-                      <th>Status</th>
+                      <th>{t('reports.plan_id')}</th>
+                      <th>{t('common.customer')}</th>
+                      <th>{t('common.phone')}</th>
+                      <th>{t('common.address')}</th>
+                      <th>{t('common.product')}</th>
+                      <th>{t('reports.inst_no')}</th>
+                      <th>{t('reports.amount_due')}</th>
+                      <th>{t('common.status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -101,7 +104,7 @@ const DueTodayReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.items.length === 0 && (
-                      <tr><td colSpan={8} className="text-center text-muted">No installments due today</td></tr>
+                      <tr><td colSpan={8} className="text-center text-muted">{t('reports.no_installments_due_today')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -110,7 +113,7 @@ const DueTodayReport: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="alert alert-warning">Failed to load report data.</div>
+        <div className="alert alert-warning">{t('reports.failed_to_load_report')}</div>
       )}
     </>
   );

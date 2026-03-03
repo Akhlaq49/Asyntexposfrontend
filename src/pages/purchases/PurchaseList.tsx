@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   getPurchases, 
   createPurchase, 
@@ -11,6 +12,7 @@ import { getProducts, ProductResponse } from '../../services/productService';
 import { showConfirm, showSuccess, showError } from '../../utils/alertUtils';
 
 const PurchaseList: React.FC = () => {
+  const { t } = useTranslation();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [filteredPurchases, setFilteredPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(false);
@@ -364,8 +366,8 @@ const PurchaseList: React.FC = () => {
         <div className="page-header">
           <div className="add-item d-flex">
             <div className="page-title">
-              <h4>Purchases</h4>
-              <h6>Manage Your Purchases</h6>
+              <h4>{t('purchases.title')}</h4>
+              <h6>{t('purchases.subtitle')}</h6>
             </div>
           </div>
         </div>
@@ -384,13 +386,13 @@ const PurchaseList: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4>Purchases</h4>
-            <h6>Manage Your Purchases</h6>
+            <h4>{t('purchases.title')}</h4>
+            <h6>{t('purchases.subtitle')}</h6>
           </div>
         </div>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); handleAddPurchase(); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add Purchase
+            <i className="ti ti-circle-plus me-1"></i>{t('purchases.add_purchase')}
           </a>
         </div>
       </div>
@@ -404,7 +406,7 @@ const PurchaseList: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search"
+                placeholder={t('common.search')}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -417,10 +419,10 @@ const PurchaseList: React.FC = () => {
             {/* Status filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {statusFilter || 'Status'}
+                {statusFilter || t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
                 {statuses.map(s => (
                   <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setStatusFilter(s); }}>{s}</a></li>
                 ))}
@@ -429,10 +431,10 @@ const PurchaseList: React.FC = () => {
             {/* Payment Status filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {paymentStatusFilter || 'Payment Status'}
+                {paymentStatusFilter || t('common.payment_status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setPaymentStatusFilter(''); }}>All</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setPaymentStatusFilter(''); }}>{t('common.all')}</a></li>
                 {['Paid', 'Unpaid', 'Partial', 'Overdue'].map(s => (
                   <li key={s}><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setPaymentStatusFilter(s); }}>{s}</a></li>
                 ))}
@@ -441,12 +443,12 @@ const PurchaseList: React.FC = () => {
             {/* Sort */}
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                Sort By: {sortBy === 'asc' ? 'Ascending' : sortBy === 'desc' ? 'Descending' : 'Recently Added'}
+                {t('common.sort_by')}: {sortBy === 'asc' ? t('common.ascending') : sortBy === 'desc' ? t('common.descending') : t('common.recently_added')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>{t('common.recently_added')}</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>{t('common.ascending')}</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>{t('common.descending')}</a></li>
               </ul>
             </div>
           </div>
@@ -460,15 +462,15 @@ const PurchaseList: React.FC = () => {
                   <th className="no-sort">
                     <label className="checkboxs"><input type="checkbox" checked={selectAll} onChange={e => handleSelectAll(e.target.checked)} /><span className="checkmarks"></span></label>
                   </th>
-                  <th>Supplier Name</th>
-                  <th>Reference</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  <th>Paid</th>
-                  <th>Due</th>
-                  <th>Payment Status</th>
-                  <th className="text-center">Actions</th>
+                  <th>{t('purchases.supplier_name')}</th>
+                  <th>{t('purchases.reference')}</th>
+                  <th>{t('purchases.date')}</th>
+                  <th>{t('purchases.status')}</th>
+                  <th>{t('common.total')}</th>
+                  <th>{t('purchases.paid')}</th>
+                  <th>{t('purchases.due')}</th>
+                  <th>{t('purchases.payment_status')}</th>
+                  <th className="text-center">{t('purchases.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -493,12 +495,12 @@ const PurchaseList: React.FC = () => {
                         <ul className="dropdown-menu">
                           <li>
                             <a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); handleEditPurchase(purchase); }}>
-                              <i data-feather="edit" className="info-img"></i>Edit Purchase
+                              <i data-feather="edit" className="info-img"></i>{t('purchases.edit_purchase')}
                             </a>
                           </li>
                           <li>
                             <a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); handleDeletePurchase(purchase.id); }}>
-                              <i data-feather="trash-2" className="info-img"></i>Delete Purchase
+                              <i data-feather="trash-2" className="info-img"></i>{t('purchases.delete_purchase')}
                             </a>
                           </li>
                         </ul>
@@ -508,7 +510,7 @@ const PurchaseList: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={10} className="text-center py-4">
-                      No purchases found
+                      {t('purchases.no_purchases')}
                     </td>
                   </tr>
                 )}
@@ -561,7 +563,7 @@ const PurchaseList: React.FC = () => {
           <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">Add Purchase</h4>
+                <h4 className="modal-title">{t('purchases.add_purchase')}</h4>
                 <button
                   type="button"
                   className="btn-close"
@@ -573,7 +575,7 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-4">
                     <div className="mb-3">
                       <label className="form-label">
-                        Supplier Name <span className="text-danger">*</span>
+                        {t('purchases.supplier_name')} <span className="text-danger">*</span>
                       </label>
                       <select
                         className="form-control"
@@ -594,7 +596,7 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-4">
                     <div className="mb-3">
                       <label className="form-label">
-                        Date <span className="text-danger">*</span>
+                        {t('purchases.date')} <span className="text-danger">*</span>
                       </label>
                       <input
                         type="date"
@@ -609,7 +611,7 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-4">
                     <div className="mb-3">
                       <label className="form-label">
-                        Reference <span className="text-danger">*</span>
+                        {t('purchases.reference')} <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
@@ -627,12 +629,12 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-12">
                     <div className="mb-3 position-relative">
                       <label className="form-label">
-                        Product <span className="text-danger">*</span>
+                        {t('purchases.product')} <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Search Product by name or SKU..."
+                        placeholder={t('purchases.search_product')}
                         value={productSearch}
                         onChange={(e) => {
                           setProductSearch(e.target.value);
@@ -659,7 +661,7 @@ const PurchaseList: React.FC = () => {
                       )}
                       {showProductDropdown && productSearch && filteredProducts.length === 0 && (
                         <div className="dropdown-menu show w-100" style={{ position: 'absolute', zIndex: 1050 }}>
-                          <span className="dropdown-item text-muted">No products found</span>
+                          <span className="dropdown-item text-muted">{t('purchases.no_products')}</span>
                         </div>
                       )}
                     </div>
@@ -671,7 +673,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Qty"
+                      placeholder={t('purchases.qty')}
                       value={newItem.quantity}
                       onChange={(e) =>
                         setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })
@@ -682,7 +684,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Price($)"
+                      placeholder={t('purchases.price_col')}
                       value={newItem.purchasePrice}
                       onChange={(e) =>
                         setNewItem({ ...newItem, purchasePrice: parseFloat(e.target.value) || 0 })
@@ -693,7 +695,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Discount($)"
+                      placeholder={t('purchases.discount_col')}
                       value={newItem.discount}
                       onChange={(e) =>
                         setNewItem({ ...newItem, discount: parseFloat(e.target.value) || 0 })
@@ -704,7 +706,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Tax(%)"
+                      placeholder={t('purchases.tax_col')}
                       value={newItem.taxPercentage}
                       onChange={(e) =>
                         setNewItem({ ...newItem, taxPercentage: parseFloat(e.target.value) || 0 })
@@ -713,7 +715,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-4">
                     <button className="btn btn-primary w-100" onClick={addLineItem}>
-                      Add Item
+                      {t('purchases.add_item')}
                     </button>
                   </div>
                 </div>
@@ -723,15 +725,15 @@ const PurchaseList: React.FC = () => {
                   <table className="table table-sm">
                     <thead>
                       <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Price($)</th>
-                        <th>Discount($)</th>
-                        <th>Tax(%)</th>
-                        <th>Tax Amt($)</th>
-                        <th>Unit Cost($)</th>
-                        <th>Total($)</th>
-                        <th>Act</th>
+                        <th>{t('purchases.product')}</th>
+                        <th>{t('purchases.qty')}</th>
+                        <th>{t('purchases.price_col')}</th>
+                        <th>{t('purchases.discount_col')}</th>
+                        <th>{t('purchases.tax_col')}</th>
+                        <th>{t('purchases.tax_amt_col')}</th>
+                        <th>{t('purchases.unit_cost_col')}</th>
+                        <th>{t('purchases.total_col')}</th>
+                        <th>{t('purchases.act_col')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -762,7 +764,7 @@ const PurchaseList: React.FC = () => {
                 <div className="row mt-3">
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Order Tax</label>
+                      <label className="form-label">{t('purchases.order_tax')}</label>
                       <input
                         type="number"
                         className="form-control"
@@ -775,7 +777,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Discount</label>
+                      <label className="form-label">{t('purchases.discount')}</label>
                       <input
                         type="number"
                         className="form-control"
@@ -788,7 +790,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Shipping</label>
+                      <label className="form-label">{t('purchases.shipping')}</label>
                       <input
                         type="number"
                         className="form-control"
@@ -801,7 +803,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Status</label>
+                      <label className="form-label">{t('purchases.status')}</label>
                       <select
                         className="form-control"
                         value={formData.status}
@@ -821,11 +823,11 @@ const PurchaseList: React.FC = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Description</label>
+                  <label className="form-label">{t('common.description')}</label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="Add purchase notes..."
+                    placeholder={t('purchases.add_notes')}
                     value={formData.notes}
                     onChange={(e) =>
                       setFormData({ ...formData, notes: e.target.value })
@@ -835,7 +837,7 @@ const PurchaseList: React.FC = () => {
                 </div>
 
                 <div className="alert alert-info">
-                  <strong>Total Amount:</strong> ${formData.total.toFixed(2)}
+                  <strong>{t('purchases.total_amount')}</strong> ${formData.total.toFixed(2)}
                 </div>
               </div>
               <div className="modal-footer">
@@ -844,14 +846,14 @@ const PurchaseList: React.FC = () => {
                   className="btn btn-secondary"
                   onClick={() => setShowAddModal(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleSavePurchase}
                 >
-                  Submit
+                  {t('common.submit')}
                 </button>
               </div>
             </div>
@@ -869,7 +871,7 @@ const PurchaseList: React.FC = () => {
           <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">Edit Purchase</h4>
+                <h4 className="modal-title">{t('purchases.edit_purchase')}</h4>
                 <button
                   type="button"
                   className="btn-close"
@@ -881,7 +883,7 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-4">
                     <div className="mb-3">
                       <label className="form-label">
-                        Supplier Name <span className="text-danger">*</span>
+                        {t('purchases.supplier_name')} <span className="text-danger">*</span>
                       </label>
                       <select
                         className="form-control"
@@ -902,7 +904,7 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-4">
                     <div className="mb-3">
                       <label className="form-label">
-                        Date <span className="text-danger">*</span>
+                        {t('purchases.date')} <span className="text-danger">*</span>
                       </label>
                       <input
                         type="date"
@@ -917,7 +919,7 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-4">
                     <div className="mb-3">
                       <label className="form-label">
-                        Reference <span className="text-danger">*</span>
+                        {t('purchases.reference')} <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
@@ -935,12 +937,12 @@ const PurchaseList: React.FC = () => {
                   <div className="col-lg-12">
                     <div className="mb-3 position-relative">
                       <label className="form-label">
-                        Product <span className="text-danger">*</span>
+                        {t('purchases.product')} <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Search Product by name or SKU..."
+                        placeholder={t('purchases.search_product')}
                         value={productSearch}
                         onChange={(e) => {
                           setProductSearch(e.target.value);
@@ -967,7 +969,7 @@ const PurchaseList: React.FC = () => {
                       )}
                       {showProductDropdown && productSearch && filteredProducts.length === 0 && (
                         <div className="dropdown-menu show w-100" style={{ position: 'absolute', zIndex: 1050 }}>
-                          <span className="dropdown-item text-muted">No products found</span>
+                          <span className="dropdown-item text-muted">{t('purchases.no_products')}</span>
                         </div>
                       )}
                     </div>
@@ -979,7 +981,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Qty"
+                      placeholder={t('purchases.qty')}
                       value={newItem.quantity}
                       onChange={(e) =>
                         setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })
@@ -990,7 +992,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Price($)"
+                      placeholder={t('purchases.price_col')}
                       value={newItem.purchasePrice}
                       onChange={(e) =>
                         setNewItem({ ...newItem, purchasePrice: parseFloat(e.target.value) || 0 })
@@ -1001,7 +1003,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Discount($)"
+                      placeholder={t('purchases.discount_col')}
                       value={newItem.discount}
                       onChange={(e) =>
                         setNewItem({ ...newItem, discount: parseFloat(e.target.value) || 0 })
@@ -1012,7 +1014,7 @@ const PurchaseList: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Tax(%)"
+                      placeholder={t('purchases.tax_col')}
                       value={newItem.taxPercentage}
                       onChange={(e) =>
                         setNewItem({ ...newItem, taxPercentage: parseFloat(e.target.value) || 0 })
@@ -1021,7 +1023,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-4">
                     <button className="btn btn-primary w-100" onClick={addLineItem}>
-                      Add Item
+                      {t('purchases.add_item')}
                     </button>
                   </div>
                 </div>
@@ -1031,15 +1033,15 @@ const PurchaseList: React.FC = () => {
                   <table className="table table-sm">
                     <thead>
                       <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Price($)</th>
-                        <th>Discount($)</th>
-                        <th>Tax(%)</th>
-                        <th>Tax Amt($)</th>
-                        <th>Unit Cost($)</th>
-                        <th>Total($)</th>
-                        <th>Act</th>
+                        <th>{t('purchases.product')}</th>
+                        <th>{t('purchases.qty')}</th>
+                        <th>{t('purchases.price_col')}</th>
+                        <th>{t('purchases.discount_col')}</th>
+                        <th>{t('purchases.tax_col')}</th>
+                        <th>{t('purchases.tax_amt_col')}</th>
+                        <th>{t('purchases.unit_cost_col')}</th>
+                        <th>{t('purchases.total_col')}</th>
+                        <th>{t('purchases.act_col')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1070,7 +1072,7 @@ const PurchaseList: React.FC = () => {
                 <div className="row mt-3">
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Order Tax</label>
+                      <label className="form-label">{t('purchases.order_tax')}</label>
                       <input
                         type="number"
                         className="form-control"
@@ -1083,7 +1085,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Discount</label>
+                      <label className="form-label">{t('purchases.discount')}</label>
                       <input
                         type="number"
                         className="form-control"
@@ -1096,7 +1098,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Shipping</label>
+                      <label className="form-label">{t('purchases.shipping')}</label>
                       <input
                         type="number"
                         className="form-control"
@@ -1109,7 +1111,7 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-3">
                     <div className="mb-3">
-                      <label className="form-label">Status</label>
+                      <label className="form-label">{t('purchases.status')}</label>
                       <select
                         className="form-control"
                         value={formData.status}
@@ -1129,11 +1131,11 @@ const PurchaseList: React.FC = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Description</label>
+                  <label className="form-label">{t('common.description')}</label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="Add purchase notes..."
+                    placeholder={t('purchases.add_notes')}
                     value={formData.notes}
                     onChange={(e) =>
                       setFormData({ ...formData, notes: e.target.value })
@@ -1143,7 +1145,7 @@ const PurchaseList: React.FC = () => {
                 </div>
 
                 <div className="alert alert-info">
-                  <strong>Total Amount:</strong> ${formData.total.toFixed(2)}
+                  <strong>{t('purchases.total_amount')}</strong> ${formData.total.toFixed(2)}
                 </div>
               </div>
               <div className="modal-footer">
@@ -1152,14 +1154,14 @@ const PurchaseList: React.FC = () => {
                   className="btn btn-secondary"
                   onClick={() => setShowEditModal(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleSavePurchase}
                 >
-                  Submit
+                  {t('common.submit')}
                 </button>
               </div>
             </div>

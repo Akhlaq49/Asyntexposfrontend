@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://web.asyntexconsultancy.com/api';
+const API_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL +'/api';
 export const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || 'https://web.asyntexconsultancy.com';
 
 /** Prefix a relative image path with the media base URL */

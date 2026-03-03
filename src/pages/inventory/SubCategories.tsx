@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 
 interface SubCategory {
@@ -12,6 +13,7 @@ interface SubCategory {
 }
 
 const SubCategories: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<SubCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -182,35 +184,35 @@ const SubCategories: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4 className="fw-bold">Sub Category</h4>
-            <h6>Manage your sub categories</h6>
+            <h4 className="fw-bold">{t('sub_categories.title')}</h4>
+            <h6>{t('sub_categories.subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/pdf.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
               <img src="/assets/img/icons/excel.svg" alt="img" />
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}>
+            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}>
               <i className="ti ti-chevron-up"></i>
             </a>
           </li>
         </ul>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); setShowAddModal(true); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add Sub Category
+            <i className="ti ti-circle-plus me-1"></i>{t('sub_categories.add_sub_category')}
           </a>
         </div>
       </div>
@@ -221,16 +223,16 @@ const SubCategories: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {categoryFilter || 'Category'}
+                {categoryFilter || t('common.category')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(''); }}>{t('common.all')}</a></li>
                 {categoryOptions.map((cat) => (
                   <li key={cat.id}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setCategoryFilter(cat.name); }}>{cat.name}</a></li>
                 ))}
@@ -238,12 +240,12 @@ const SubCategories: React.FC = () => {
             </div>
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {statusFilter ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) : 'Status'}
+                {statusFilter ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) : t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>Active</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>Inactive</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>{t('common.active')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>{t('common.inactive')}</a></li>
               </ul>
             </div>
           </div>
@@ -251,7 +253,7 @@ const SubCategories: React.FC = () => {
         <div className="card-body p-0">
           {loading ? (
             <div className="text-center p-5">
-              <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+              <div className="spinner-border text-primary" role="status"><span className="visually-hidden">{t('common.loading')}</span></div>
             </div>
           ) : (
             <div className="table-responsive">
@@ -264,12 +266,12 @@ const SubCategories: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>Image</th>
-                    <th>Sub Category</th>
-                    <th>Category</th>
-                    <th>Category Code</th>
-                    <th>Description</th>
-                    <th>Status</th>
+                    <th>{t('common.image')}</th>
+                    <th>{t('sub_categories.sub_category')}</th>
+                    <th>{t('common.category')}</th>
+                    <th>{t('sub_categories.category_code')}</th>
+                    <th>{t('common.description')}</th>
+                    <th>{t('common.status')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -293,7 +295,7 @@ const SubCategories: React.FC = () => {
                       <td>{item.description}</td>
                       <td>
                         <span className={`badge fw-medium fs-10 ${item.status === 'active' ? 'bg-success' : 'bg-danger'}`}>
-                          {item.status === 'active' ? 'Active' : 'Inactive'}
+                          {item.status === 'active' ? t('common.active') : t('common.inactive')}
                         </span>
                       </td>
                       <td className="action-table-data">
@@ -321,7 +323,7 @@ const SubCategories: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Add Sub Category</h4></div>
+                <div className="page-title"><h4>{t('sub_categories.add_sub_category')}</h4></div>
                 <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowAddModal(false)} aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -350,37 +352,37 @@ const SubCategories: React.FC = () => {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('common.category')}<span className="text-danger ms-1">*</span></label>
                   <select className="form-select" value={addForm.category} onChange={(e) => setAddForm((p) => ({ ...p, category: e.target.value }))}>
-                    <option value="">Select</option>
+                    <option value="">{t('common.select')}</option>
                     {categoryOptions.map((cat) => (
                       <option key={cat.id} value={cat.name}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Sub Category<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('sub_categories.sub_category')}<span className="text-danger ms-1">*</span></label>
                   <input type="text" className="form-control" value={addForm.subCategory} onChange={(e) => setAddForm((p) => ({ ...p, subCategory: e.target.value }))} />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Category Code<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('sub_categories.category_code')}<span className="text-danger ms-1">*</span></label>
                   <input type="text" className="form-control" value={addForm.categoryCode} onChange={(e) => setAddForm((p) => ({ ...p, categoryCode: e.target.value }))} />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Description<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('common.description')}<span className="text-danger ms-1">*</span></label>
                   <textarea className="form-control" value={addForm.description} onChange={(e) => setAddForm((p) => ({ ...p, description: e.target.value }))} />
                 </div>
                 <div className="mb-0">
                   <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                    <span className="status-label">Status</span>
+                    <span className="status-label">{t('common.status')}</span>
                     <input type="checkbox" id="add-sub-status" className="check" checked={addForm.status} onChange={(e) => setAddForm((p) => ({ ...p, status: e.target.checked }))} />
                     <label htmlFor="add-sub-status" className="checktoggle"></label>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.subCategory.trim() || !addForm.category}>Add Sub Category</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.subCategory.trim() || !addForm.category}>{t('sub_categories.add_sub_category')}</button>
               </div>
             </div>
           </div>
@@ -393,7 +395,7 @@ const SubCategories: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Edit Sub Category</h4></div>
+                <div className="page-title"><h4>{t('sub_categories.edit_sub_category')}</h4></div>
                 <button type="button" className="close bg-danger text-white fs-16" onClick={() => setShowEditModal(false)} aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -427,37 +429,37 @@ const SubCategories: React.FC = () => {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Category<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('common.category')}<span className="text-danger ms-1">*</span></label>
                   <select className="form-select" value={editForm.category} onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}>
-                    <option value="">Select</option>
+                    <option value="">{t('common.select')}</option>
                     {categoryOptions.map((cat) => (
                       <option key={cat.id} value={cat.name}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Sub Category<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('sub_categories.sub_category')}<span className="text-danger ms-1">*</span></label>
                   <input type="text" className="form-control" value={editForm.subCategory} onChange={(e) => setEditForm((p) => ({ ...p, subCategory: e.target.value }))} />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Category Code<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('sub_categories.category_code')}<span className="text-danger ms-1">*</span></label>
                   <input type="text" className="form-control" value={editForm.categoryCode} onChange={(e) => setEditForm((p) => ({ ...p, categoryCode: e.target.value }))} />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Description<span className="text-danger ms-1">*</span></label>
+                  <label className="form-label">{t('common.description')}<span className="text-danger ms-1">*</span></label>
                   <textarea className="form-control" value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} />
                 </div>
                 <div className="mb-0">
                   <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                    <span className="status-label">Status</span>
+                    <span className="status-label">{t('common.status')}</span>
                     <input type="checkbox" id="edit-sub-status" className="check" checked={editForm.status} onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.checked }))} />
                     <label htmlFor="edit-sub-status" className="checktoggle"></label>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -474,12 +476,12 @@ const SubCategories: React.FC = () => {
                   <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
                     <i className="ti ti-trash fs-24 text-danger"></i>
                   </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Sub Category</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to delete sub category?</p>
+                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('sub_categories.delete_sub_category')}</h4>
+                  <p className="mb-0 fs-16">{t('sub_categories.delete_confirm')}</p>
                   {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
                   <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>Yes Delete</button>
+                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
+                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>

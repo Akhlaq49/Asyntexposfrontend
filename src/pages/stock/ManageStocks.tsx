@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api, { mediaUrl } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 /* ---------- Types ---------- */
 interface DropdownOption { value: string; label: string; }
@@ -29,6 +30,7 @@ interface ProductResult {
 
 /* ---------- ManageStocks ---------- */
 const ManageStocks: React.FC = () => {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<StockEntryDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -198,7 +200,7 @@ const ManageStocks: React.FC = () => {
           <input
             type="text"
             className="form-control"
-            placeholder="Search Product"
+            placeholder={t('stocks.search_product')}
             value={term}
             onChange={(e) => { setTerm(e.target.value); setShowDd(true); }}
             onFocus={() => setShowDd(true)}
@@ -233,19 +235,19 @@ const ManageStocks: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4>Manage Stock</h4>
-            <h6>Manage your stock</h6>
+            <h4>{t('stocks.manage_title')}</h4>
+            <h6>{t('stocks.manage_subtitle')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
-          <li><a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
-          <li><a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
-          <li><a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
-          <li><a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
         </ul>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); setShowAddModal(true); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add Stock
+            <i className="ti ti-circle-plus me-1"></i>{t('stocks.add_stock')}
           </a>
         </div>
       </div>
@@ -256,17 +258,17 @@ const ManageStocks: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             {/* Warehouse filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterWarehouse || 'Warehouse'}
+                {filterWarehouse || t('stocks.warehouse')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(''); }}>{t('common.all')}</a></li>
                 {uniqueWarehouses.map((w) => (
                   <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(w); }}>{w}</a></li>
                 ))}
@@ -275,10 +277,10 @@ const ManageStocks: React.FC = () => {
             {/* Store filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterStore || 'Store'}
+                {filterStore || t('stocks.store')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(''); }}>{t('common.all')}</a></li>
                 {uniqueStores.map((s) => (
                   <li key={s}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(s); }}>{s}</a></li>
                 ))}
@@ -287,10 +289,10 @@ const ManageStocks: React.FC = () => {
             {/* Product filter */}
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterProduct || 'Product'}
+                {filterProduct || t('stocks.product')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterProduct(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterProduct(''); }}>{t('common.all')}</a></li>
                 {uniqueProducts.map((p) => (
                   <li key={p}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterProduct(p); }}>{p}</a></li>
                 ))}
@@ -314,12 +316,12 @@ const ManageStocks: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>Warehouse</th>
-                    <th>Store</th>
-                    <th>Product</th>
-                    <th>Date</th>
-                    <th>Person</th>
-                    <th>Qty</th>
+                    <th>{t('stocks.warehouse')}</th>
+                    <th>{t('stocks.store')}</th>
+                    <th>{t('stocks.product')}</th>
+                    <th>{t('stocks.date')}</th>
+                    <th>{t('stocks.person')}</th>
+                    <th>{t('stocks.qty')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -370,7 +372,7 @@ const ManageStocks: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered stock-adjust-modal">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Add Stock</h4></div>
+                <div className="page-title"><h4>{t('stocks.add_stock')}</h4></div>
                 <button type="button" className="close" onClick={() => { setShowAddModal(false); resetAdd(); }} aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -379,26 +381,26 @@ const ManageStocks: React.FC = () => {
                 <div className="row">
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.warehouse')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={addForm.warehouse} onChange={(e) => setAddForm((p) => ({ ...p, warehouse: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.store')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={addForm.store} onChange={(e) => setAddForm((p) => ({ ...p, store: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Responsible Person<span className="text-danger ms-1">*</span></label>
-                      <input type="text" className="form-control" value={addForm.person} onChange={(e) => setAddForm((p) => ({ ...p, person: e.target.value }))} placeholder="Enter person name" />
+                      <label className="form-label">{t('stocks.responsible_person')}<span className="text-danger ms-1">*</span></label>
+                      <input type="text" className="form-control" value={addForm.person} onChange={(e) => setAddForm((p) => ({ ...p, person: e.target.value }))} placeholder={t('stocks.enter_person')} />
                     </div>
                   </div>
                   {renderProductSearch(
@@ -412,7 +414,7 @@ const ManageStocks: React.FC = () => {
                       setAddForm((prev) => ({ ...prev, productId: parseInt(p.id) }));
                       setAddSearchTerm(p.productName);
                     },
-                    'Product'
+                    t('stocks.product')
                   )}
                 </div>
 
@@ -423,10 +425,10 @@ const ManageStocks: React.FC = () => {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Product</th>
-                            <th>SKU</th>
-                            <th>Category</th>
-                            <th>Qty</th>
+                            <th>{t('stocks.product')}</th>
+                            <th>{t('stocks.sku')}</th>
+                            <th>{t('stocks.category')}</th>
+                            <th>{t('stocks.qty')}</th>
                             <th className="no-sort"></th>
                           </tr>
                         </thead>
@@ -469,8 +471,8 @@ const ManageStocks: React.FC = () => {
                 )}
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleAddSave}>Add Stock</button>
+                <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleAddSave}>{t('stocks.add_stock')}</button>
               </div>
             </div>
           </div>
@@ -483,7 +485,7 @@ const ManageStocks: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered stock-adjust-modal">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Edit Stock</h4></div>
+                <div className="page-title"><h4>{t('stocks.edit_stock')}</h4></div>
                 <button type="button" className="close" onClick={() => setShowEditModal(false)} aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -492,26 +494,26 @@ const ManageStocks: React.FC = () => {
                 <div className="row">
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Warehouse<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.warehouse')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={editForm.warehouse} onChange={(e) => setEditForm((p) => ({ ...p, warehouse: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Store<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.store')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={editForm.store} onChange={(e) => setEditForm((p) => ({ ...p, store: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Responsible Person<span className="text-danger ms-1">*</span></label>
-                      <input type="text" className="form-control" value={editForm.person} onChange={(e) => setEditForm((p) => ({ ...p, person: e.target.value }))} placeholder="Enter person name" />
+                      <label className="form-label">{t('stocks.responsible_person')}<span className="text-danger ms-1">*</span></label>
+                      <input type="text" className="form-control" value={editForm.person} onChange={(e) => setEditForm((p) => ({ ...p, person: e.target.value }))} placeholder={t('stocks.enter_person')} />
                     </div>
                   </div>
                   {renderProductSearch(
@@ -525,7 +527,7 @@ const ManageStocks: React.FC = () => {
                       setEditForm((prev) => ({ ...prev, productId: parseInt(p.id) }));
                       setEditSearchTerm(p.productName);
                     },
-                    'Product'
+                    t('stocks.product')
                   )}
                 </div>
 
@@ -536,10 +538,10 @@ const ManageStocks: React.FC = () => {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Product</th>
-                            <th>SKU</th>
-                            <th>Category</th>
-                            <th>Qty</th>
+                            <th>{t('stocks.product')}</th>
+                            <th>{t('stocks.sku')}</th>
+                            <th>{t('stocks.category')}</th>
+                            <th>{t('stocks.qty')}</th>
                             <th className="no-sort"></th>
                           </tr>
                         </thead>
@@ -582,8 +584,8 @@ const ManageStocks: React.FC = () => {
                 )}
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -600,11 +602,11 @@ const ManageStocks: React.FC = () => {
                   <div className="icon-success bg-danger-transparent text-danger mb-2">
                     <i className="ti ti-trash"></i>
                   </div>
-                  <h3 className="mb-2">Delete Stock</h3>
-                  <p className="fs-16 mb-3">Are you sure you want to delete product from stock?</p>
+                  <h3 className="mb-2">{t('stocks.delete_stock')}</h3>
+                  <p className="fs-16 mb-3">{t('stocks.delete_confirm')}</p>
                   <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                    <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>No, Cancel</button>
-                    <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>Yes, Delete</button>
+                    <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.no_cancel')}</button>
+                    <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>

@@ -80,7 +80,7 @@ const InvoiceDetails: React.FC = () => {
           <div className="row justify-content-between align-items-center border-bottom mb-3">
             <div className="col-md-6">
               <div className="mb-2 invoice-logo">
-                <img src="/assets/img/logo.svg" width="130" className="img-fluid logo" alt="logo" />
+                <img src="/assets/img/logo.png" width="130" className="img-fluid logo" alt="logo" />
               </div>
               <p>{invoice.fromAddress || ''}</p>
             </div>

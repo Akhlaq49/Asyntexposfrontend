@@ -1,8 +1,10 @@
 ﻿import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAttendances, getEmployees, createAttendance, updateAttendance, deleteAttendance, Attendance, CreateAttendance, Employee } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 
 const AttendanceAdmin: React.FC = () => {
+  const { t } = useTranslation();
   const [records, setRecords] = useState<Attendance[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState('');
@@ -25,7 +27,7 @@ const AttendanceAdmin: React.FC = () => {
       const [a, e] = await Promise.all([getAttendances(dateFilter || undefined), getEmployees()]);
       setRecords(a);
       setEmployees(e);
-    } catch { showError('Failed to load attendance'); }
+    } catch { showError(t('hrm.failed_load_attendance')); }
     setLoading(false);
   };
 
@@ -51,22 +53,23 @@ const AttendanceAdmin: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      if (editId) { await updateAttendance(editId, form); showSuccess('Attendance updated'); }
-      else { await createAttendance(form); showSuccess('Attendance added'); }
+      if (editId) { await updateAttendance(editId, form); showSuccess(t('hrm.attendance_updated')); }
+      else { await createAttendance(form); showSuccess(t('hrm.attendance_added')); }
       setShowModal(false);
       load();
-    } catch { showError('Failed to save attendance'); }
+    } catch { showError(t('hrm.failed_save_attendance')); }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try { await deleteAttendance(deleteId); showSuccess('Attendance deleted'); setShowDelete(false); load(); }
-    catch { showError('Failed to delete'); }
+    try { await deleteAttendance(deleteId); showSuccess(t('hrm.attendance_deleted')); setShowDelete(false); load(); }
+    catch { showError(t('hrm.failed_delete')); }
   };
 
   const statusBadge = (s: string) => {
     const cls = s === 'Present' ? 'badge-success' : s === 'Absent' ? 'badge-danger' : 'badge-purple';
-    return <span className={`badge ${cls} d-inline-flex align-items-center badge-xs`}><i className="ti ti-point-filled me-1"></i>{s}</span>;
+    const statusMap: Record<string, string> = { Present: t('hrm.present'), Absent: t('hrm.absent'), Holiday: t('hrm.holiday'), 'Half Day': t('hrm.half_day'), Late: t('hrm.late') };
+    return <span className={`badge ${cls} d-inline-flex align-items-center badge-xs`}><i className="ti ti-point-filled me-1"></i>{statusMap[s] || s}</span>;
   };
 
   return (
@@ -74,13 +77,13 @@ const AttendanceAdmin: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4>Attendance</h4>
-            <h6>Manage your Attendance</h6>
+            <h4>{t('hrm.attendance')}</h4>
+            <h6>{t('hrm.manage_attendance')}</h6>
           </div>
         </div>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAdd(); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add Attendance
+            <i className="ti ti-circle-plus me-1"></i>{t('hrm.add_attendance')}
           </a>
         </div>
       </div>
@@ -90,7 +93,7 @@ const AttendanceAdmin: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14"></i></span>
-              <input type="text" className="form-control" placeholder="Search employee..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('hrm.search_employee')} value={search} onChange={e => setSearch(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
@@ -99,32 +102,32 @@ const AttendanceAdmin: React.FC = () => {
             </div>
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {statusFilter || 'Select Status'}
+                {statusFilter ? {Present: t('hrm.present'), Absent: t('hrm.absent'), Holiday: t('hrm.holiday')}[statusFilter] || statusFilter : t('hrm.select_status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>All</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Present'); }}>Present</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Absent'); }}>Absent</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Holiday'); }}>Holiday</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Present'); }}>{t('hrm.present')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Absent'); }}>{t('hrm.absent')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={e => { e.preventDefault(); setStatusFilter('Holiday'); }}>{t('hrm.holiday')}</a></li>
               </ul>
             </div>
           </div>
         </div>
         <div className="card-body p-0">
-          {loading ? <div className="text-center p-4">Loading...</div> : (
+          {loading ? <div className="text-center p-4">{t('common.loading')}</div> : (
             <div className="table-responsive">
               <table className="table datatable">
                 <thead className="thead-light">
                   <tr>
-                    <th>Employee</th>
-                    <th>Status</th>
-                    <th>Clock In</th>
-                    <th>Clock Out</th>
-                    <th>Production</th>
-                    <th>Break</th>
-                    <th>Overtime</th>
-                    <th>Total Hours</th>
-                    <th className="no-sort">Action</th>
+                    <th>{t('hrm.employee')}</th>
+                    <th>{t('common.status')}</th>
+                    <th>{t('hrm.clock_in')}</th>
+                    <th>{t('hrm.clock_out')}</th>
+                    <th>{t('hrm.production')}</th>
+                    <th>{t('hrm.break_time')}</th>
+                    <th>{t('hrm.overtime')}</th>
+                    <th>{t('hrm.total_hours')}</th>
+                    <th className="no-sort">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -161,7 +164,7 @@ const AttendanceAdmin: React.FC = () => {
                     </tr>
                   ))}
                   {filtered.length === 0 && (
-                    <tr><td colSpan={9} className="text-center py-4 text-muted">No attendance records for this date</td></tr>
+                    <tr><td colSpan={9} className="text-center py-4 text-muted">{t('hrm.no_attendance_records_date')}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -176,65 +179,65 @@ const AttendanceAdmin: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">{editId ? 'Edit' : 'Add'} Attendance</h5>
+                <h5 className="modal-title">{editId ? t('hrm.edit_attendance') : t('hrm.add_attendance')}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
                 <div className="mb-3">
-                  <label className="form-label">Employee</label>
+                  <label className="form-label">{t('hrm.employee')}</label>
                   <select className="form-select" value={form.employeeId} onChange={e => setForm({ ...form, employeeId: Number(e.target.value) })}>
-                    <option value={0}>Select Employee</option>
+                    <option value={0}>{t('hrm.select_employee')}</option>
                     {employees.map(e => <option key={e.id} value={e.id}>{e.fullName}</option>)}
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Date</label>
+                  <label className="form-label">{t('common.date')}</label>
                   <input type="date" className="form-control" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Status</label>
+                  <label className="form-label">{t('common.status')}</label>
                   <select className="form-select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Holiday">Holiday</option>
-                    <option value="Half Day">Half Day</option>
-                    <option value="Late">Late</option>
+                    <option value="Present">{t('hrm.present')}</option>
+                    <option value="Absent">{t('hrm.absent')}</option>
+                    <option value="Holiday">{t('hrm.holiday')}</option>
+                    <option value="Half Day">{t('hrm.half_day')}</option>
+                    <option value="Late">{t('hrm.late')}</option>
                   </select>
                 </div>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Clock In</label>
+                    <label className="form-label">{t('hrm.clock_in')}</label>
                     <input type="text" className="form-control" placeholder="09:00 AM" value={form.clockIn} onChange={e => setForm({ ...form, clockIn: e.target.value })} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Clock Out</label>
+                    <label className="form-label">{t('hrm.clock_out')}</label>
                     <input type="text" className="form-control" placeholder="06:00 PM" value={form.clockOut} onChange={e => setForm({ ...form, clockOut: e.target.value })} />
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Production</label>
+                    <label className="form-label">{t('hrm.production')}</label>
                     <input type="text" className="form-control" placeholder="09h 00m" value={form.production} onChange={e => setForm({ ...form, production: e.target.value })} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Break</label>
+                    <label className="form-label">{t('hrm.break_time')}</label>
                     <input type="text" className="form-control" placeholder="01h 00m" value={form.breakTime} onChange={e => setForm({ ...form, breakTime: e.target.value })} />
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Overtime</label>
+                    <label className="form-label">{t('hrm.overtime')}</label>
                     <input type="text" className="form-control" placeholder="00h 30m" value={form.overtime} onChange={e => setForm({ ...form, overtime: e.target.value })} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Total Hours</label>
+                    <label className="form-label">{t('hrm.total_hours')}</label>
                     <input type="text" className="form-control" placeholder="09h 30m" value={form.totalHours} onChange={e => setForm({ ...form, totalHours: e.target.value })} />
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleSave} disabled={!form.employeeId}>{editId ? 'Update' : 'Save'}</button>
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
+                <button className="btn btn-primary" onClick={handleSave} disabled={!form.employeeId}>{editId ? t('common.update') : t('common.save')}</button>
               </div>
             </div>
           </div>
@@ -248,11 +251,11 @@ const AttendanceAdmin: React.FC = () => {
             <div className="modal-content">
               <div className="modal-body text-center pt-4">
                 <div className="mb-3"><i className="ti ti-trash fs-36 text-danger"></i></div>
-                <h4>Delete Attendance Record?</h4>
-                <p className="text-muted">This action cannot be undone.</p>
+                <h4>{t('hrm.delete_attendance')}</h4>
+                <p className="text-muted">{t('hrm.action_cannot_undone')}</p>
                 <div className="d-flex justify-content-center gap-2 mt-3">
-                  <button className="btn btn-secondary" onClick={() => setShowDelete(false)}>Cancel</button>
-                  <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                  <button className="btn btn-secondary" onClick={() => setShowDelete(false)}>{t('common.cancel')}</button>
+                  <button className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button>
                 </div>
               </div>
             </div>

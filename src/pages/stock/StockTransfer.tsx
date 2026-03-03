@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 
 /* ---------- Types ---------- */
@@ -38,6 +39,7 @@ interface LocalItem { productId: number; productName: string; productImage: stri
 
 /* ---------- Component ---------- */
 const StockTransfer: React.FC = () => {
+  const { t } = useTranslation();
   const [transfers, setTransfers] = useState<StockTransferDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -236,9 +238,9 @@ const StockTransfer: React.FC = () => {
     onSelect: (p: ProductResult) => void
   ) => (
     <div className="search-form mb-3" ref={ref as React.RefObject<HTMLDivElement>}>
-      <label className="form-label">Product<span className="text-danger ms-1">*</span></label>
+      <label className="form-label">{t('stocks.product')}<span className="text-danger ms-1">*</span></label>
       <div className="position-relative">
-        <input type="text" className="form-control" placeholder="Search Product" value={term}
+        <input type="text" className="form-control" placeholder={t('stocks.search_product')} value={term}
           onChange={(e) => { setTerm(e.target.value); setShowDd(true); }}
           onFocus={() => setShowDd(true)} />
         <i data-feather="search" className="feather-search"></i>
@@ -268,11 +270,11 @@ const StockTransfer: React.FC = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Qty</th>
-                <th>Action</th>
+                <th>{t('stocks.product')}</th>
+                <th>{t('stocks.sku')}</th>
+                <th>{t('stocks.category')}</th>
+                <th>{t('stocks.qty')}</th>
+                <th>{t('stocks.action')}</th>
               </tr>
             </thead>
             <tbody>
@@ -324,19 +326,19 @@ const StockTransfer: React.FC = () => {
       <div className="page-header">
         <div className="add-item d-flex">
           <div className="page-title">
-            <h4>Stock Transfer</h4>
-            <h6>Manage your stock transfer</h6>
+            <h4>{t('stocks.transfer_title')}</h4>
+            <h6>{t('stocks.transfer_manage')}</h6>
           </div>
         </div>
         <ul className="table-top-head">
-          <li><a href="#" data-bs-placement="top" title="Pdf" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
-          <li><a href="#" data-bs-placement="top" title="Excel" onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
-          <li><a href="#" data-bs-placement="top" title="Refresh" onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
-          <li><a href="#" data-bs-placement="top" title="Collapse" onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/pdf.svg" alt="img" /></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}><img src="/assets/img/icons/excel.svg" alt="img" /></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); fetchData(); }}><i className="ti ti-refresh"></i></a></li>
+          <li><a href="#" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
         </ul>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); setShowAddModal(true); }}>
-            <i className="ti ti-circle-plus me-1"></i>Add New
+            <i className="ti ti-circle-plus me-1"></i>{t('common.add_new')}
           </a>
         </div>
       </div>
@@ -347,17 +349,17 @@ const StockTransfer: React.FC = () => {
           <div className="search-set">
             <div className="search-input">
               <span className="btn-searchset"><i className="ti ti-search fs-14 feather-search"></i></span>
-              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             {/* From Warehouse filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterFrom || 'From Warehouse'}
+                {filterFrom || t('stocks.from_warehouse')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterFrom(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterFrom(''); }}>{t('common.all')}</a></li>
                 {uniqueFrom.map((w) => (
                   <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterFrom(w); }}>{w}</a></li>
                 ))}
@@ -366,10 +368,10 @@ const StockTransfer: React.FC = () => {
             {/* To Warehouse filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterTo || 'To Warehouse'}
+                {filterTo || t('stocks.to_warehouse')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterTo(''); }}>All</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterTo(''); }}>{t('common.all')}</a></li>
                 {uniqueTo.map((w) => (
                   <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterTo(w); }}>{w}</a></li>
                 ))}
@@ -378,12 +380,12 @@ const StockTransfer: React.FC = () => {
             {/* Sort */}
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                Sort By : {sortBy === 'recent' ? 'Recently Added' : sortBy === 'asc' ? 'Ascending' : 'Descending'}
+                {t('stocks.sort_by')} : {sortBy === 'recent' ? t('stocks.recently_added') : sortBy === 'asc' ? t('stocks.ascending') : t('stocks.descending')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>Recently Added</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>Ascending</a></li>
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>Descending</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>{t('stocks.recently_added')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>{t('stocks.ascending')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>{t('stocks.descending')}</a></li>
               </ul>
             </div>
           </div>
@@ -404,12 +406,12 @@ const StockTransfer: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>From Warehouse</th>
-                    <th>To Warehouse</th>
-                    <th>No of Products</th>
-                    <th>Quantity Transferred</th>
-                    <th>Ref Number</th>
-                    <th>Date</th>
+                    <th>{t('stocks.from_warehouse')}</th>
+                    <th>{t('stocks.to_warehouse')}</th>
+                    <th>{t('stocks.no_of_products')}</th>
+                    <th>{t('stocks.quantity_transferred')}</th>
+                    <th>{t('stocks.ref_number')}</th>
+                    <th>{t('stocks.date')}</th>
                     <th className="no-sort"></th>
                   </tr>
                 </thead>
@@ -453,7 +455,7 @@ const StockTransfer: React.FC = () => {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Add Transfer</h4></div>
+                <div className="page-title"><h4>{t('stocks.add_transfer')}</h4></div>
                 <button type="button" className="close" onClick={() => { setShowAddModal(false); resetAdd(); }} aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -462,25 +464,25 @@ const StockTransfer: React.FC = () => {
                 <div className="row">
                   <div className="col-lg-6">
                     <div className="mb-3">
-                      <label className="form-label">Warehouse From<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.warehouse_from')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={addForm.warehouseFrom} onChange={(e) => setAddForm((p) => ({ ...p, warehouseFrom: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-6">
                     <div className="mb-3">
-                      <label className="form-label">Warehouse To<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.warehouse_to')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={addForm.warehouseTo} onChange={(e) => setAddForm((p) => ({ ...p, warehouseTo: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Reference Number<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.reference_number')}<span className="text-danger ms-1">*</span></label>
                       <input type="text" className="form-control" value={addForm.referenceNumber} onChange={(e) => setAddForm((p) => ({ ...p, referenceNumber: e.target.value }))} />
                     </div>
                   </div>
@@ -492,15 +494,15 @@ const StockTransfer: React.FC = () => {
                   </div>
                   <div className="col-lg-12">
                     <div className="search-form mb-0">
-                      <label className="form-label">Notes<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.notes')}<span className="text-danger ms-1">*</span></label>
                       <textarea className="form-control" rows={3} value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} />
                     </div>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleAddSave}>Create</button>
+                <button type="button" className="btn btn-secondary me-2" onClick={() => { setShowAddModal(false); resetAdd(); }}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleAddSave}>{t('stocks.create_transfer')}</button>
               </div>
             </div>
           </div>
@@ -513,7 +515,7 @@ const StockTransfer: React.FC = () => {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="page-title"><h4>Edit Transfer</h4></div>
+                <div className="page-title"><h4>{t('stocks.edit_transfer')}</h4></div>
                 <button type="button" className="close" onClick={() => setShowEditModal(false)} aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -522,25 +524,25 @@ const StockTransfer: React.FC = () => {
                 <div className="row">
                   <div className="col-lg-6">
                     <div className="mb-3">
-                      <label className="form-label">Warehouse From<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.warehouse_from')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={editForm.warehouseFrom} onChange={(e) => setEditForm((p) => ({ ...p, warehouseFrom: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-6">
                     <div className="mb-3">
-                      <label className="form-label">Warehouse To<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.warehouse_to')}<span className="text-danger ms-1">*</span></label>
                       <select className="form-select" value={editForm.warehouseTo} onChange={(e) => setEditForm((p) => ({ ...p, warehouseTo: e.target.value }))}>
-                        <option value="">Select</option>
+                        <option value="">{t('common.select')}</option>
                         {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="col-lg-12">
                     <div className="mb-3">
-                      <label className="form-label">Reference No<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.reference_no')}<span className="text-danger ms-1">*</span></label>
                       <input type="text" className="form-control" value={editForm.referenceNumber} onChange={(e) => setEditForm((p) => ({ ...p, referenceNumber: e.target.value }))} />
                     </div>
                   </div>
@@ -552,15 +554,15 @@ const StockTransfer: React.FC = () => {
                   </div>
                   <div className="col-lg-12">
                     <div className="search-form mb-0">
-                      <label className="form-label">Notes<span className="text-danger ms-1">*</span></label>
+                      <label className="form-label">{t('stocks.notes')}<span className="text-danger ms-1">*</span></label>
                       <textarea className="form-control" rows={3} value={editForm.notes} onChange={(e) => setEditForm((p) => ({ ...p, notes: e.target.value }))} />
                     </div>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button type="button" className="btn btn-secondary me-2" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
+                <button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -577,11 +579,11 @@ const StockTransfer: React.FC = () => {
                   <div className="icon-success bg-danger-transparent text-danger mb-2">
                     <i className="ti ti-trash"></i>
                   </div>
-                  <h3 className="mb-2">Delete Stock Transfer</h3>
-                  <p className="fs-16 mb-3">Are you sure you want to delete stock transfer?</p>
+                  <h3 className="mb-2">{t('stocks.delete_transfer_title')}</h3>
+                  <p className="fs-16 mb-3">{t('stocks.delete_transfer_text')}</p>
                   <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                    <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>No, Cancel</button>
-                    <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>Yes, Delete</button>
+                    <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.no_cancel')}</button>
+                    <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>{t('common.yes_delete')}</button>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import ProtectedRoute from '../auth/ProtectedRoute';
@@ -23,6 +24,7 @@ const noLayoutPaths = [
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const { t } = useTranslation();
   const isNoLayout = noLayoutPaths.includes(location.pathname);
   const isPOS = location.pathname.startsWith('/pos') && !location.pathname.includes('pos-orders') && !location.pathname.includes('pos-settings');
 
@@ -64,7 +66,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {children}
           </div>
           <div className="footer">
-            <p>Copyright &copy; 2025 DreamsPOS. All rights reserved.</p>
+            <p>{t('common.copyright')}</p>
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const LockScreen: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="main-wrapper">
       <div className="account-content">
@@ -9,30 +11,30 @@ const LockScreen: React.FC = () => {
           <div className="login-content">
             <div className="login-userset">
               <div className="login-logo logo-normal">
-                <img src="/assets/img/logo.svg" alt="Logo" />
+                <img src="/assets/img/logo.png" alt="Logo" />
               </div>
               <Link to="/" className="login-logo logo-white">
-                <img src="/assets/img/logo-white.svg" alt="Logo" />
+                <img src="/assets/img/logo-white.png" alt="Logo" />
               </Link>
               <div className="login-userheading">
-                <h3>Lock Screen</h3>
-                <h4>Please enter your details</h4>
+                <h3>{t('auth.lock_screen')}</h3>
+                <h4>{t('auth.please_enter_details')}</h4>
               </div>
               <form>
                 <div className="mb-3">
-                  <label className="form-label">Email</label>
+                  <label className="form-label">{t('common.email')}</label>
                   <input type="email" className="form-control" />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Password</label>
+                  <label className="form-label">{t('auth.password')}</label>
                   <input type="password" className="form-control" />
                 </div>
                 <div className="form-login">
-                  <button type="submit" className="btn btn-primary w-100">Lock Screen</button>
+                  <button type="submit" className="btn btn-primary w-100">{t('auth.lock_screen')}</button>
                 </div>
               </form>
               <div className="signinform text-center mt-3">
-                <Link to="/signin">Back to Login</Link>
+                <Link to="/signin">{t('auth.back_to_login')}</Link>
               </div>
             </div>
           </div>
