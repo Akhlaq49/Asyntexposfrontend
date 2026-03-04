@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import './Header.css';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -90,7 +91,7 @@ const Header: React.FC = () => {
           {/* Add New */}
           <li className="nav-item dropdown link-nav">
             <a href="#" className="btn btn-primary btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
-              <i className="ti ti-circle-plus me-1"></i>{t('header.add_new')}
+              <i className="ti ti-circle-plus me-1"></i><span className="header-btn-text">{t('header.add_new')}</span>
             </a>
             <div className="dropdown-menu dropdown-xl dropdown-menu-center">
               <div className="row g-2">
@@ -173,7 +174,7 @@ const Header: React.FC = () => {
           {/* POS Button */}
           <li className="nav-item pos-nav">
             <Link to="/pos" className="btn btn-dark btn-md d-inline-flex align-items-center">
-              <i className="ti ti-device-laptop me-1"></i>{t('header.pos')}
+              <i className="ti ti-device-laptop me-1"></i><span className="header-btn-text">{t('header.pos')}</span>
             </Link>
           </li>
 

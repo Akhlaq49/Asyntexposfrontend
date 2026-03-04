@@ -57,19 +57,22 @@ const InstallmentDetails: React.FC = () => {
 
   const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const totalPaid = useMemo(() => {
-    if (!plan) return 0;
-    return plan.schedule
-      .filter((e) => e.status === 'paid' || e.status === 'partial')
-      .reduce((s, e) => s + (e.actualPaidAmount || 0), 0) + plan.downPayment;
-  }, [plan]);
+    const totalPaid = useMemo(() => {
+  if (!plan) return 0;
 
-  const totalRemaining = useMemo(() => {
-    if (!plan) return 0;
-    return plan.schedule
-      .filter((e) => e.status !== 'paid')
-      .reduce((s, e) => s + e.emiAmount - (e.actualPaidAmount || 0) - (e.miscAdjustedAmount || 0), 0);
-  }, [plan]);
+  return (plan.schedule ?? [])
+    .reduce((sum, e) => sum + (e.actualPaidAmount ?? 0), 0)
+    + (plan.downPayment ?? 0);
+
+}, [plan?.schedule, plan?.downPayment]);
+
+
+const totalRemaining = useMemo(() => {
+  if (!plan) return 0;
+
+  return (plan.totalPayable ?? 0) - totalPaid;
+
+}, [plan?.totalPayable, totalPaid]);
 
   const progressPercent = useMemo(() => {
     if (!plan) return 0;
