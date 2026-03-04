@@ -27,16 +27,20 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
 
   const totalDeposited =
     plan.schedule
-      .filter((e) => e.status === 'paid' || e.status === 'partial')
-      .reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0) + plan.downPayment;
+      .filter((e) => e.status === 'paid')
+      .reduce((s, e) => s + (e.emiAmount || 0) , 0) + plan.downPayment;
+    const partialDeposit =
+    plan.schedule
+      .filter((e) => e.status === 'partial')
+      .reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0);
 
   const totalAmount = plan.totalPayable;
-  const remaining = totalAmount - totalDeposited;
+  const remaining = totalAmount - (totalDeposited + partialDeposit);
 
   const paidCount = plan.paidInstallments;
   const remainingCount = plan.remainingInstallments;
 
-  const depositAmount = (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0);
+  const depositAmount = (entry.actualPaidAmount || 0) ;
 
   const paymentMode =
     entry.miscAdjustedAmount && entry.miscAdjustedAmount > 0 && (!entry.actualPaidAmount || entry.actualPaidAmount === 0)
@@ -284,7 +288,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
                   <tbody>
                     <tr>
                       <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center' }}>Rs {fmt(totalAmount)}</td>
-                      <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: '#28a745', fontWeight: 700 }}>Rs {fmt(totalDeposited)}</td>
+                      <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: '#28a745', fontWeight: 700 }}>Rs {fmt(totalDeposited + partialDeposit)}</td>
                       <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: '#e0a800', fontWeight: 600 }}>Rs {fmt(remaining > 0 ? remaining : 0)}</td>
                     </tr>
                   </tbody>
