@@ -262,6 +262,20 @@
     "pa": "p.a."
   },
 
+  "ai_bot": {
+    "title": "AI Assistant",
+    "welcome_message": "Hello! I'm your POS AI Assistant. I can help you with business stats, customer info, installment data, financial reports, and more.\n\nTry asking me questions like:\n• How many customers do we have?\n• Show me today's dues\n• What is the outstanding balance?\n• Who are the defaulters?\n• Show me profit and loss",
+    "placeholder": "Ask me anything about your business...",
+    "thinking": "Analyzing data...",
+    "online": "Online — Ready to help",
+    "error": "Error",
+    "quick_actions": "Quick Actions",
+    "settings": "Settings",
+    "clear_chat": "Clear Chat",
+    "openai_key": "OpenAI API Key (Optional)",
+    "key_hint": "For smarter AI responses, add your OpenAI API key. Without it, the bot uses built-in intelligence."
+  },
+
   "auth": {
     "login": "Login",
     "logout": "Logout",

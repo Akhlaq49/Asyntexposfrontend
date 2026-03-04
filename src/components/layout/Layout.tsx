@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import ProtectedRoute from '../auth/ProtectedRoute';
+import AiBot from '../AiBot';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -51,6 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {children}
             </div>
           </div>
+          <AiBot />
         </div>
       </ProtectedRoute>
     );
@@ -69,6 +71,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <p>{t('common.copyright')}</p>
           </div>
         </div>
+        <AiBot />
       </div>
     </ProtectedRoute>
   );
