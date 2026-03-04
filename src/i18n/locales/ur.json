@@ -888,7 +888,12 @@
     "delete_count": "حذف ({{count}})",
     "customer_details": "گاہک کی تفصیلات",
     "full_name_label": "پورا نام",
-    "so_father": "ولد (والد کا نام)"
+    "so_father": "ولد (والد کا نام)",
+    "guarantors": "ضامنین",
+    "guarantors_for": "{{name}} کے ضامنین",
+    "no_guarantors": "اس گاہک کے لیے کوئی ضامن نہیں ملا۔",
+    "total_guarantors": "{{count}} ضامن ملے",
+    "plan": "پلان"
   },
 
   "suppliers": {

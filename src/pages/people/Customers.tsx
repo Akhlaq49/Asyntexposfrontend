@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { MEDIA_BASE_URL } from '../../services/api';
 import {
   Customer,
+  CustomerGuarantor,
   getCustomers,
   createCustomer,
   updateCustomer,
   deleteCustomer,
   uploadCustomerPicture,
+  getCustomerGuarantors,
 } from '../../services/customerService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 import WhatsAppSendModal from '../../components/WhatsAppSendModal';
@@ -36,6 +38,12 @@ const Customers: React.FC = () => {
   const [pictureFile, setPictureFile] = useState<File | null>(null);
   const [picturePreview, setPicturePreview] = useState('');
   const [whatsappCustomer, setWhatsappCustomer] = useState<Customer | null>(null);
+
+  // Guarantor modal state
+  const [showGuarantorModal, setShowGuarantorModal] = useState(false);
+  const [guarantorCustomer, setGuarantorCustomer] = useState<Customer | null>(null);
+  const [guarantors, setGuarantors] = useState<CustomerGuarantor[]>([]);
+  const [guarantorsLoading, setGuarantorsLoading] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -184,6 +192,20 @@ const Customers: React.FC = () => {
     }
   };
 
+  const openGuarantors = async (c: Customer) => {
+    setGuarantorCustomer(c);
+    setShowGuarantorModal(true);
+    setGuarantorsLoading(true);
+    try {
+      const data = await getCustomerGuarantors(c.id);
+      setGuarantors(data);
+    } catch {
+      setGuarantors([]);
+    } finally {
+      setGuarantorsLoading(false);
+    }
+  };
+
   const handlePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setPictureFile(file);
@@ -326,7 +348,7 @@ const Customers: React.FC = () => {
                     <th>{t('customers.city')}</th>
                     <th>{t('customers.misc_balance')}</th>
                     <th>{t('customers.status')}</th>
-                    <th style={{ width: 120 }}>{t('customers.actions')}</th>
+                    <th style={{ width: 160 }}>{t('customers.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -357,6 +379,7 @@ const Customers: React.FC = () => {
                       <td>
                         <div className="d-flex align-items-center gap-1">
                           <button className="btn btn-icon btn-sm" title={t('common.view')} onClick={() => openView(c)}><i className="ti ti-eye text-primary"></i></button>
+                          <button className="btn btn-icon btn-sm" title={t('customers.guarantors')} onClick={() => openGuarantors(c)}><i className="ti ti-shield-check text-warning"></i></button>
                           <button className="btn btn-icon btn-sm" title={t('common.edit')} onClick={() => openEdit(c)}><i className="ti ti-edit text-info"></i></button>
                           <button className="btn btn-icon btn-sm" title={t('customers.whatsapp')} onClick={() => setWhatsappCustomer(c)}><i className="ti ti-brand-whatsapp text-success"></i></button>
                           <button className="btn btn-icon btn-sm" title={t('common.delete')} onClick={() => openDelete(c.id)}><i className="ti ti-trash text-danger"></i></button>
@@ -471,6 +494,9 @@ const Customers: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
+                <button className="btn btn-warning" onClick={() => { setShowViewModal(false); openGuarantors(viewCustomer); }}>
+                  <i className="ti ti-shield-check me-1"></i>{t('customers.guarantors')}
+                </button>
                 <button className="btn btn-success" onClick={() => { setShowViewModal(false); setWhatsappCustomer(viewCustomer); }}>
                   <i className="ti ti-brand-whatsapp me-1"></i>{t('customers.whatsapp')}
                 </button>
@@ -478,6 +504,104 @@ const Customers: React.FC = () => {
                 <button className="btn btn-primary" onClick={() => { setShowViewModal(false); openEdit(viewCustomer); }}>
                   <i className="ti ti-edit me-1"></i>{t('common.edit')}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guarantors Modal */}
+      {showGuarantorModal && guarantorCustomer && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="ti ti-shield-check me-2"></i>
+                  {t('customers.guarantors_for', { name: guarantorCustomer.name })}
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setShowGuarantorModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                {guarantorsLoading ? (
+                  <div className="text-center p-5"><div className="spinner-border text-primary"></div></div>
+                ) : guarantors.length === 0 ? (
+                  <div className="text-center p-5">
+                    <span className="rounded-circle d-inline-flex p-3 bg-warning-transparent mb-3">
+                      <i className="ti ti-shield-off fs-24 text-warning"></i>
+                    </span>
+                    <h6 className="text-muted">{t('customers.no_guarantors')}</h6>
+                  </div>
+                ) : (
+                  <div className="row g-3">
+                    {guarantors.map((g) => (
+                      <div key={`${g.planId}-${g.id}`} className="col-md-6">
+                        <div className="card border mb-0 h-100">
+                          <div className="card-body p-3">
+                            <div className="d-flex align-items-start gap-3 mb-3">
+                              {g.picture ? (
+                                <img src={`${MEDIA_BASE_URL}${g.picture}`} alt={g.name} className="rounded-circle border" style={{ width: 48, height: 48, objectFit: 'cover' }} />
+                              ) : (
+                                <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-transparent text-warning fw-bold" style={{ width: 48, height: 48, fontSize: 18 }}>
+                                  {g.name.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                              <div className="flex-fill">
+                                <h6 className="fw-bold mb-1">{g.name}</h6>
+                                {g.relationship && (
+                                  <span className="badge bg-primary-transparent text-primary fs-10">{g.relationship}</span>
+                                )}
+                              </div>
+                            </div>
+                            <table className="table table-borderless table-sm mb-2">
+                              <tbody>
+                                {g.so && (
+                                  <tr>
+                                    <td className="text-muted ps-0" style={{ width: '40%' }}><i className="ti ti-user me-1"></i>{t('customers.so_label')}</td>
+                                    <td className="fw-medium pe-0">{g.so}</td>
+                                  </tr>
+                                )}
+                                {g.phone && (
+                                  <tr>
+                                    <td className="text-muted ps-0"><i className="ti ti-phone me-1"></i>{t('customers.phone')}</td>
+                                    <td className="fw-medium pe-0">{g.phone}</td>
+                                  </tr>
+                                )}
+                                {g.cnic && (
+                                  <tr>
+                                    <td className="text-muted ps-0"><i className="ti ti-id me-1"></i>{t('customers.cnic')}</td>
+                                    <td className="fw-medium pe-0">{g.cnic}</td>
+                                  </tr>
+                                )}
+                                {g.address && (
+                                  <tr>
+                                    <td className="text-muted ps-0"><i className="ti ti-map-pin me-1"></i>{t('customers.address')}</td>
+                                    <td className="fw-medium pe-0">{g.address}</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                            <div className="border-top pt-2 mt-1">
+                              <small className="text-muted">
+                                <i className="ti ti-box me-1"></i>{t('customers.plan')}: <span className="fw-medium">{g.productName}</span>
+                                <span className={`badge ms-2 fs-10 ${g.planStatus === 'active' ? 'bg-success' : g.planStatus === 'completed' ? 'bg-info' : g.planStatus === 'defaulted' ? 'bg-danger' : 'bg-secondary'}`}>
+                                  {g.planStatus.charAt(0).toUpperCase() + g.planStatus.slice(1)}
+                                </span>
+                              </small>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <span className="me-auto text-muted fs-13">
+                  <i className="ti ti-info-circle me-1"></i>
+                  {t('customers.total_guarantors', { count: guarantors.length })}
+                </span>
+                <button className="btn btn-secondary" onClick={() => setShowGuarantorModal(false)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

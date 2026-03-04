@@ -851,7 +851,12 @@
     "message_customer": "مراسلة العميل",
     "so_label": "ابن",
     "update_customer": "تحديث العميل",
-    "search_customers": "بحث عن عملاء..."
+    "search_customers": "بحث عن عملاء...",
+    "guarantors": "الضامنون",
+    "guarantors_for": "ضامنو {{name}}",
+    "no_guarantors": "لم يتم العثور على ضامنين لهذا العميل.",
+    "total_guarantors": "{{count}} ضامن(ون) تم العثور عليهم",
+    "plan": "الخطة"
   },
 
   "suppliers": {
