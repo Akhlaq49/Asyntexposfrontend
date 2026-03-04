@@ -888,7 +888,12 @@
     "delete_count": "Delete ({{count}})",
     "customer_details": "Customer Details",
     "full_name_label": "Full Name",
-    "so_father": "S/O (Father's Name)"
+    "so_father": "S/O (Father's Name)",
+    "guarantors": "Guarantors",
+    "guarantors_for": "Guarantors for {{name}}",
+    "no_guarantors": "No guarantors found for this customer.",
+    "total_guarantors": "{{count}} guarantor(s) found",
+    "plan": "Plan"
   },
 
   "suppliers": {
