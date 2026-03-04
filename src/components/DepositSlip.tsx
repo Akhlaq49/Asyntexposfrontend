@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { MEDIA_BASE_URL } from '../services/api';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
@@ -10,6 +11,7 @@ interface DepositSlipProps {
 }
 
 const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
+  const { t } = useTranslation();
   const slipRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -38,10 +40,10 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
 
   const paymentMode =
     entry.miscAdjustedAmount && entry.miscAdjustedAmount > 0 && (!entry.actualPaidAmount || entry.actualPaidAmount === 0)
-      ? 'Misc Balance'
+      ? t('pdf.misc_balance')
       : entry.miscAdjustedAmount && entry.miscAdjustedAmount > 0
-        ? 'Cash + Misc'
-        : 'Cash';
+        ? t('pdf.cash_misc')
+        : t('pdf.cash');
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
@@ -119,7 +121,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
   };
 
   const buildMessage = () => {
-    return `📄 *Deposit Slip*\n\n👤 Customer: ${plan.customerName}\n📦 Product: ${plan.productName}\n💰 Installment #${entry.installmentNo}\n💵 Amount: Rs ${fmt((entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}\n📅 Date: ${entry.paidDate || '-'}`;
+    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt((entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}`;
   };
 
   const handleShareWhatsApp = async () => {
@@ -159,20 +161,20 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
           <div className="modal-header bg-primary text-white py-2">
-            <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>Deposit Slip</h6>
+            <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pdf.deposit_slip_title')}</h6>
             <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-light" onClick={handlePrint} title="Print Slip">
-                <i className="ti ti-printer me-1"></i>Print
+              <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
+                <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
-              <button className="btn btn-sm btn-light" onClick={handleDownloadPdf} disabled={downloading} title="Download PDF">
+              <button className="btn btn-sm btn-light" onClick={handleDownloadPdf} disabled={downloading} title="PDF">
                 {downloading ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-download me-1"></i>PDF</>}
               </button>
-              <button className="btn btn-sm btn-success" onClick={handleShareWhatsApp} disabled={sharing} title="Share via WhatsApp">
-                {sharing ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-brand-whatsapp me-1"></i>WhatsApp</>}
+              <button className="btn btn-sm btn-success" onClick={handleShareWhatsApp} disabled={sharing} title={t('pdf.whatsapp')}>
+                {sharing ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-brand-whatsapp me-1"></i>{t('pdf.whatsapp')}</>}
               </button>
               {cloudConfigured && (
-                <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title="Send via WhatsApp Cloud API">
-                  {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>Send</>}
+                <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title={t('pdf.send')}>
+                  {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>{t('pdf.send')}</>}
                 </button>
               )}
               <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
@@ -180,7 +182,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
           </div>
           {cloudResult && (
             <div className={`alert ${cloudResult.success ? 'alert-success' : 'alert-danger'} mb-0 py-2 rounded-0 text-center small`}>
-              {cloudResult.success ? <><i className="ti ti-check me-1"></i>Sent via WhatsApp Cloud API!</> : <><i className="ti ti-alert-triangle me-1"></i>{cloudResult.error}</>}
+              {cloudResult.success ? <><i className="ti ti-check me-1"></i>{t('pdf.sent_whatsapp')}</> : <><i className="ti ti-alert-triangle me-1"></i>{cloudResult.error}</>}
             </div>
           )}
           <div className="modal-body p-0">
@@ -208,75 +210,75 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
                     </div>
                   </div>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
-                    DEPOSIT SLIP
+                    {t('pdf.deposit_slip')}
                   </div>
                 </div>
 
                 {/* Buyer Information */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  BUYER INFORMATION
+                  {t('pdf.buyer_information')}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Name:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.name')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.customerName}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Mobile:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.mobile')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.customerPhone || '-'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Product:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.product')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.productName}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Sale Date:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.sale_date')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.startDate || '-'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Down Payment:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.down_payment')}:</span>
                   <span style={{ fontWeight: 500 }}>Rs {fmt(plan.downPayment)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Installment Type:</span>
-                  <span style={{ fontWeight: 500 }}>{plan.tenure} months</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.installment_type')}:</span>
+                  <span style={{ fontWeight: 500 }}>{plan.tenure} {t('pdf.months')}</span>
                 </div>
 
                 {/* Deposit Information */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  DEPOSIT INFORMATION
+                  {t('pdf.deposit_information')}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Installment #:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.installment_no')}:</span>
                   <span style={{ fontWeight: 700 }}>{entry.installmentNo}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Deposit Date:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.deposit_date')}:</span>
                   <span style={{ fontWeight: 500 }}>{formatDate(entry.paidDate)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Payment Type:</span>
-                  <span style={{ fontWeight: 500 }}>Installment</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.payment_type')}:</span>
+                  <span style={{ fontWeight: 500 }}>{t('pdf.installment')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Payment Mode:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.payment_mode')}:</span>
                   <span style={{ fontWeight: 500 }}>{paymentMode}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Deposit Amount:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.deposit_amount')}:</span>
                   <span style={{ fontSize: 22, fontWeight: 800 }}>Rs {fmt(depositAmount)}</span>
                 </div>
 
                 {/* Financial Summary */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  FINANCIAL SUMMARY
+                  {t('pdf.financial_summary')}
                 </div>
 
                 <table style={{ width: '100%', borderCollapse: 'collapse', margin: '8px 0', fontSize: 12 }}>
                   <thead>
                     <tr>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>TOTAL AMOUNT</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>TOTAL DEPOSITED</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>REMAINING</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.total_amount')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.total_deposited')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.remaining')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -291,9 +293,9 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
                 <table style={{ width: '100%', borderCollapse: 'collapse', margin: '8px 0', fontSize: 12 }}>
                   <thead>
                     <tr>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>TOTAL INST.</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>PAID INST.</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>REMAINING</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.total_inst')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.paid_inst')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.remaining')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -306,13 +308,13 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
                 </table>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: 13, borderTop: '1px solid #eee' }}>
-                  <span style={{ fontWeight: 600 }}>Monthly Amount:</span>
+                  <span style={{ fontWeight: 600 }}>{t('pdf.monthly_amount')}:</span>
                   <span style={{ fontWeight: 700 }}>Rs {fmt(plan.emiAmount)}</span>
                 </div>
 
                 {/* Footer */}
                 <div style={{ textAlign: 'center', background: '#333', color: '#fff', padding: 8, borderRadius: 4, fontSize: 11, marginTop: 12, fontWeight: 600 }}>
-                  {remainingCount} installment{remainingCount !== 1 ? 's' : ''} remaining — Rs {fmt(remaining > 0 ? remaining : 0)} outstanding
+                  {t('pdf.installments_remaining', { count: remainingCount, amount: fmt(remaining > 0 ? remaining : 0) })}
                 </div>
               </div>
             </div>

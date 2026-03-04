@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { MEDIA_BASE_URL } from '../services/api';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
@@ -10,6 +11,7 @@ interface DueInstallmentSlipProps {
 }
 
 const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, onClose }) => {
+  const { t } = useTranslation();
   const slipRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -37,7 +39,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
   const isOverdue = entry.status === 'overdue';
   const isPartial = entry.status === 'partial';
 
-  const statusLabel = isOverdue ? 'OVERDUE' : isPartial ? 'PARTIALLY PAID' : 'DUE';
+  const statusLabel = isOverdue ? t('pdf.overdue_label') : isPartial ? t('pdf.partial_label') : t('pdf.due_label');
   const statusColor = isOverdue ? '#dc3545' : isPartial ? '#17a2b8' : '#ffc107';
 
   const handlePrint = () => {
@@ -84,7 +86,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
 
   const buildMessage = () => {
     const emoji = isOverdue ? '🔴' : '🟡';
-    return `${emoji} *${statusLabel} Installment Reminder*\n\n👤 Customer: ${plan.customerName}\n📦 Product: ${plan.productName}\n📋 Installment #${entry.installmentNo}\n💰 Amount Due: Rs ${fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount)}\n📅 Due Date: ${entry.dueDate}\n\nPlease make the payment at your earliest convenience.`;
+    return `${emoji} *${t('pdf.due_installment', { status: statusLabel })}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n📋 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💰 ${t('pdf.amount_due')}: Rs ${fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount)}\n📅 ${t('pdf.due_date')}: ${entry.dueDate}\n\n${t('pdf.pay_reminder', { amount: fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount), instNo: entry.installmentNo, date: entry.dueDate })}`;
   };
 
   const handleShareWhatsApp = async () => {
@@ -124,20 +126,20 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
           <div className="modal-header text-white py-2" style={{ background: statusColor }}>
-            <h6 className="modal-title fw-bold mb-0"><i className="ti ti-alert-circle me-2"></i>{statusLabel} Installment</h6>
+            <h6 className="modal-title fw-bold mb-0"><i className="ti ti-alert-circle me-2"></i>{t('pdf.due_installment', { status: statusLabel })}</h6>
             <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-light" onClick={handlePrint} title="Print">
-                <i className="ti ti-printer me-1"></i>Print
+              <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
+                <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
-              <button className="btn btn-sm btn-light" onClick={handleDownloadPdf} disabled={downloading} title="Download PDF">
+              <button className="btn btn-sm btn-light" onClick={handleDownloadPdf} disabled={downloading} title="PDF">
                 {downloading ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-download me-1"></i>PDF</>}
               </button>
-              <button className="btn btn-sm btn-success" onClick={handleShareWhatsApp} disabled={sharing} title="Share via WhatsApp">
-                {sharing ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-brand-whatsapp me-1"></i>WhatsApp</>}
+              <button className="btn btn-sm btn-success" onClick={handleShareWhatsApp} disabled={sharing} title={t('pdf.whatsapp')}>
+                {sharing ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-brand-whatsapp me-1"></i>{t('pdf.whatsapp')}</>}
               </button>
               {cloudConfigured && (
-                <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title="Send via WhatsApp Cloud API">
-                  {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>Send</>}
+                <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title={t('pdf.send')}>
+                  {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>{t('pdf.send')}</>}
                 </button>
               )}
               <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
@@ -145,7 +147,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
           </div>
           {cloudResult && (
             <div className={`alert ${cloudResult.success ? 'alert-success' : 'alert-danger'} mb-0 py-2 rounded-0 text-center small`}>
-              {cloudResult.success ? <><i className="ti ti-check me-1"></i>Sent via WhatsApp Cloud API!</> : <><i className="ti ti-alert-triangle me-1"></i>{cloudResult.error}</>}
+              {cloudResult.success ? <><i className="ti ti-check me-1"></i>{t('pdf.sent_whatsapp')}</> : <><i className="ti ti-alert-triangle me-1"></i>{cloudResult.error}</>}
             </div>
           )}
           <div className="modal-body p-0">
@@ -173,57 +175,57 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                     </div>
                   </div>
                   <div style={{ display: 'inline-block', background: statusColor, color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
-                    {statusLabel} INSTALLMENT
+                    {t('pdf.due_installment', { status: statusLabel })}
                   </div>
                 </div>
 
                 {/* Customer Information */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  CUSTOMER INFORMATION
+                  {t('pdf.customer_information')}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Name:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.name')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.customerName}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Mobile:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.mobile')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.customerPhone || '-'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Product:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.product')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.productName}</span>
                 </div>
 
                 {/* Due Installment Details */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  INSTALLMENT DETAILS
+                  {t('pdf.installment_details')}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Installment #:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.installment_no')}:</span>
                   <span style={{ fontWeight: 700 }}>{entry.installmentNo}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Due Date:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.due_date')}:</span>
                   <span style={{ fontWeight: 500 }}>{entry.dueDate}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>EMI Amount:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.emi_amount')}:</span>
                   <span style={{ fontWeight: 500 }}>Rs {fmt(entry.emiAmount)}</span>
                 </div>
                 {isPartial && previouslyPaid > 0 && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                      <span style={{ color: '#555', fontWeight: 600 }}>Already Paid:</span>
+                      <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.already_paid')}:</span>
                       <span style={{ fontWeight: 500, color: '#28a745' }}>Rs {fmt(previouslyPaid)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                      <span style={{ color: '#555', fontWeight: 600 }}>Remaining:</span>
+                      <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.remaining_amount')}:</span>
                       <span style={{ fontWeight: 700, color: '#dc3545' }}>Rs {fmt(remainingForEntry)}</span>
                     </div>
                   </>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                  <span style={{ color: '#555', fontWeight: 600 }}>Status:</span>
+                  <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.status')}:</span>
                   <span style={{
                     display: 'inline-block',
                     padding: '2px 12px',
@@ -247,28 +249,28 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                   textAlign: 'center'
                 }}>
                   <div style={{ fontSize: 12, color: '#555', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>
-                    Amount Due
+                    {t('pdf.amount_due')}
                   </div>
                   <div style={{ fontSize: 28, fontWeight: 800, color: statusColor }}>
                     Rs {fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount)}
                   </div>
                   {isOverdue && (
                     <div style={{ fontSize: 11, color: '#dc3545', fontWeight: 600, marginTop: 4 }}>
-                      ⚠ This installment is overdue. Please pay immediately.
+                      ⚠ {t('pdf.overdue_warning')}
                     </div>
                   )}
                 </div>
 
                 {/* Financial Summary */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  OVERALL SUMMARY
+                  {t('pdf.overall_summary')}
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', margin: '8px 0', fontSize: 12 }}>
                   <thead>
                     <tr>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>TOTAL AMOUNT</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>TOTAL PAID</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>REMAINING</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.total_amount')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.total_paid_upper')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.remaining')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -283,9 +285,9 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                 <table style={{ width: '100%', borderCollapse: 'collapse', margin: '8px 0', fontSize: 12 }}>
                   <thead>
                     <tr>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>TOTAL INST.</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>PAID INST.</th>
-                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>REMAINING</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.total_inst')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.paid_inst')}</th>
+                      <th style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', background: '#f5f5f5', fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{t('pdf.remaining')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -298,13 +300,13 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                 </table>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: 13, borderTop: '1px solid #eee' }}>
-                  <span style={{ fontWeight: 600 }}>Monthly EMI:</span>
+                  <span style={{ fontWeight: 600 }}>{t('pdf.monthly_emi_label')}:</span>
                   <span style={{ fontWeight: 700 }}>Rs {fmt(plan.emiAmount)}</span>
                 </div>
 
                 {/* Footer */}
                 <div style={{ textAlign: 'center', background: statusColor, color: '#fff', padding: 8, borderRadius: 4, fontSize: 11, marginTop: 12, fontWeight: 600 }}>
-                  Please pay Rs {fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount)} for installment #{entry.installmentNo} by {entry.dueDate}
+                  {t('pdf.pay_reminder', { amount: fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount), instNo: entry.installmentNo, date: entry.dueDate })}
                 </div>
               </div>
             </div>

@@ -1,2 +1,0 @@
-import{a as e}from"./index-BEzZlHGs.js";async function n(){return(await e.get("/customers")).data}async function u(t){return(await e.post("/customers",t)).data}async function c(t,s){return(await e.put(`/customers/${t}`,s)).data}async function p(t){await e.delete(`/customers/${t}`)}async function i(t,s){const a=new FormData;return a.append("picture",s),(await e.post(`/customers/${t}/picture`,a,{headers:{"Content-Type":"multipart/form-data"}})).data}export{c as a,u as c,p as d,n as g,i as u};
-//# sourceMappingURL=customerService-BRWRya9i.js.map
