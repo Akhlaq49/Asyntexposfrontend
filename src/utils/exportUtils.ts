@@ -1,6 +1,13 @@
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import i18n from '../i18n';
+
+// Helper to get a translated string, falling back to the provided default
+const pt = (key: string, fallback: string, options?: Record<string, any>): string => {
+  const val = i18n.t(key, options);
+  return val && val !== key ? val : fallback;
+};
 
 /**
  * Export tabular data to an Excel (.xlsx) file.
@@ -58,7 +65,7 @@ export function exportToPDF(
   // Date
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
+  doc.text(`${pt('pdf.generated', 'Generated')}: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
 
   let startY = 34;
 
@@ -66,12 +73,12 @@ export function exportToPDF(
   if (summaryRows && summaryRows.length > 0) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Summary', 14, startY);
+    doc.text(pt('pdf.summary', 'Summary'), 14, startY);
     startY += 6;
 
     autoTable(doc, {
       startY,
-      head: [['Metric', 'Value']],
+      head: [[pt('pdf.metric', 'Metric'), pt('pdf.value', 'Value')]],
       body: summaryRows.map(r => [r.label, String(r.value)]),
       theme: 'grid',
       headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
@@ -96,7 +103,7 @@ export function exportToPDF(
       const pageCount = (doc as any).internal.getNumberOfPages();
       doc.setFontSize(8);
       doc.text(
-        `Page ${data.pageNumber} of ${pageCount}`,
+        pt('pdf.page_of', `Page ${data.pageNumber} of ${pageCount}`, { current: data.pageNumber, total: pageCount }),
         doc.internal.pageSize.getWidth() / 2,
         doc.internal.pageSize.getHeight() - 10,
         { align: 'center' }
