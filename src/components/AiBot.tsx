@@ -11,8 +11,6 @@ const AiBot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -85,15 +83,6 @@ const AiBot: React.FC = () => {
       e.preventDefault();
       handleSend();
     }
-  };
-
-  const handleSaveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('openai_api_key', apiKey.trim());
-    } else {
-      localStorage.removeItem('openai_api_key');
-    }
-    setShowSettings(false);
   };
 
   const clearChat = () => {
@@ -288,9 +277,6 @@ const AiBot: React.FC = () => {
               </div>
             </div>
             <div className="d-flex align-items-center gap-1">
-              <button className="btn btn-sm text-white" onClick={() => setShowSettings(!showSettings)} title={t('ai_bot.settings')}>
-                <i className="ti ti-settings fs-16"></i>
-              </button>
               <button className="btn btn-sm text-white" onClick={clearChat} title={t('ai_bot.clear_chat')}>
                 <i className="ti ti-trash fs-16"></i>
               </button>
@@ -299,28 +285,6 @@ const AiBot: React.FC = () => {
               </button>
             </div>
           </div>
-
-          {/* Settings Panel */}
-          {showSettings && (
-            <div className="border-bottom p-3 bg-light">
-              <label className="form-label fs-12 fw-medium">{t('ai_bot.openai_key')}</label>
-              <div className="input-group input-group-sm">
-                <input
-                  type="password"
-                  className="form-control"
-                  placeholder="sk-..."
-                  value={apiKey}
-                  onChange={e => setApiKey(e.target.value)}
-                />
-                <button className="btn btn-primary" onClick={handleSaveApiKey}>
-                  {t('common.save') || 'Save'}
-                </button>
-              </div>
-              <small className="text-muted mt-1 d-block" style={{ fontSize: 10 }}>
-                {t('ai_bot.key_hint')}
-              </small>
-            </div>
-          )}
 
           {/* Messages Area */}
           <div

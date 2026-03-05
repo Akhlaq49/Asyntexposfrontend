@@ -273,8 +273,8 @@
     "quick_actions": "Quick Actions",
     "settings": "Settings",
     "clear_chat": "Clear Chat",
-    "openai_key": "OpenAI API Key (Optional)",
-    "key_hint": "For smarter AI responses, add your OpenAI API key. Without it, the bot uses built-in intelligence."
+    "openai_key": "xAI API Key (Optional)",
+    "key_hint": "For smarter AI responses, add your xAI (Grok) API key. Without it, the bot uses built-in intelligence."
   },
 
   "auth": {
