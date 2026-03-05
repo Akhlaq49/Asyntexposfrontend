@@ -419,8 +419,20 @@ const CreateInstallment: React.FC = () => {
         await addGuarantor(result.id, fd);
       }
       navigate('/installment-plans');
-    } catch {
-      setError(t('create_installment.failed_create_plan'));
+    } catch (err: unknown) {
+      if (
+        typeof err === 'object' && err !== null && 'response' in err &&
+        typeof (err as { response?: { data?: unknown } }).response?.data === 'object'
+      ) {
+        const data = (err as { response: { data: Record<string, unknown> } }).response.data;
+        const msg = typeof data.message === 'string' ? data.message
+          : Array.isArray(data.errors) ? (data.errors as string[]).join(', ')
+          : typeof data.error === 'string' ? data.error
+          : null;
+        if (msg) { setError(msg); } else { setError(t('create_installment.failed_create_plan')); }
+      } else {
+        setError(t('create_installment.failed_create_plan'));
+      }
     } finally {
       setSubmitting(false);
     }
