@@ -127,13 +127,13 @@ export const deleteProduct = async (id: string): Promise<void> => {
 
 // Dropdown data fetchers
 export const getStores = async (): Promise<DropdownOption[]> => {
-  const response = await api.get<DropdownOption[]>('/stores');
-  return response.data;
+  const response = await api.get<{ id: number; fullName: string }[]>('/parties?role=Store');
+  return response.data.map((s) => ({ value: s.fullName, label: s.fullName }));
 };
 
 export const getWarehouses = async (): Promise<DropdownOption[]> => {
-  const response = await api.get<DropdownOption[]>('/warehouses');
-  return response.data;
+  const response = await api.get<{ id: number; fullName: string }[]>('/parties?role=Warehouse');
+  return response.data.map((w) => ({ value: w.fullName, label: w.fullName }));
 };
 
 export const getCategories = async (): Promise<DropdownOption[]> => {

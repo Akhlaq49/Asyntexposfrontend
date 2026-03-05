@@ -8,6 +8,7 @@ import {
   PurchaseItem,
 } from '../../services/purchaseService';
 import { getProducts, ProductResponse } from '../../services/productService';
+import { recordPurchaseExpense } from '../../services/financeService';
 import { showConfirm, showSuccess, showError } from '../../utils/alertUtils';
 
 const PurchaseTransaction: React.FC = () => {
@@ -267,6 +268,13 @@ const PurchaseTransaction: React.FC = () => {
       } else {
         await createPurchase(payload);
         showSuccess('Purchase created successfully');
+        // Record purchase as a finance expense
+        recordPurchaseExpense({
+          amount: formData.total,
+          date: formData.date || new Date().toISOString().slice(0, 10),
+          reference: formData.reference,
+          description: `Purchase - ${formData.supplierName}`,
+        });
       }
       setShowAddModal(false);
       setShowEditModal(false);

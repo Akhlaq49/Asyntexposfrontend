@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
+import { recordSaleIncome } from '../../services/financeService';
 
 /* ---------- Types ---------- */
 interface SaleItemDto {
@@ -263,7 +264,17 @@ const OnlineOrders: React.FC = () => {
     if (!paymentSaleId) return;
     try {
       if (editingPaymentId) await api.put(`/sales/${paymentSaleId}/payments/${editingPaymentId}`, paymentForm);
-      else await api.post(`/sales/${paymentSaleId}/payments`, paymentForm);
+      else {
+        await api.post(`/sales/${paymentSaleId}/payments`, paymentForm);
+        // Record new payment in finance income for financial reports
+        await recordSaleIncome({
+          amount: paymentForm.payingAmount,
+          date: new Date().toISOString().slice(0, 10),
+          reference: paymentForm.reference || `SALE-${paymentSaleId}`,
+          description: `Online Order Payment - Sale #${paymentSaleId}`,
+          paymentType: paymentForm.paymentType,
+        });
+      }
       setShowPaymentFormModal(false);
       fetchData();
       const res = await api.get<SaleDto>(`/sales/${paymentSaleId}`);

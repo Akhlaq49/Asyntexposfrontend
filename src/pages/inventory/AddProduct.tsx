@@ -10,6 +10,7 @@ import {
   getUnits,
   type DropdownOption,
 } from '../../services/productService';
+import { recordPurchaseExpense } from '../../services/financeService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 
 const AddProduct: React.FC = () => {
@@ -188,6 +189,19 @@ const AddProduct: React.FC = () => {
         quantityAlert: Number(form.quantityAlert) || 0,
         images: imageFiles,
       });
+
+      // Record inventory value as a finance expense if product has quantity & price
+      const qty = Number(form.quantity) || 0;
+      const price = Number(form.price) || 0;
+      if (qty > 0 && price > 0) {
+        recordPurchaseExpense({
+          amount: qty * price,
+          date: new Date().toISOString().slice(0, 10),
+          reference: form.sku || form.productName,
+          description: `Inventory - ${form.productName} (${qty} units)`,
+        });
+      }
+
       setSuccess(true);
       setTimeout(() => navigate('/product-list'), 1500);
     } catch (err: any) {

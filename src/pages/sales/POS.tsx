@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import { getCustomers, Customer } from '../../services/customerService';
+import { recordSaleIncome } from '../../services/financeService';
 import Swal from 'sweetalert2';
 
 /* ───── types ───── */
@@ -175,6 +176,15 @@ const POS: React.FC = () => {
         payingAmount: payload.grandTotal,
         paymentType: paymentMethod,
         description: `POS ${paymentMethod} Payment`,
+      });
+
+      // Record in finance income so it appears in financial reports
+      await recordSaleIncome({
+        amount: payload.grandTotal,
+        date: new Date().toISOString().slice(0, 10),
+        reference: saleRef,
+        description: `POS Sale - ${customer ? customer.name : 'Walk in Customer'}`,
+        paymentType: paymentMethod,
       });
 
       setCart([]);
