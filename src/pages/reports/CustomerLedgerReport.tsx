@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getCustomerLedger, CustomerLedger } from '../../services/reportService';
+import { getCustomers, Customer } from '../../services/customerService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
@@ -9,15 +10,57 @@ const CustomerLedgerReport: React.FC = () => {
   const { t } = useTranslation();
   const [data, setData] = useState<CustomerLedger | null>(null);
   const [loading, setLoading] = useState(false);
-  const [customerId, setCustomerId] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [error, setError] = useState('');
 
+  // Customer search state
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    getCustomers().then(setCustomers).catch(() => setCustomers([]));
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredCustomers = searchQuery.trim().length > 0
+    ? customers.filter(c => {
+        const q = searchQuery.toLowerCase();
+        return (
+          c.name?.toLowerCase().includes(q) ||
+          c.phone?.toLowerCase().includes(q) ||
+          c.cnic?.toLowerCase().includes(q) ||
+          c.email?.toLowerCase().includes(q) ||
+          c.city?.toLowerCase().includes(q) ||
+          c.address?.toLowerCase().includes(q) ||
+          String(c.id).includes(q)
+        );
+      })
+    : [];
+
+  const handleSelectCustomer = (c: Customer) => {
+    setSelectedCustomer(c);
+    setSearchQuery(`${c.name} - ${c.phone || ''} ${c.cnic ? `- ${c.cnic}` : ''}`);
+    setShowDropdown(false);
+    setError('');
+  };
+
   const fetchData = async () => {
-    const id = parseInt(customerId);
-    if (isNaN(id) || id <= 0) { setError(t('reports.please_enter_valid_customer_id')); return; }
+    if (!selectedCustomer) { setError(t('reports.please_enter_valid_customer_id')); return; }
     setError('');
     setLoading(true);
-    try { setData(await getCustomerLedger(id)); }
+    try { setData(await getCustomerLedger(Number(selectedCustomer.id))); }
     catch (err) { console.error(err); setError(t('reports.customer_not_found')); setData(null); }
     finally { setLoading(false); }
   };
@@ -29,12 +72,41 @@ const CustomerLedgerReport: React.FC = () => {
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-3 align-items-end">
-            <div className="col-md-4">
-              <label className="form-label">{t('reports.customer_id')}</label>
-              <input type="number" className="form-control" placeholder={t('reports.enter_customer_id')} value={customerId} onChange={e => setCustomerId(e.target.value)} />
+            <div className="col-md-5" ref={dropdownRef} style={{ position: 'relative' }}>
+              <label className="form-label">{t('reports.search_customer')}</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder={t('reports.search_by_name_phone_cnic')}
+                value={searchQuery}
+                onChange={e => {
+                  setSearchQuery(e.target.value);
+                  setShowDropdown(true);
+                  if (selectedCustomer) setSelectedCustomer(null);
+                }}
+                onFocus={() => { if (searchQuery.trim()) setShowDropdown(true); }}
+              />
+              {showDropdown && filteredCustomers.length > 0 && (
+                <div className="dropdown-menu show w-100" style={{ maxHeight: 250, overflowY: 'auto', position: 'absolute', zIndex: 1050 }}>
+                  {filteredCustomers.slice(0, 50).map(c => (
+                    <button key={c.id} className="dropdown-item d-flex flex-column py-2" type="button" onClick={() => handleSelectCustomer(c)}>
+                      <span className="fw-semibold">{c.name} <small className="text-muted">#{c.id}</small></span>
+                      <small className="text-muted">
+                        {c.phone && <span className="me-3"><i className="ti ti-phone me-1"></i>{c.phone}</span>}
+                        {c.cnic && <span><i className="ti ti-id me-1"></i>{c.cnic}</span>}
+                      </small>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showDropdown && searchQuery.trim().length > 0 && filteredCustomers.length === 0 && (
+                <div className="dropdown-menu show w-100" style={{ position: 'absolute', zIndex: 1050 }}>
+                  <span className="dropdown-item text-muted">{t('common.no_results_found')}</span>
+                </div>
+              )}
             </div>
             <div className="col-md-3">
-              <button className="btn btn-primary" onClick={fetchData}>{t('reports.load_ledger')}</button>
+              <button className="btn btn-primary" onClick={fetchData} disabled={!selectedCustomer}>{t('reports.load_ledger')}</button>
             </div>
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
