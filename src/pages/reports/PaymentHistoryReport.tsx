@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import { getPaymentHistoryReport, PaymentHistoryReport as IReport } from '../../services/reportService';
+import { getCustomers, Customer } from '../../services/customerService';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
@@ -11,12 +12,43 @@ const PaymentHistoryReport: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [customerId, setCustomerId] = useState('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerSearchRef = useRef<HTMLDivElement>(null);
+
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch.trim()) return customers.slice(0, 10);
+    const q = customerSearch.toLowerCase();
+    return customers.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      (c.cnic && c.cnic.toLowerCase().includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q)) ||
+      (c.city && c.city.toLowerCase().includes(q)) ||
+      c.id.toString().includes(q)
+    ).slice(0, 10);
+  }, [customers, customerSearch]);
+
+  useEffect(() => {
+    getCustomers().then(setCustomers).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (customerSearchRef.current && !customerSearchRef.current.contains(e.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const cid = customerId ? parseInt(customerId) : undefined;
+      const cid = selectedCustomer ? parseInt(selectedCustomer.id) : undefined;
       setData(await getPaymentHistoryReport(cid, fromDate || undefined, toDate || undefined));
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -33,7 +65,47 @@ const PaymentHistoryReport: React.FC = () => {
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
               <label className="form-label">{t('reports.customer_id_optional')}</label>
-              <input type="number" className="form-control" placeholder={t('reports.all_customers')} value={customerId} onChange={e => setCustomerId(e.target.value)} />
+              <div ref={customerSearchRef} style={{ position: 'relative' }}>
+                <div className="input-group">
+                  <span className="input-group-text"><i className="ti ti-search"></i></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={t('reports.search_customer_placeholder') || 'Search by name, CNIC, phone...'}
+                    value={customerSearch}
+                    onChange={e => {
+                      setCustomerSearch(e.target.value);
+                      setShowCustomerDropdown(true);
+                      if (selectedCustomer && e.target.value !== selectedCustomer.name) {
+                        setSelectedCustomer(null);
+                      }
+                    }}
+                    onFocus={() => setShowCustomerDropdown(true)}
+                  />
+                  {selectedCustomer && (
+                    <button type="button" className="btn btn-outline-secondary" onClick={() => { setSelectedCustomer(null); setCustomerSearch(''); }}>
+                      <i className="ti ti-x"></i>
+                    </button>
+                  )}
+                </div>
+                {showCustomerDropdown && filteredCustomers.length > 0 && !selectedCustomer && (
+                  <ul className="list-group position-absolute w-100" style={{ zIndex: 1050, maxHeight: 200, overflowY: 'auto' }}>
+                    {filteredCustomers.map(c => (
+                      <li key={c.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => {
+                        setSelectedCustomer(c);
+                        setCustomerSearch(c.name);
+                        setShowCustomerDropdown(false);
+                      }}>
+                        <div>{c.name} <small className="text-muted">({c.id})</small></div>
+                        <small className="text-muted">
+                          {c.phone && <span className="me-2"><i className="ti ti-phone me-1"></i>{c.phone}</span>}
+                          {c.cnic && <span><i className="ti ti-id me-1"></i>{c.cnic}</span>}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
             <div className="col-md-3">
               <label className="form-label">{t('reports.from_date')}</label>

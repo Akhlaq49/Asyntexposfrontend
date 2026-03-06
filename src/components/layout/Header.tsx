@@ -61,33 +61,6 @@ const Header: React.FC = () => {
         {/* Header Menu */}
         <ul className="nav user-menu">
           {/* Select Store */}
-          <li className="nav-item dropdown has-arrow main-drop select-store-dropdown">
-            <a href="#" className="dropdown-toggle nav-link select-store" data-bs-toggle="dropdown">
-              <span className="user-info">
-                <span className="user-letter">
-                  <img src="/assets/img/store/store-01.png" alt="Store" className="img-fluid" />
-                </span>
-                <span className="user-detail">
-                  <span className="user-name">Freshmart</span>
-                </span>
-              </span>
-            </a>
-            <div className="dropdown-menu dropdown-menu-right">
-              <a href="#" className="dropdown-item">
-                <img src="/assets/img/store/store-01.png" alt="" className="img-fluid" />Freshmart
-              </a>
-              <a href="#" className="dropdown-item">
-                <img src="/assets/img/store/store-02.png" alt="" className="img-fluid" />Grocery Apex
-              </a>
-              <a href="#" className="dropdown-item">
-                <img src="/assets/img/store/store-03.png" alt="" className="img-fluid" />Grocery Bevy
-              </a>
-              <a href="#" className="dropdown-item">
-                <img src="/assets/img/store/store-04.png" alt="" className="img-fluid" />Grocery Eden
-              </a>
-            </div>
-          </li>
-
           {/* Add New */}
           <li className="nav-item dropdown link-nav">
             <a href="#" className="btn btn-primary btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">

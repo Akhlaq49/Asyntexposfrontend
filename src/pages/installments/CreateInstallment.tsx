@@ -984,7 +984,7 @@ const CreateInstallment: React.FC = () => {
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.tenure_months')}<span className="text-danger ms-1">*</span></label>
                     <select className="form-select" value={form.tenure} onChange={(e) => set('tenure', parseInt(e.target.value))}>
-                      {[3, 6, 9, 12, 15, 18, 24, 30, 36, 48, 60].map((m) => (
+                      {[2,3,4,5, 6,7,8, 9,10,11, 12, 15, 18, 24, 30, 36, 48, 60].map((m) => (
                         <option key={m} value={m}>{t('create_installment.months_suffix', { m })}</option>
                       ))}
                     </select>
