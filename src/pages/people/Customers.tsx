@@ -364,7 +364,7 @@ const Customers: React.FC = () => {
                         </div>
                       </td>
                       <td>{c.cnic || '-'}</td>
-                      <td>{c.phone || '-'}</td>
+                      <td>{c.phone ? <><a href={`tel:${c.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{c.phone}</> : '-'}</td>
                       <td>{c.city || '-'}</td>
                       <td>
                         <span className={`fw-medium ${(c.miscBalance || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
@@ -485,7 +485,7 @@ const Customers: React.FC = () => {
                           </span>
                         </td>
                       </tr>
-                      {viewCustomer.phone && <tr><td className="text-muted"><i className="ti ti-phone me-2"></i>{t('customers.phone')}</td><td className="text-end fw-medium">{viewCustomer.phone}</td></tr>}
+                      {viewCustomer.phone && <tr><td className="text-muted"><i className="ti ti-phone me-2"></i>{t('customers.phone')}</td><td className="text-end fw-medium"><a href={`tel:${viewCustomer.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{viewCustomer.phone}</td></tr>}
                       {viewCustomer.email && <tr><td className="text-muted"><i className="ti ti-mail me-2"></i>{t('customers.email')}</td><td className="text-end fw-medium">{viewCustomer.email}</td></tr>}
                       {viewCustomer.city && <tr><td className="text-muted"><i className="ti ti-building me-2"></i>{t('customers.city')}</td><td className="text-end fw-medium">{viewCustomer.city}</td></tr>}
                       {viewCustomer.address && <tr><td className="text-muted"><i className="ti ti-map-pin me-2"></i>{t('customers.address')}</td><td className="text-end fw-medium">{viewCustomer.address}</td></tr>}
@@ -564,7 +564,7 @@ const Customers: React.FC = () => {
                                 {g.phone && (
                                   <tr>
                                     <td className="text-muted ps-0"><i className="ti ti-phone me-1"></i>{t('customers.phone')}</td>
-                                    <td className="fw-medium pe-0">{g.phone}</td>
+                                    <td className="fw-medium pe-0"><a href={`tel:${g.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{g.phone}</td>
                                   </tr>
                                 )}
                                 {g.cnic && (

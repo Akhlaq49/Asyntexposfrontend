@@ -206,7 +206,7 @@ const PaymentHistoryReport: React.FC = () => {
                       <tr key={i}>
                         <td>{new Date(p.paidDate).toLocaleDateString()}</td>
                         <td>{p.customerName}</td>
-                        <td>{p.phone || '-'}</td>
+                        <td>{p.phone ? <><a href={`tel:${p.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{p.phone}</> : '-'}</td>
                         <td>{p.productName}</td>
                         <td>{p.installmentNo}</td>
                         <td>Rs {p.amount.toLocaleString()}</td>

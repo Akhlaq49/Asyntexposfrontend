@@ -132,7 +132,7 @@ const POS: React.FC = () => {
     () => cart.reduce((s, c) => s + c.product.price * c.qty, 0),
     [cart],
   );
-  const taxRate = 0.15;
+  const taxRate = 0;
   const taxAmount = Math.round(subTotal * taxRate);
   const grandTotal = subTotal + taxAmount;
 
@@ -146,8 +146,8 @@ const POS: React.FC = () => {
         customerId: customer ? Number(customer.id) : null,
         customerName: customer ? customer.name : 'Walk in Customer',
         biller: userName,
-        grandTotal: subTotal + Math.round(subTotal * 0.15),
-        orderTax: Math.round(subTotal * 0.15),
+        grandTotal: subTotal + Math.round(subTotal),
+        orderTax: Math.round(subTotal),
         discount: 0,
         shipping: 0,
         status: 'Completed',
@@ -159,8 +159,8 @@ const POS: React.FC = () => {
           quantity: line.qty,
           purchasePrice: line.product.price,
           discount: 0,
-          taxPercent: 15,
-          taxAmount: Math.round(line.product.price * line.qty * 0.15),
+          taxPercent: 0,
+          taxAmount: Math.round(line.product.price * line.qty),
           unitCost: line.product.price,
           totalCost: line.product.price * line.qty,
         })),
@@ -465,10 +465,7 @@ const POS: React.FC = () => {
                           <td>Sub Total</td>
                           <td className="text-end">Rs {fmt(subTotal)}</td>
                         </tr>
-                        <tr>
-                          <td>Tax (15%)</td>
-                          <td className="text-end">Rs {fmt(taxAmount)}</td>
-                        </tr>
+                       
                         <tr className="fw-bold">
                           <td>Grand Total</td>
                           <td className="text-end">Rs {fmt(grandTotal)}</td>

@@ -107,7 +107,7 @@ const LateFeeReport: React.FC = () => {
                       <tr key={i}>
                         <td>{item.planId}</td>
                         <td>{item.customerName}</td>
-                        <td>{item.phone || '-'}</td>
+                        <td>{item.phone ? <><a href={`tel:${item.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{item.phone}</> : '-'}</td>
                         <td>{item.installmentNo}</td>
                         <td>{new Date(item.dueDate).toLocaleDateString()}</td>
                         <td>{item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '-'}</td>

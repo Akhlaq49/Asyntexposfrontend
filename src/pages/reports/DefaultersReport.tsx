@@ -91,7 +91,7 @@ const DefaultersReport: React.FC = () => {
                     {data.defaulters.map((d, i) => (
                       <tr key={i}>
                         <td>{d.customerName}</td>
-                        <td>{d.phone || '-'}</td>
+                        <td>{d.phone ? <><a href={`tel:${d.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{d.phone}</> : '-'}</td>
                         <td>{d.productName}</td>
                         <td className="text-danger fw-bold">{d.missedInstallments}</td>
                         <td>Rs {d.overdueAmount.toLocaleString()}</td>

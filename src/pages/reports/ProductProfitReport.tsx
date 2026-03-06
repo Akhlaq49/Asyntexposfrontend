@@ -136,7 +136,7 @@ const ProductProfitReport: React.FC = () => {
                         <td>{i + 1}</td>
                         <td>
                           <div>{p.customerName}</div>
-                          {p.phone && <small className="text-muted">{p.phone}</small>}
+                          {p.phone && <small className="text-muted"><a href={`tel:${p.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{p.phone}</small>}
                         </td>
                         <td>
                           <div className="d-flex align-items-center gap-2">

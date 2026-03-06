@@ -279,7 +279,7 @@ const totalRemaining = useMemo(() => {
                 )}
                 <div>
                   <h6 className="fw-bold mb-1">{plan.customerName}</h6>
-                  <small className="text-muted">{plan.customerPhone}</small>
+                  <small className="text-muted">{plan.customerPhone && <a href={`tel:${plan.customerPhone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>}{plan.customerPhone}</small>
                 </div>
               </div>
               <p className="mb-0 text-muted small"><i className="ti ti-map-pin me-1"></i>{plan.customerAddress || t('installment_details.no_address')}</p>
@@ -362,7 +362,7 @@ const totalRemaining = useMemo(() => {
                         <h6 className="fw-bold mb-1">{g.name}</h6>
                         {g.so && <p className="mb-1 small text-muted">{t('create_installment.so_label')} {g.so}</p>}
                         {g.relationship && <span className="badge bg-primary-transparent text-primary me-2 mb-1">{g.relationship}</span>}
-                        {g.phone && <p className="mb-1 small"><i className="ti ti-phone me-1"></i>{g.phone}</p>}
+                        {g.phone && <p className="mb-1 small"><i className="ti ti-phone me-1"></i><a href={`tel:${g.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{g.phone}</p>}
                       </div>
                       <button className="btn btn-sm btn-outline-danger" title={t('installment_details.remove_guarantor', { name: g.name })} onClick={(e) => {
                         e.stopPropagation();
@@ -701,7 +701,7 @@ const totalRemaining = useMemo(() => {
                         <i className="ti ti-phone me-2 text-primary fs-18"></i>
                         <div>
                           <small className="text-muted d-block">{t('common.phone')}</small>
-                          <span className="fw-medium">{plan.customerPhone || t('common.n_a')}</span>
+                          <span className="fw-medium">{plan.customerPhone ? <><a href={`tel:${plan.customerPhone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{plan.customerPhone}</> : t('common.n_a')}</span>
                         </div>
                       </div>
                     </div>
@@ -752,7 +752,7 @@ const totalRemaining = useMemo(() => {
                         <i className="ti ti-phone me-2 text-primary fs-18"></i>
                         <div>
                           <small className="text-muted d-block">{t('common.phone')}</small>
-                          <span className="fw-medium">{selectedGuarantor.phone || t('common.n_a')}</span>
+                          <span className="fw-medium">{selectedGuarantor.phone ? <><a href={`tel:${selectedGuarantor.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{selectedGuarantor.phone}</> : t('common.n_a')}</span>
                         </div>
                       </div>
                     </div>

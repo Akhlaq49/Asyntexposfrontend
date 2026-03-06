@@ -130,7 +130,7 @@ const OutstandingBalanceReport: React.FC = () => {
                     {data.customers.map((c, i) => (
                       <tr key={i}>
                         <td>{c.customerName}</td>
-                        <td>{c.phone || '-'}</td>
+                        <td>{c.phone ? <><a href={`tel:${c.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{c.phone}</> : '-'}</td>
                         <td>{c.productName}</td>
                         <td>Rs {c.remainingBalance.toLocaleString()}</td>
                         <td className={c.overdueAmount > 0 ? 'text-danger fw-bold' : ''}>Rs {c.overdueAmount.toLocaleString()}</td>

@@ -95,7 +95,7 @@ const DueTodayReport: React.FC = () => {
                       <tr key={i}>
                         <td>{item.planId}</td>
                         <td className="fw-bold">{item.customerName}</td>
-                        <td>{item.phone || '-'}</td>
+                        <td>{item.phone ? <><a href={`tel:${item.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{item.phone}</> : '-'}</td>
                         <td>{item.address || '-'}</td>
                         <td>{item.productName}</td>
                         <td>{item.installmentNo}</td>

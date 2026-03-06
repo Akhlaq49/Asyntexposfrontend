@@ -253,7 +253,7 @@ const InstallmentPlans: React.FC = () => {
                           )}
                           <div>
                             <span className="text-gray-9 fw-medium">{plan.customerName}</span>
-                            <br /><small className="text-muted">{plan.customerPhone}</small>
+                            <br /><small className="text-muted">{plan.customerPhone && <a href={`tel:${plan.customerPhone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>}{plan.customerPhone}</small>
                           </div>
                         </div>
                       </td>
