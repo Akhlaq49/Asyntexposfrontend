@@ -28,7 +28,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   const totalPaid =
     plan.schedule
       .filter((e) => e.status === 'paid' || e.status === 'partial')
-      .reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0) + plan.downPayment;
+      .reduce((s, e) => s + (e.status === 'paid' ? (e.emiAmount || 0) : (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0)), 0) + plan.downPayment;
 
   const totalRemaining = plan.totalPayable - totalPaid;
 
@@ -101,7 +101,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   const buildMessage = () => {
     const totalPaidAmt = plan.schedule
       .filter((e) => e.status === 'paid' || e.status === 'partial')
-      .reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0) + plan.downPayment;
+      .reduce((s, e) => s + (e.status === 'paid' ? (e.emiAmount || 0) : (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0)), 0) + plan.downPayment;
     const outstanding = plan.totalPayable - totalPaidAmt;
     return `📋 *${t('pdf.full_repayment_plan')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${t('pdf.total_payable')}: Rs ${fmt(plan.totalPayable)}\n✅ ${t('pdf.paid')}: Rs ${fmt(totalPaidAmt)}\n⏳ ${t('pdf.outstanding')}: Rs ${fmt(outstanding > 0 ? outstanding : 0)}\n📅 ${t('pdf.tenure')}: ${plan.tenure} ${t('pdf.months')} (${plan.paidInstallments}/${plan.tenure} ${t('pdf.paid')})`;
   };
@@ -312,7 +312,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                         <td style={sTd}>{plan.startDate}</td>
                       </tr>
                       {plan.schedule.map((e) => {
-                        const paidAmt = (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0);
+                        const paidAmt = e.status === 'paid' ? (e.emiAmount || 0) : (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0);
                         const bgColor = e.status === 'overdue' ? '#fff5f5' : e.status === 'due' ? '#fffbe6' : e.status === 'partial' ? '#e8f8fd' : 'transparent';
                         return (
                           <tr key={e.installmentNo} style={{ background: bgColor }}>
@@ -321,6 +321,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                             <td style={{ ...sTd, fontWeight: 600 }}>Rs {fmt2(e.emiAmount)}</td>
                             <td style={{ ...sTd, color: paidAmt > 0 ? '#28a745' : '#999', fontWeight: paidAmt > 0 ? 700 : 400 }}>
                               {paidAmt > 0 ? `Rs ${fmt2(paidAmt)}` : '—'}
+                              {e.status === 'paid' && e.actualPaidAmount != null && e.actualPaidAmount > e.emiAmount && <div style={{ fontSize: 9, color: '#e68a00', marginTop: 2 }}>Paid: Rs {fmt2(e.actualPaidAmount)} — Distributed in future rentals</div>}
                             </td>
                             <td style={sTd}>Rs {fmt2(e.balance)}</td>
                             <td style={sTd}>
@@ -337,7 +338,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                       <tr style={{ background: '#f5f5f5', fontWeight: 700 }}>
                         <td style={{ ...sTd, fontWeight: 700 }} colSpan={2}>{t('pdf.total')}</td>
                         <td style={{ ...sTd, fontWeight: 700 }}>Rs {fmt2(plan.schedule.reduce((s, e) => s + e.emiAmount, 0))}</td>
-                        <td style={{ ...sTd, fontWeight: 700, color: '#28a745' }}>Rs {fmt2(plan.schedule.filter(e => e.status === 'paid' || e.status === 'partial').reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0))}</td>
+                        <td style={{ ...sTd, fontWeight: 700, color: '#28a745' }}>Rs {fmt2(plan.schedule.filter(e => e.status === 'paid' || e.status === 'partial').reduce((s, e) => s + (e.status === 'paid' ? (e.emiAmount || 0) : (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0)), 0))}</td>
                         <td style={sTd} colSpan={3}></td>
                       </tr>
                     </tfoot>

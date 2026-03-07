@@ -31,7 +31,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
   const totalDeposited =
     plan.schedule
       .filter((e) => e.status === 'paid' || e.status === 'partial')
-      .reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0) + plan.downPayment;
+      .reduce((s, e) => s + (e.status === 'paid' ? (e.emiAmount || 0) : (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0)), 0) + plan.downPayment;
 
   const totalAmount = plan.totalPayable;
   const totalRemaining = totalAmount - totalDeposited;

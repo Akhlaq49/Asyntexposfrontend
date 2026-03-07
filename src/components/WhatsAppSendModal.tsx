@@ -348,7 +348,7 @@ const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
                             <td style={{ padding: '5px 8px', textAlign: 'center', border: '1px solid #dee2e6' }}>{entry.installmentNo}</td>
                             <td style={{ padding: '5px 8px', border: '1px solid #dee2e6' }}>{entry.dueDate}</td>
                             <td style={{ padding: '5px 8px', textAlign: 'right', border: '1px solid #dee2e6' }}>Rs {fmtPdf(entry.emiAmount)}</td>
-                            <td style={{ padding: '5px 8px', textAlign: 'right', border: '1px solid #dee2e6' }}>{entry.actualPaidAmount != null ? `Rs ${fmtPdf(entry.actualPaidAmount)}` : '-'}</td>
+                            <td style={{ padding: '5px 8px', textAlign: 'right', border: '1px solid #dee2e6' }}>{entry.status === 'paid' ? `Rs ${fmtPdf(entry.emiAmount)}` : entry.actualPaidAmount != null ? `Rs ${fmtPdf(entry.actualPaidAmount)}` : '-'}{entry.status === 'paid' && entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount && <div style={{ fontSize: 9, color: '#e68a00' }}>Paid: Rs {fmtPdf(entry.actualPaidAmount)} — Distributed</div>}</td>
                             <td style={{ padding: '5px 8px', border: '1px solid #dee2e6' }}>{entry.paidDate || '-'}</td>
                             <td style={{ padding: '5px 8px', textAlign: 'center', border: '1px solid #dee2e6', color: statusColor[entry.status] || '#333', fontWeight: 600, textTransform: 'capitalize' }}>{entry.status}</td>
                           </tr>
@@ -359,7 +359,7 @@ const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
                       <tr style={{ backgroundColor: '#e9ecef', fontWeight: 700 }}>
                         <td colSpan={2} style={{ padding: '6px 8px', border: '1px solid #dee2e6' }}>Total</td>
                         <td style={{ padding: '6px 8px', textAlign: 'right', border: '1px solid #dee2e6' }}>Rs {fmtPdf(planData.schedule.reduce((s, e) => s + e.emiAmount, 0))}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', border: '1px solid #dee2e6' }}>Rs {fmtPdf(planData.schedule.reduce((s, e) => s + (e.actualPaidAmount || 0), 0))}</td>
+                        <td style={{ padding: '6px 8px', textAlign: 'right', border: '1px solid #dee2e6' }}>Rs {fmtPdf(planData.schedule.reduce((s, e) => s + (e.status === 'paid' ? e.emiAmount : (e.actualPaidAmount || 0)), 0))}</td>
                         <td colSpan={2} style={{ padding: '6px 8px', border: '1px solid #dee2e6' }}></td>
                       </tr>
                     </tfoot>

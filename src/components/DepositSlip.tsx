@@ -32,7 +32,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
     const partialDeposit =
     plan.schedule
       .filter((e) => e.status === 'partial')
-      .reduce((s, e) => s + (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0), 0);
+      .reduce((s, e) => s + (e.status === 'paid' ? (e.emiAmount || 0) : (e.actualPaidAmount || 0) + (e.miscAdjustedAmount || 0)), 0);
 
   const totalAmount = plan.totalPayable;
   const remaining = totalAmount - (totalDeposited + partialDeposit);
@@ -125,7 +125,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
   };
 
   const buildMessage = () => {
-    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt((entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}`;
+    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt(entry.status === 'paid' ? (entry.emiAmount || 0) : (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}${entry.status === 'paid' && entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount ? ` (Paid: Rs ${fmt(entry.actualPaidAmount)} — Distributed in future rentals)` : ''}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}`;
   };
 
   const handleShareWhatsApp = async () => {

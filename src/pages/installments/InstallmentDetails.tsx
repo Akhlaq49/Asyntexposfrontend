@@ -61,7 +61,7 @@ const InstallmentDetails: React.FC = () => {
   if (!plan) return 0;
 
   return (plan.schedule ?? [])
-    .reduce((sum, e) => sum + (e.actualPaidAmount ?? 0), 0)
+    .reduce((sum, e) => sum + (e.status === 'paid' ? (e.emiAmount ?? 0) : (e.actualPaidAmount ?? 0)), 0)
     + (plan.downPayment ?? 0);
 
 }, [plan?.schedule, plan?.downPayment]);
@@ -214,7 +214,7 @@ const totalRemaining = useMemo(() => {
             plan.schedule.forEach(e => {
               const statusIcon: Record<string, string> = { paid: '✅', partial: '🟠', due: '🟡', overdue: '🔴', upcoming: '⚪' };
               const icon = statusIcon[e.status] || '⚪';
-              const paid = e.actualPaidAmount != null && e.actualPaidAmount > 0 ? ` (Paid: Rs ${fmt(e.actualPaidAmount)})` : '';
+              const paid = e.status === 'paid' ? ` (Paid: Rs ${fmt(e.emiAmount)})` : (e.actualPaidAmount != null && e.actualPaidAmount > 0 ? ` (Paid: Rs ${fmt(e.actualPaidAmount)})` : '');
               lines.push(`${icon} #${e.installmentNo} | ${e.dueDate} | Rs ${fmt(e.emiAmount)} | ${e.status.toUpperCase()}${paid}`);
             });
             lines.push(`━━━━━━━━━━━━━━━━━━━━━`);
@@ -424,7 +424,9 @@ const totalRemaining = useMemo(() => {
                         <td>{entry.dueDate}</td>
                         <td className="fw-medium">Rs {fmt(entry.emiAmount)}</td>
                         <td className={entry.status === 'partial' ? 'text-info fw-medium' : entry.status === 'paid' ? 'text-success fw-medium' : ''}>
-                          {entry.actualPaidAmount != null && entry.actualPaidAmount > 0 
+                          {entry.status === 'paid'
+                            ? <>Rs {fmt(entry.emiAmount)}{entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount && <small className="text-warning d-block"><i className="ti ti-arrows-split me-1"></i>Paid: Rs {fmt(entry.actualPaidAmount)} — {t('installment_details.distributed_future', 'Distributed in future rentals')}</small>}</>
+                            : entry.actualPaidAmount != null && entry.actualPaidAmount > 0 
                             ? <>Rs {fmt(entry.actualPaidAmount)}{entry.status === 'partial' && <small className="text-muted d-block">/ Rs {fmt(entry.emiAmount)}</small>}</>
                             : entry.miscAdjustedAmount != null && entry.miscAdjustedAmount > 0 
                               ? <small className="text-muted">{t('installment_details.misc_only')}</small>
@@ -477,7 +479,7 @@ const totalRemaining = useMemo(() => {
                       <td colSpan={2}>{t('common.total')}</td>
                       <td>Rs {fmt(plan.schedule.reduce((s, e) => s + e.emiAmount, 0))}</td>
                       <td className="text-success">
-                        Rs {fmt(plan.schedule.reduce((s, e) => s + (e.actualPaidAmount || 0), 0))}
+                        Rs {fmt(plan.schedule.reduce((s, e) => s + (e.status === 'paid' ? e.emiAmount : (e.actualPaidAmount || 0)), 0))}
                       </td>
                       <td>Rs {fmt(plan.schedule.reduce((s, e) => s + e.principal, 0))}</td>
                       <td className="text-danger">Rs {fmt(plan.schedule.reduce((s, e) => s + e.interest, 0))}</td>
@@ -834,7 +836,7 @@ const totalRemaining = useMemo(() => {
               dueDate: e.dueDate,
               emiAmount: e.emiAmount,
               status: e.status,
-              actualPaidAmount: e.actualPaidAmount,
+              actualPaidAmount: e.status === 'paid' ? e.emiAmount : e.actualPaidAmount,
               paidDate: e.paidDate,
             })),
             guarantors: plan.guarantors?.map(g => ({ name: g.name, phone: g.phone })),

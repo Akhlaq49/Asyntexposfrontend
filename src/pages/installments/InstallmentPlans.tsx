@@ -91,7 +91,7 @@ const InstallmentPlans: React.FC = () => {
     p.schedule.forEach(e => {
       const statusIcon: Record<string, string> = { paid: '✅', partial: '🟠', due: '🟡', overdue: '🔴', upcoming: '⚪' };
       const icon = statusIcon[e.status] || '⚪';
-      const paid = e.actualPaidAmount != null && e.actualPaidAmount > 0 ? ` (Paid: Rs ${fmt(e.actualPaidAmount)})` : '';
+      const paid = e.status === 'paid' ? ` (Paid: Rs ${fmt(e.emiAmount)})` : (e.actualPaidAmount != null && e.actualPaidAmount > 0 ? ` (Paid: Rs ${fmt(e.actualPaidAmount)})` : '');
       lines.push(`${icon} #${e.installmentNo} | ${e.dueDate} | Rs ${fmt(e.emiAmount)} | ${e.status.toUpperCase()}${paid}`);
     });
     lines.push(`━━━━━━━━━━━━━━━━━━━━━`);
@@ -345,7 +345,7 @@ const InstallmentPlans: React.FC = () => {
             dueDate: e.dueDate,
             emiAmount: e.emiAmount,
             status: e.status,
-            actualPaidAmount: e.actualPaidAmount,
+            actualPaidAmount: e.status === 'paid' ? e.emiAmount : e.actualPaidAmount,
             paidDate: e.paidDate,
           })),
           guarantors: whatsappPlan.guarantors?.map(g => ({ name: g.name, phone: g.phone })),
