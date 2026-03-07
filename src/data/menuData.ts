@@ -359,6 +359,7 @@ const menuData: MenuSection[] = [
         children: [
           { title: 'Customer Report', path: '/customer-report' },
           { title: 'Customer Due Report', path: '/customer-due-report' },
+          { title: 'DPD Report', path: '/dpd-report' },
         ],
       },
       {

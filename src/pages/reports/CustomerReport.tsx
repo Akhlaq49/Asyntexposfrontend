@@ -38,6 +38,7 @@ const CustomerReport: React.FC = () => {
       <ul className="nav nav-pills mb-3">
         <li className="nav-item"><Link className="nav-link active" to="/customer-report">{t('reports.customer_report')}</Link></li>
         <li className="nav-item"><Link className="nav-link" to="/customer-due-report">{t('reports.customer_due_report')}</Link></li>
+        <li className="nav-item"><Link className="nav-link" to="/dpd-report">DPD Report</Link></li>
       </ul>
 
       <div className="card">

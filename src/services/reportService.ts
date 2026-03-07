@@ -519,3 +519,44 @@ export const getProfitAndLoss = (from?: string, to?: string) =>
 
 export const getAnnualReport = (year?: number) =>
   api.get<AnnualReportDto>('/reports/annual-report', { params: year ? { year } : {} }).then(r => r.data);
+
+
+// ═══════════════════════════════════════
+// DPD (Days Past Due) Report
+// ═══════════════════════════════════════
+
+export interface DpdOrderItem {
+  saleId: number;
+  reference: string;
+  grandTotal: number;
+  paid: number;
+  due: number;
+  saleDate: string;
+  expectedDate?: string;
+  dpd: number;
+  paymentStatus: string;
+}
+
+export interface DpdCustomerItem {
+  customerId: number;
+  customerName: string;
+  phone?: string;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  totalOrders: number;
+  overdueOrders: number;
+  maxDpd: number;
+  orders: DpdOrderItem[];
+}
+
+export interface DpdReport {
+  totalDueAmount: number;
+  totalCustomers: number;
+  totalOverdueOrders: number;
+  totalOverdueAmount: number;
+  customers: DpdCustomerItem[];
+}
+
+export const getDpdReport = () =>
+  api.get<DpdReport>('/reports/dpd-report').then(r => r.data);

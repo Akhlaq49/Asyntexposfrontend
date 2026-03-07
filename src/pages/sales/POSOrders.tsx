@@ -18,6 +18,7 @@ interface SaleDto {
   customerImage: string | null; biller: string; grandTotal: number; paid: number;
   due: number; orderTax: number; discount: number; shipping: number;
   status: string; paymentStatus: string; notes: string | null; saleDate: string;
+  expectedDate: string | null;
   items: SaleItemDto[]; payments: SalePaymentDto[];
 }
 interface CustomerResult { id: number; name: string; phone?: string; }
@@ -77,7 +78,7 @@ const POSOrders: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     customerId: null as number | null, customerName: '', customerImage: '',
-    biller: 'Admin', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, notes: ''
+    biller: 'Admin', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, notes: '', expectedDate: ''
   });
   const [items, setItems] = useState<LocalItem[]>([]);
   const [productSearchTerm, setProductSearchTerm] = useState('');
@@ -190,7 +191,7 @@ const POSOrders: React.FC = () => {
   /* ---- Open add/edit modal ---- */
   const openAddModal = () => {
     setEditingId(null);
-    setForm({ customerId: null, customerName: '', customerImage: '', biller: 'Admin', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, notes: '' });
+    setForm({ customerId: null, customerName: '', customerImage: '', biller: 'Admin', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, notes: '', expectedDate: '' });
     setItems([]);
     setCustomerSearchTerm('');
     setProductSearchTerm('');
@@ -201,7 +202,7 @@ const POSOrders: React.FC = () => {
     setEditingId(sale.id);
     setForm({
       customerId: sale.customerId, customerName: sale.customerName, customerImage: sale.customerImage || '',
-      biller: sale.biller, status: sale.status, orderTax: sale.orderTax, discount: sale.discount, shipping: sale.shipping, notes: sale.notes || ''
+      biller: sale.biller, status: sale.status, orderTax: sale.orderTax, discount: sale.discount, shipping: sale.shipping, notes: sale.notes || '', expectedDate: sale.expectedDate || ''
     });
     setItems(sale.items.map((i) => ({
       productId: i.productId, productName: i.productName, quantity: i.quantity,
@@ -219,6 +220,7 @@ const POSOrders: React.FC = () => {
       customerId: form.customerId, customerName: form.customerName, customerImage: form.customerImage || null,
       biller: form.biller, grandTotal, orderTax: form.orderTax, discount: form.discount,
       shipping: form.shipping, status: form.status, notes: form.notes || null,
+      expectedDate: form.expectedDate || null,
       source: 'pos',
       items: items.map((i) => ({
         productId: i.productId, productName: i.productName, quantity: i.quantity,
@@ -369,6 +371,7 @@ const POSOrders: React.FC = () => {
                     <th>{t('common.customer')}</th>
                     <th>{t('common.reference')}</th>
                     <th>{t('common.date')}</th>
+                    <th>Expected Date</th>
                     <th>{t('common.status')}</th>
                     <th>{t('common.grand_total')}</th>
                     <th>{t('common.paid')}</th>
@@ -380,7 +383,7 @@ const POSOrders: React.FC = () => {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={11} className="text-center py-4">{t('sales.no_orders')}</td></tr>
+                    <tr><td colSpan={12} className="text-center py-4">{t('sales.no_orders')}</td></tr>
                   ) : filtered.map((s) => (
                     <tr key={s.id}>
                       <td>
@@ -396,6 +399,7 @@ const POSOrders: React.FC = () => {
                       </td>
                       <td>{s.reference}</td>
                       <td>{s.saleDate}</td>
+                      <td>{s.expectedDate || '—'}</td>
                       <td><span className={`badge ${statusBadge(s.status)}`}>{s.status}</span></td>
                       <td>{fmt(s.grandTotal)}</td>
                       <td>{fmt(s.paid)}</td>
@@ -570,6 +574,12 @@ const POSOrders: React.FC = () => {
                         <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                           {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
+                      </div>
+                    </div>
+                    <div className="col-lg-3 col-sm-6 col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Expected Date</label>
+                        <input type="date" className="form-control" value={form.expectedDate} onChange={(e) => setForm({ ...form, expectedDate: e.target.value })} />
                       </div>
                     </div>
                     {editingId && (

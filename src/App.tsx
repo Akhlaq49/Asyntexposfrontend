@@ -110,6 +110,7 @@ const SupplierReport = lazy(() => import('./pages/reports/SupplierReport'))
 const SupplierDueReport = lazy(() => import('./pages/reports/SupplierDueReport'))
 const CustomerReport = lazy(() => import('./pages/reports/CustomerReport'))
 const CustomerDueReport = lazy(() => import('./pages/reports/CustomerDueReport'))
+const DpdReport = lazy(() => import('./pages/reports/DpdReport'))
 const ProductReport = lazy(() => import('./pages/reports/ProductReport'))
 const ProductExpiryReport = lazy(() => import('./pages/reports/ProductExpiryReport'))
 const ProductQuantityAlert = lazy(() => import('./pages/reports/ProductQuantityAlert'))
@@ -446,6 +447,7 @@ function App() {
           <Route path="/supplier-due-report" element={<SupplierDueReport />} />
           <Route path="/customer-report" element={<CustomerReport />} />
           <Route path="/customer-due-report" element={<CustomerDueReport />} />
+          <Route path="/dpd-report" element={<DpdReport />} />
           <Route path="/product-report" element={<ProductReport />} />
           <Route path="/product-expiry-report" element={<ProductExpiryReport />} />
           <Route path="/product-quantity-alert" element={<ProductQuantityAlert />} />

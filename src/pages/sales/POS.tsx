@@ -41,6 +41,7 @@ const POS: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card'>('Cash');
   const [submitting, setSubmitting] = useState(false);
+  const [expectedDate, setExpectedDate] = useState('');
 
   /* clock */
   const [clock, setClock] = useState('');
@@ -100,9 +101,17 @@ const POS: React.FC = () => {
 
   /* cart helpers */
   const addToCart = useCallback((p: ProductItem) => {
+    if (p.quantity <= 0) {
+      Swal.fire({ icon: 'warning', title: 'Out of Stock', text: `${p.productName} is out of stock.`, timer: 2000, showConfirmButton: false });
+      return;
+    }
     setCart((prev) => {
       const idx = prev.findIndex((c) => c.product.id === p.id);
       if (idx >= 0) {
+        if (prev[idx].qty >= p.quantity) {
+          Swal.fire({ icon: 'warning', title: 'Stock Limit', text: `Only ${p.quantity} units available for ${p.productName}.`, timer: 2000, showConfirmButton: false });
+          return prev;
+        }
         const next = [...prev];
         next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
         return next;
@@ -120,7 +129,12 @@ const POS: React.FC = () => {
       prev.map((c) => {
         if (c.product.id !== productId) return c;
         const next = c.qty + delta;
-        return next < 1 ? c : { ...c, qty: next };
+        if (next < 1) return c;
+        if (next > c.product.quantity) {
+          Swal.fire({ icon: 'warning', title: 'Stock Limit', text: `Only ${c.product.quantity} units available for ${c.product.productName}.`, timer: 2000, showConfirmButton: false });
+          return c;
+        }
+        return { ...c, qty: next };
       }),
     );
   }, []);
@@ -146,13 +160,14 @@ const POS: React.FC = () => {
         customerId: customer ? Number(customer.id) : null,
         customerName: customer ? customer.name : 'Walk in Customer',
         biller: userName,
-        grandTotal: subTotal + Math.round(subTotal),
-        orderTax: Math.round(subTotal),
+        grandTotal: grandTotal,
+        orderTax: taxAmount,
         discount: 0,
         shipping: 0,
-        status: 'Completed',
+        status: expectedDate ? 'Pending' : 'Completed',
         notes: '',
         source: 'pos',
+        expectedDate: expectedDate || null,
         items: cart.map(line => ({
           productId: Number(line.product.id),
           productName: line.product.productName,
@@ -160,7 +175,7 @@ const POS: React.FC = () => {
           purchasePrice: line.product.price,
           discount: 0,
           taxPercent: 0,
-          taxAmount: Math.round(line.product.price * line.qty),
+          taxAmount: 0,
           unitCost: line.product.price,
           totalCost: line.product.price * line.qty,
         })),
@@ -169,33 +184,43 @@ const POS: React.FC = () => {
       const saleId = (res.data as any).id;
       const saleRef = (res.data as any).reference;
 
-      // Auto-create payment (full paid)
-      await api.post(`/sales/${saleId}/payments`, {
-        reference: `PAY-${saleRef}`,
-        receivedAmount: payload.grandTotal,
-        payingAmount: payload.grandTotal,
-        paymentType: paymentMethod,
-        description: `POS ${paymentMethod} Payment`,
-      });
+      // Only auto-create payment when there's no expected date (immediate sale)
+      if (!expectedDate) {
+        await api.post(`/sales/${saleId}/payments`, {
+          reference: `PAY-${saleRef}`,
+          receivedAmount: payload.grandTotal,
+          payingAmount: payload.grandTotal,
+          paymentType: paymentMethod,
+          description: `POS ${paymentMethod} Payment`,
+        });
 
-      // Record in finance income so it appears in financial reports
-      await recordSaleIncome({
-        amount: payload.grandTotal,
-        date: new Date().toISOString().slice(0, 10),
-        reference: saleRef,
-        description: `POS Sale - ${customer ? customer.name : 'Walk in Customer'}`,
-        paymentType: paymentMethod,
-      });
+        // Record in finance income so it appears in financial reports
+        await recordSaleIncome({
+          amount: payload.grandTotal,
+          date: new Date().toISOString().slice(0, 10),
+          reference: saleRef,
+          description: `POS Sale - ${customer ? customer.name : 'Walk in Customer'}`,
+          paymentType: paymentMethod,
+        });
+      }
 
+      // Update local product stock after successful sale
+      setProducts((prev) =>
+        prev.map((p) => {
+          const sold = cart.find((c) => c.product.id === p.id);
+          return sold ? { ...p, quantity: Math.max(0, p.quantity - sold.qty) } : p;
+        }),
+      );
       setCart([]);
       setSelectedCustomer('');
-      Swal.fire({ icon: 'success', title: 'Sale Completed!', text: `Reference: ${saleRef}`, timer: 2000, showConfirmButton: false });
+      setExpectedDate('');
+      Swal.fire({ icon: 'success', title: expectedDate ? 'Order Created!' : 'Sale Completed!', text: `Reference: ${saleRef}`, timer: 2000, showConfirmButton: false });
     } catch (err: any) {
       Swal.fire({ icon: 'error', title: 'Error', text: err?.response?.data?.message || 'Failed to process sale' });
     } finally {
       setSubmitting(false);
     }
-  }, [cart, submitting, customers, selectedCustomer, userName, subTotal, paymentMethod]);
+  }, [cart, submitting, customers, selectedCustomer, userName, subTotal, paymentMethod, expectedDate]);
 
   /* ───── render ───── */
   if (loading)
@@ -302,10 +327,13 @@ const POS: React.FC = () => {
                         className="col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl"
                       >
                         <div
-                          className={`product-info card${inCart ? ' active' : ''}`}
-                          style={{ cursor: 'pointer' }}
+                          className={`product-info card${inCart ? ' active' : ''}${p.quantity <= 0 ? ' opacity-50' : ''}`}
+                          style={{ cursor: p.quantity <= 0 ? 'not-allowed' : 'pointer', position: 'relative' }}
                           onClick={() => addToCart(p)}
                         >
+                          {p.quantity <= 0 && (
+                            <span className="badge bg-danger position-absolute top-0 end-0 m-1" style={{ zIndex: 1 }}>Out of Stock</span>
+                          )}
                           <span className="product-image d-block">
                             <img
                               src={mediaUrl(p.images?.[0])}
@@ -324,7 +352,7 @@ const POS: React.FC = () => {
                               <h6 className="text-teal fs-14 fw-bold">
                                 Rs {fmt(p.price)}
                               </h6>
-                              <p className="text-pink mb-0">{p.quantity} Pcs</p>
+                              <p className={`mb-0 ${p.quantity <= 0 ? 'text-danger fw-bold' : 'text-pink'}`}>{p.quantity} Pcs</p>
                             </div>
                           </div>
                         </div>
@@ -356,6 +384,15 @@ const POS: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <div className="mt-2">
+                  <label className="form-label mb-1 fs-12">Expected Date (leave empty for immediate payment)</label>
+                  <input
+                    type="date"
+                    className="form-control form-control-sm"
+                    value={expectedDate}
+                    onChange={(e) => setExpectedDate(e.target.value)}
+                  />
+                </div>
               </div>
 
               {/* Order items */}
@@ -543,7 +580,7 @@ const POS: React.FC = () => {
                     {submitting ? (
                       <span className="spinner-border spinner-border-sm me-2" />
                     ) : null}
-                    Pay : Rs {fmt(grandTotal)}
+                    {expectedDate ? `Order : Rs ${fmt(grandTotal)}` : `Pay : Rs ${fmt(grandTotal)}`}
                   </button>
                 </div>
               </div>
