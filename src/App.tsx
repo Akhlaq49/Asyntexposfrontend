@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
+import DashboardRedirect from './components/auth/DashboardRedirect'
 
 // Dashboard
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -155,6 +156,7 @@ const Users = lazy(() => import('./pages/users/Users'))
 const RolesPermissions = lazy(() => import('./pages/users/RolesPermissions'))
 const Permissions = lazy(() => import('./pages/users/Permissions'))
 const DeleteAccount = lazy(() => import('./pages/users/DeleteAccount'))
+const TenantMenuConfig = lazy(() => import('./pages/settings/TenantMenuConfig'))
 
 // Settings
 const GeneralSettings = lazy(() => import('./pages/settings/GeneralSettings'))
@@ -336,7 +338,7 @@ function App() {
     <Suspense fallback={<Loading />}>
       <Layout>
         <Routes>
-          <Route path="/" element={<Navigate to="/admin-dashboard-2" replace />} />
+          <Route path="/" element={<DashboardRedirect />} />
           
           {/* Dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
@@ -490,6 +492,7 @@ function App() {
           {/* User Management */}
           <Route path="/users" element={<Users />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
+          <Route path="/tenant-menu-config" element={<TenantMenuConfig />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/delete-account" element={<DeleteAccount />} />
 

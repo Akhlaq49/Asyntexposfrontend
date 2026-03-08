@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { rolePermissionService } from '../../services/rolePermissionService';
 import { getMenuKeysBySection } from '../../utils/menuKeys';
+import { usePermissions } from '../../context/PermissionContext';
 
 const ROLES = ['Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
 
@@ -9,10 +10,22 @@ const allSections = getMenuKeysBySection();
 
 const RolesPermissions: React.FC = () => {
   const { t } = useTranslation();
+  const { tenantHiddenKeys } = usePermissions();
   const [selectedRole, setSelectedRole] = useState('');
   const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Filter sections to only show menus visible for this tenant
+  const visibleSections = useMemo(() => {
+    if (!tenantHiddenKeys || tenantHiddenKeys.size === 0) return allSections;
+    return allSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => !tenantHiddenKeys.has(item.key)),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [tenantHiddenKeys]);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
   // Load permissions when role changes
@@ -62,7 +75,7 @@ const RolesPermissions: React.FC = () => {
   // Check / uncheck all
   const toggleAll = (checked: boolean) => {
     if (checked) {
-      const allKeys = allSections.flatMap((s) => s.items.map((i) => i.key));
+      const allKeys = visibleSections.flatMap((s) => s.items.map((i) => i.key));
       setCheckedKeys(new Set(allKeys));
     } else {
       setCheckedKeys(new Set());
@@ -84,7 +97,7 @@ const RolesPermissions: React.FC = () => {
     }
   };
 
-  const totalItems = allSections.reduce((sum, s) => sum + s.items.length, 0);
+  const totalItems = visibleSections.reduce((sum, s) => sum + s.items.length, 0);
   const allChecked = checkedKeys.size === totalItems && totalItems > 0;
 
   return (
@@ -184,7 +197,7 @@ const RolesPermissions: React.FC = () => {
 
           {/* Permission Sections */}
           <div className="row">
-            {allSections.map((section) => {
+            {visibleSections.map((section) => {
               const sectionAllChecked = section.items.every((i) => checkedKeys.has(i.key));
               const sectionSomeChecked = section.items.some((i) => checkedKeys.has(i.key));
 

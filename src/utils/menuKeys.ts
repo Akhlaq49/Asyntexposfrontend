@@ -73,15 +73,20 @@ export function buildPathToKeyMap(): Record<string, string> {
  * Given a set of allowed menu keys, filter menuData sections.
  * Returns a new array of sections with only allowed top-level items.
  * If allowedKeys includes "*", returns everything (Admin).
+ * tenantHiddenKeys: optional set of menu keys hidden for the tenant.
  */
-export function filterMenuDataByKeys(allowedKeys: Set<string>): MenuSection[] {
-  if (allowedKeys.has('*')) return menuData;
+export function filterMenuDataByKeys(allowedKeys: Set<string>, tenantHiddenKeys?: Set<string>): MenuSection[] {
+  const isAdmin = allowedKeys.has('*');
 
   return menuData
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
         const key = `${section.header}/${item.title}`;
+        // If hidden for tenant, don't show (even for admin)
+        if (tenantHiddenKeys && tenantHiddenKeys.size > 0 && tenantHiddenKeys.has(key)) return false;
+        // If admin (and not tenant-hidden), show everything
+        if (isAdmin) return true;
         return allowedKeys.has(key);
       }),
     }))

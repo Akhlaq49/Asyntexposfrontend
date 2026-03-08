@@ -35,8 +35,8 @@ const menuData: MenuSection[] = [
         icon: 'ti-layout-grid',
         iconType: 'tabler',
         children: [
-          // { title: 'Admin Dashboard', path: '/admin-dashboard' },
-          { title: 'Admin Dashboard', path: '/admin-dashboard-2' },
+          { title: 'Admin Dashboard', path: '/admin-dashboard' },
+          { title: 'Admin Dashboard 2', path: '/admin-dashboard-2' },
           // { title: 'Sales Dashboard', path: '/sales-dashboard' },
         ],
       },
@@ -420,6 +420,7 @@ const menuData: MenuSection[] = [
     items: [
       { title: 'Users', icon: 'ti-shield-up', iconType: 'tabler', path: '/users' },
       { title: 'Roles & Permissions', icon: 'ti-jump-rope', iconType: 'tabler', path: '/roles-permissions' },
+      { title: 'Menu Configuration', icon: 'ti-layout-list', iconType: 'tabler', path: '/tenant-menu-config' },
       { title: 'Delete Account Request', icon: 'ti-trash-x', iconType: 'tabler', path: '/delete-account' },
     ],
   },

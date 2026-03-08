@@ -20,10 +20,10 @@ const Sidebar: React.FC = () => {
   const { t } = useTranslation();
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const { allowedKeys, isLoading: permLoading } = usePermissions();
+  const { allowedKeys, tenantHiddenKeys, isLoading: permLoading } = usePermissions();
 
   // ── Permission-filtered menu data ──
-  const permittedMenuData = useMemo(() => filterMenuDataByKeys(allowedKeys), [allowedKeys]);
+  const permittedMenuData = useMemo(() => filterMenuDataByKeys(allowedKeys, tenantHiddenKeys), [allowedKeys, tenantHiddenKeys]);
 
   // ── Menu filtering logic ──
   const matchesSearch = useCallback(

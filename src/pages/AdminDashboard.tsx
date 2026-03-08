@@ -1,9 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getPosDashboardData, PosDashboardData } from '../services/dashboardService';
 
 const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
+  const [data, setData] = useState<PosDashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const result = await getPosDashboardData();
+        setData(result);
+      } catch {
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtInt = (n: number) => n.toLocaleString('en-US');
+
+  const pctBadge = (pct: number) => {
+    if (pct > 0) return <span className="text-success"><i className="ti ti-arrow-up me-1"></i>{pct}%</span>;
+    if (pct < 0) return <span className="text-danger"><i className="ti ti-arrow-down me-1"></i>{Math.abs(pct)}%</span>;
+    return <span className="text-muted">0%</span>;
+  };
+
+  const statusColor: Record<string, string> = {
+    completed: 'success', processing: 'warning', pending: 'info', cancelled: 'danger',
+    paid: 'success', partial: 'warning', unpaid: 'danger', due: 'warning',
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center p-5">
+        <div className="spinner-border text-primary" role="status"><span className="visually-hidden">{t('common.loading')}</span></div>
+        <p className="mt-2 text-muted">{t('common.loading_dashboard')}</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <div className="alert alert-danger">{t('common.failed_load_dashboard')}</div>;
+  }
+
+  const chartMax = Math.max(...data.monthlyTrend.map(m => Math.max(m.sales, m.purchases)), 1);
+
   return (
     <>
       <div className="d-lg-flex align-items-center justify-content-between mb-4">
@@ -16,17 +63,17 @@ const AdminDashboard: React.FC = () => {
       {/* KPI Cards */}
       <div className="row">
         {[
-          { title: t('admin_dashboard.total_sales'), value: '$307,144', icon: 'ti-shopping-cart', bg: 'primary', change: '+12.5%', up: true },
-          { title: t('admin_dashboard.total_purchase'), value: '$278,431', icon: 'ti-shopping-bag', bg: 'success', change: '+8.3%', up: true },
-          { title: t('admin_dashboard.total_return'), value: '$34,673', icon: 'ti-receipt-refund', bg: 'warning', change: '-3.2%', up: false },
-          { title: t('admin_dashboard.total_expense'), value: '$54,321', icon: 'ti-file-dollar', bg: 'danger', change: '+5.7%', up: true },
+          { title: t('admin_dashboard.total_sales'), value: fmt(data.totalSalesAmount), icon: 'ti-shopping-cart', bg: 'primary', pct: data.salesPctChange },
+          { title: t('admin_dashboard.total_purchase'), value: fmt(data.totalPurchaseAmount), icon: 'ti-shopping-bag', bg: 'success', pct: data.purchasePctChange },
+          { title: t('admin_dashboard.total_return'), value: fmt(data.totalReturnAmount), icon: 'ti-receipt-refund', bg: 'warning', pct: data.returnPctChange },
+          { title: t('admin_dashboard.total_expense'), value: fmt(data.totalExpenseAmount), icon: 'ti-file-dollar', bg: 'danger', pct: data.expensePctChange },
         ].map((card, i) => (
           <div key={i} className="col-xl-3 col-sm-6 d-flex">
             <div className="card dash-widget w-100">
               <div className="card-body d-flex align-items-center justify-content-between">
                 <div>
                   <p className="mb-2">{card.title}</p>
-                  <h2 className="mb-0">{card.value}</h2>
+                  <h2 className="mb-0">${card.value}</h2>
                 </div>
                 <div className={`dash-widget-icon bg-${card.bg}-light`}>
                   <i className={`ti ${card.icon} fs-24`}></i>
@@ -34,9 +81,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="card-footer">
                 <p className="mb-0">
-                  <span className={`text-${card.up ? 'success' : 'danger'}`}>
-                    <i className={`ti ti-arrow-${card.up ? 'up' : 'down'} me-1`}></i>{card.change}
-                  </span> {t('common.vs_last_month')}
+                  {pctBadge(card.pct)} {t('common.vs_last_month')}
                 </p>
               </div>
             </div>
@@ -44,27 +89,55 @@ const AdminDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Sales & Purchase Summary */}
+      {/* Quick Stats Row */}
+      <div className="row">
+        {[
+          { label: t('admin_dashboard.total_customers'), value: fmtInt(data.totalCustomers), sub: `+${fmtInt(data.customersThisMonth)} ${t('common.this_month')}`, icon: 'ti-users', bg: 'info' },
+          { label: t('admin_dashboard.total_products'), value: fmtInt(data.totalProducts), sub: `${fmtInt(data.lowStockProducts)} ${t('admin_dashboard.low_stock')}`, icon: 'ti-package', bg: 'secondary' },
+          { label: t('admin_dashboard.sales_this_month'), value: fmtInt(data.salesCountThisMonth), sub: `$${fmt(data.salesThisMonth)}`, icon: 'ti-chart-bar', bg: 'primary' },
+          { label: t('admin_dashboard.total_profit'), value: `$${fmt(data.totalProfit)}`, sub: `${t('admin_dashboard.due')}: $${fmt(data.totalSalesDue)}`, icon: 'ti-coin', bg: 'success' },
+        ].map((s, i) => (
+          <div key={i} className="col-xl-3 col-sm-6 d-flex">
+            <div className="card w-100">
+              <div className="card-body">
+                <div className="d-flex align-items-center">
+                  <div className={`dash-widget-icon bg-${s.bg}-light me-3`}>
+                    <i className={`ti ${s.icon} fs-24`}></i>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-muted">{s.label}</p>
+                    <h4 className="mb-0">{s.value}</h4>
+                    <small className="text-muted">{s.sub}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Sales & Purchase Chart + Best Sellers */}
       <div className="row">
         <div className="col-xl-7 d-flex">
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
               <h5 className="card-title mb-0">{t('admin_dashboard.sales_purchase')}</h5>
-              <div className="dropdown">
-                <a href="#" className="dropdown-toggle btn btn-white btn-sm" data-bs-toggle="dropdown">2025</a>
-              </div>
             </div>
             <div className="card-body">
               <div className="d-flex justify-content-end gap-2 align-items-end" style={{ height: 250 }}>
-                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
-                  <div key={m} className="text-center flex-fill">
-                    <div className="d-flex gap-1 justify-content-center align-items-end" style={{ height: 200 }}>
-                      <div style={{ width: 12, height: [80, 100, 130, 120, 90, 150, 140, 160, 110, 170, 145, 155][i], background: '#FE9F43', borderRadius: 3 }}></div>
-                      <div style={{ width: 12, height: [60, 80, 100, 90, 70, 120, 110, 130, 85, 140, 115, 125][i], background: '#28C76F', borderRadius: 3 }}></div>
+                {data.monthlyTrend.map((m) => {
+                  const sH = Math.round((m.sales / chartMax) * 200) || 2;
+                  const pH = Math.round((m.purchases / chartMax) * 200) || 2;
+                  return (
+                    <div key={m.month} className="text-center flex-fill" title={`${m.month}\nSales: $${fmt(m.sales)}\nPurchases: $${fmt(m.purchases)}`}>
+                      <div className="d-flex gap-1 justify-content-center align-items-end" style={{ height: 200 }}>
+                        <div style={{ width: 12, height: sH, background: '#FE9F43', borderRadius: 3 }}></div>
+                        <div style={{ width: 12, height: pH, background: '#28C76F', borderRadius: 3 }}></div>
+                      </div>
+                      <small className="text-muted d-block mt-1">{m.month}</small>
                     </div>
-                    <small className="text-muted d-block mt-1">{m}</small>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="d-flex justify-content-center gap-4 mt-3">
                 <span><span className="legend-dot bg-primary"></span> {t('admin_dashboard.sales')}</span>
@@ -77,7 +150,6 @@ const AdminDashboard: React.FC = () => {
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
               <h5 className="card-title mb-0">{t('admin_dashboard.best_seller')}</h5>
-              <Link to="/best-seller" className="btn btn-sm btn-primary">{t('common.view_all')}</Link>
             </div>
             <div className="card-body">
               <div className="table-responsive">
@@ -90,19 +162,16 @@ const AdminDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { name: 'Lenovo IdeaPad 3', qty: 302, amount: '$181,200' },
-                      { name: 'Beats Pro', qty: 245, amount: '$39,200' },
-                      { name: 'Nike Jordan', qty: 198, amount: '$21,780' },
-                      { name: 'Apple Watch S5', qty: 167, amount: '$20,040' },
-                      { name: 'Amazon Echo Dot', qty: 134, amount: '$10,720' },
-                    ].map((p, i) => (
+                    {data.bestSellers.map((p, i) => (
                       <tr key={i}>
-                        <td><h6 className="fs-14 fw-medium mb-0">{p.name}</h6></td>
-                        <td>{p.qty}</td>
-                        <td className="fw-bold">{p.amount}</td>
+                        <td><h6 className="fs-14 fw-medium mb-0">{p.productName}</h6></td>
+                        <td>{fmtInt(p.totalQty)}</td>
+                        <td className="fw-bold">${fmt(p.totalRevenue)}</td>
                       </tr>
                     ))}
+                    {data.bestSellers.length === 0 && (
+                      <tr><td colSpan={3} className="text-center text-muted">{t('common.no_data')}</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -111,11 +180,71 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Orders */}
+      {/* Expense by Category + This Month Summary */}
+      <div className="row">
+        <div className="col-xl-5 d-flex">
+          <div className="card flex-fill">
+            <div className="card-header">
+              <h5 className="card-title mb-0">{t('admin_dashboard.expense_by_category')}</h5>
+            </div>
+            <div className="card-body">
+              {data.expenseByCategory.length === 0 ? (
+                <p className="text-center text-muted">{t('common.no_data')}</p>
+              ) : (
+                data.expenseByCategory.map((e, i) => {
+                  const maxCat = Math.max(...data.expenseByCategory.map(c => c.total), 1);
+                  const pct = Math.round((e.total / maxCat) * 100);
+                  const colors = ['primary', 'success', 'warning', 'danger', 'info'];
+                  return (
+                    <div key={i} className="mb-3">
+                      <div className="d-flex justify-content-between mb-1">
+                        <span>{e.category}</span>
+                        <span className="fw-bold">${fmt(e.total)}</span>
+                      </div>
+                      <div className="progress" style={{ height: 6 }}>
+                        <div className={`progress-bar bg-${colors[i % colors.length]}`} style={{ width: `${pct}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="col-xl-7 d-flex">
+          <div className="card flex-fill">
+            <div className="card-header">
+              <h5 className="card-title mb-0">{t('admin_dashboard.this_month_summary')}</h5>
+            </div>
+            <div className="card-body">
+              <div className="row text-center">
+                <div className="col-3">
+                  <h4 className="text-primary mb-1">${fmt(data.salesThisMonth)}</h4>
+                  <p className="text-muted mb-0">{t('admin_dashboard.sales')}</p>
+                </div>
+                <div className="col-3">
+                  <h4 className="text-success mb-1">${fmt(data.purchasesThisMonth)}</h4>
+                  <p className="text-muted mb-0">{t('admin_dashboard.purchase')}</p>
+                </div>
+                <div className="col-3">
+                  <h4 className="text-warning mb-1">${fmt(data.returnsThisMonth)}</h4>
+                  <p className="text-muted mb-0">{t('admin_dashboard.returns')}</p>
+                </div>
+                <div className="col-3">
+                  <h4 className="text-danger mb-1">${fmt(data.expensesThisMonth)}</h4>
+                  <p className="text-muted mb-0">{t('admin_dashboard.expenses')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Sales */}
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between">
           <h5 className="card-title mb-0">{t('admin_dashboard.recent_orders')}</h5>
-          <Link to="/online-orders" className="btn btn-sm btn-primary">{t('common.view_all')}</Link>
+          <Link to="/sales-list" className="btn btn-sm btn-primary">{t('common.view_all')}</Link>
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
@@ -124,29 +253,38 @@ const AdminDashboard: React.FC = () => {
                 <tr>
                   <th>{t('admin_dashboard.order_id')}</th>
                   <th>{t('admin_dashboard.customer')}</th>
-                  <th>{t('admin_dashboard.product')}</th>
                   <th>{t('common.amount')}</th>
+                  <th>{t('admin_dashboard.paid')}</th>
+                  <th>{t('admin_dashboard.due')}</th>
                   <th>{t('common.date')}</th>
                   <th>{t('common.status')}</th>
+                  <th>{t('admin_dashboard.payment')}</th>
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { id: '#ORD-001', customer: 'Carl Evans', product: 'Lenovo IdeaPad', amount: '$600', date: '15 Jan 2025', status: 'completed', sc: 'success' },
-                  { id: '#ORD-002', customer: 'Minerva Rameriz', product: 'Beats Pro', amount: '$160', date: '14 Jan 2025', status: 'processing', sc: 'warning' },
-                  { id: '#ORD-003', customer: 'Robert Lamon', product: 'Nike Jordan', amount: '$110', date: '13 Jan 2025', status: 'completed', sc: 'success' },
-                  { id: '#ORD-004', customer: 'Patricia Lewis', product: 'Apple Watch', amount: '$120', date: '12 Jan 2025', status: 'pending', sc: 'info' },
-                  { id: '#ORD-005', customer: 'Mark Joslyn', product: 'Amazon Echo', amount: '$80', date: '11 Jan 2025', status: 'cancelled', sc: 'danger' },
-                ].map((o, i) => (
-                  <tr key={i}>
-                    <td><Link to="/invoice-details">{o.id}</Link></td>
-                    <td>{o.customer}</td>
-                    <td>{o.product}</td>
-                    <td>{o.amount}</td>
-                    <td>{o.date}</td>
-                    <td><span className={`badge badge-xs bg-${o.sc}-light text-${o.sc}`}>{t(`admin_dashboard.${o.status}`)}</span></td>
+                {data.recentSales.map((o) => (
+                  <tr key={o.id}>
+                    <td><Link to={`/sales-detail/${o.id}`}>{o.reference}</Link></td>
+                    <td>{o.customerName}</td>
+                    <td>${fmt(o.grandTotal)}</td>
+                    <td>${fmt(o.paid)}</td>
+                    <td>${fmt(o.due)}</td>
+                    <td>{new Date(o.saleDate).toLocaleDateString()}</td>
+                    <td>
+                      <span className={`badge badge-xs bg-${statusColor[o.status] || 'secondary'}-light text-${statusColor[o.status] || 'secondary'}`}>
+                        {o.status}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge badge-xs bg-${statusColor[o.paymentStatus] || 'secondary'}-light text-${statusColor[o.paymentStatus] || 'secondary'}`}>
+                        {o.paymentStatus}
+                      </span>
+                    </td>
                   </tr>
                 ))}
+                {data.recentSales.length === 0 && (
+                  <tr><td colSpan={8} className="text-center text-muted">{t('common.no_data')}</td></tr>
+                )}
               </tbody>
             </table>
           </div>

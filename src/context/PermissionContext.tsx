@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { rolePermissionService } from '../services/rolePermissionService';
+import { tenantMenuService } from '../services/tenantMenuService';
 
 interface PermissionContextType {
   allowedKeys: Set<string>;
+  tenantHiddenKeys: Set<string>;
   isLoading: boolean;
   /** true if current user is Admin or has the specific menu key */
   hasAccess: (menuKey: string) => boolean;
@@ -22,24 +24,37 @@ const pathToKeyMap = buildPathToKeyMap();
 export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const [allowedKeys, setAllowedKeys] = useState<Set<string>>(new Set());
+  const [tenantHiddenKeys, setTenantHiddenKeys] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   const loadPermissions = useCallback(async () => {
     if (!isAuthenticated || !user) {
       setAllowedKeys(new Set());
+      setTenantHiddenKeys(new Set());
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      const keys = await rolePermissionService.getMyPermissions();
+      // Load permissions and tenant hidden keys independently — 
+      // if one fails, the other still works
+      const [keys, hidden] = await Promise.all([
+        rolePermissionService.getMyPermissions().catch((err) => {
+          console.error('[Permissions] Failed to load role permissions:', err);
+          return [] as string[];
+        }),
+        tenantMenuService.getHiddenKeys().catch((err) => {
+          console.error('[Permissions] Failed to load tenant hidden keys:', err);
+          return [] as string[];
+        }),
+      ]);
       console.log('[Permissions] Loaded for role:', user.role, '→', keys);
+      console.log('[Permissions] Tenant hidden menus:', hidden);
       setAllowedKeys(new Set(keys));
+      setTenantHiddenKeys(new Set(hidden));
     } catch (err) {
-      console.error('[Permissions] Failed to load:', err);
-      // If API fails, allow nothing (safe default — Admin is handled via "*")
-      setAllowedKeys(new Set());
+      console.error('[Permissions] Unexpected error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -51,24 +66,26 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const hasAccess = useCallback(
     (menuKey: string): boolean => {
+      if (tenantHiddenKeys.has(menuKey)) return false; // Hidden for tenant
       if (allowedKeys.has('*')) return true; // Admin
       return allowedKeys.has(menuKey);
     },
-    [allowedKeys]
+    [allowedKeys, tenantHiddenKeys]
   );
 
   const canAccessPath = useCallback(
     (path: string): boolean => {
-      if (allowedKeys.has('*')) return true; // Admin
       const menuKey = pathToKeyMap[path];
       if (!menuKey) return true; // Path not in menu → allow (e.g. profile, auth pages)
+      if (tenantHiddenKeys.has(menuKey)) return false; // Hidden for tenant
+      if (allowedKeys.has('*')) return true; // Admin
       return allowedKeys.has(menuKey);
     },
-    [allowedKeys]
+    [allowedKeys, tenantHiddenKeys]
   );
 
   return (
-    <PermissionContext.Provider value={{ allowedKeys, isLoading, hasAccess, canAccessPath, refresh: loadPermissions }}>
+    <PermissionContext.Provider value={{ allowedKeys, tenantHiddenKeys, isLoading, hasAccess, canAccessPath, refresh: loadPermissions }}>
       {children}
     </PermissionContext.Provider>
   );

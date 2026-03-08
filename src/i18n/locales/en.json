@@ -78,6 +78,7 @@
     "created_date": "Created Date",
     "vs_last_month": "vs last month",
     "new_this_month": "new this month",
+    "this_month": "this month",
     "mo": "mo",
     "rs": "Rs",
     "generate": "Generate",
@@ -524,7 +525,19 @@
     "completed": "Completed",
     "processing": "Processing",
     "pending": "Pending",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "total_customers": "Total Customers",
+    "total_products": "Total Products",
+    "low_stock": "low stock",
+    "sales_this_month": "Sales This Month",
+    "total_profit": "Total Profit",
+    "due": "Due",
+    "paid": "Paid",
+    "payment": "Payment",
+    "returns": "Returns",
+    "expenses": "Expenses",
+    "expense_by_category": "Expense by Category",
+    "this_month_summary": "This Month Summary"
   },
 
   "products": {
