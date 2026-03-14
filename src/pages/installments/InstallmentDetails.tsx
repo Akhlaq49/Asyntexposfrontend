@@ -363,6 +363,13 @@ const totalRemaining = useMemo(() => {
                         {g.so && <p className="mb-1 small text-muted">{t('create_installment.so_label')} {g.so}</p>}
                         {g.relationship && <span className="badge bg-primary-transparent text-primary me-2 mb-1">{g.relationship}</span>}
                         {g.phone && <p className="mb-1 small"><i className="ti ti-phone me-1"></i><a href={`tel:${g.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{g.phone}</p>}
+                        {g.pictures && g.pictures.length > 0 && (
+                          <div className="d-flex gap-2 mt-2 flex-wrap">
+                            {g.pictures.map((pic) => (
+                              <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Guarantor" className="rounded border" style={{ width: 48, height: 48, objectFit: 'cover', cursor: 'pointer' }} />
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <button className="btn btn-sm btn-outline-danger" title={t('installment_details.remove_guarantor', { name: g.name })} onClick={(e) => {
                         e.stopPropagation();
@@ -375,6 +382,36 @@ const totalRemaining = useMemo(() => {
                       </button>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Customer Pictures */}
+          {plan.customerPictures && plan.customerPictures.length > 0 && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title mb-0"><i className="ti ti-photo me-2"></i>Customer Pictures ({plan.customerPictures.length})</h5>
+              </div>
+              <div className="card-body">
+                <div className="d-flex gap-2 flex-wrap">
+                  {plan.customerPictures.map((pic) => (
+                    <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Customer" className="rounded border" style={{ width: 100, height: 100, objectFit: 'cover', cursor: 'pointer' }}
+                      onClick={() => window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank')} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Plan Video */}
+          {plan.planMedia && plan.planMedia.filter(m => m.mediaType === 'video').length > 0 && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title mb-0"><i className="ti ti-video me-2"></i>Plan Video</h5>
+              </div>
+              <div className="card-body">
+                {plan.planMedia.filter(m => m.mediaType === 'video').map((vid) => (
+                  <video key={vid.id} src={`${MEDIA_BASE_URL}${vid.filePath}`} controls style={{ width: '100%', maxHeight: 300, borderRadius: 8 }} />
                 ))}
               </div>
             </div>
@@ -674,6 +711,14 @@ const totalRemaining = useMemo(() => {
                 )}
                 <h4 className="fw-bold mb-1">{plan.customerName}</h4>
                 <p className="text-muted mb-3">{t('installment_details.customer')}</p>
+                {plan.customerPictures && plan.customerPictures.length > 0 && (
+                  <div className="d-flex gap-2 flex-wrap justify-content-center mb-3">
+                    {plan.customerPictures.map((pic) => (
+                      <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Customer" className="rounded border" style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'pointer' }}
+                        onClick={() => window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank')} />
+                    ))}
+                  </div>
+                )}
                 <div className="text-start border rounded p-3">
                   <div className="row">
                     {plan.customerSo && (
@@ -747,6 +792,14 @@ const totalRemaining = useMemo(() => {
                 <h4 className="fw-bold mb-1">{selectedGuarantor.name}</h4>
                 {selectedGuarantor.so && <p className="text-muted mb-1">{t('create_installment.so_label')} {selectedGuarantor.so}</p>}
                 {selectedGuarantor.relationship && <span className="badge bg-primary-transparent text-primary mb-3">{selectedGuarantor.relationship}</span>}
+                {selectedGuarantor.pictures && selectedGuarantor.pictures.length > 0 && (
+                  <div className="d-flex gap-2 flex-wrap justify-content-center mt-2 mb-3">
+                    {selectedGuarantor.pictures.map((pic) => (
+                      <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Guarantor" className="rounded border" style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'pointer' }}
+                        onClick={() => window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank')} />
+                    ))}
+                  </div>
+                )}
                 <div className="text-start border rounded p-3 mt-2">
                   <div className="row">
                     <div className="col-12 mb-2">

@@ -22,6 +22,15 @@ export interface GuarantorDto {
   address?: string;
   relationship?: string;
   picture?: string;
+  pictures?: PlanMediaDto[];
+}
+
+export interface PlanMediaDto {
+  id: number;
+  entityType: string;
+  entityId?: number;
+  mediaType: string;
+  filePath: string;
 }
 
 export interface InstallmentPlan {
@@ -52,6 +61,8 @@ export interface InstallmentPlan {
   createdAt: string;
   schedule: RepaymentEntry[];
   guarantors: GuarantorDto[];
+  customerPictures?: PlanMediaDto[];
+  planMedia?: PlanMediaDto[];
 }
 
 export interface RepaymentEntry {
@@ -167,4 +178,32 @@ export async function searchParties(query?: string): Promise<PartySearchResult[]
     params: { q: query || '' },
   });
   return response.data;
+}
+
+// Plan media (multiple pictures, video)
+export async function uploadPlanMedia(
+  planId: string,
+  entityType: string,
+  entityId: number | null,
+  mediaType: string,
+  files: File[]
+): Promise<PlanMediaDto[]> {
+  const formData = new FormData();
+  formData.append('entityType', entityType);
+  if (entityId) formData.append('entityId', String(entityId));
+  formData.append('mediaType', mediaType);
+  files.forEach((file) => formData.append('files', file));
+  const response = await api.post<PlanMediaDto[]>(`/installments/${planId}/media`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+}
+
+export async function getPlanMedia(planId: string): Promise<PlanMediaDto[]> {
+  const response = await api.get<PlanMediaDto[]>(`/installments/${planId}/media`);
+  return response.data;
+}
+
+export async function deletePlanMedia(mediaId: number): Promise<void> {
+  await api.delete(`/installments/media/${mediaId}`);
 }

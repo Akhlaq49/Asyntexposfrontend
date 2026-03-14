@@ -11,6 +11,7 @@ import {
   InstallmentPreview,
   searchParties,
   PartySearchResult,
+  uploadPlanMedia,
 } from '../../services/installmentService';
 import { getProducts, createProduct, ProductResponse } from '../../services/productService';
 import { getCustomers, Customer, createCustomer, uploadCustomerPicture } from '../../services/customerService';
@@ -62,9 +63,11 @@ const CreateInstallment: React.FC = () => {
   // New customer modal state
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
   const [newCustomerSaving, setNewCustomerSaving] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({ name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '' });
+  const [newCustomer, setNewCustomer] = useState({ name: '', so: '', cnic: '', phone: '', address: '', city: '' });
   const [newCustomerPicture, setNewCustomerPicture] = useState<File | null>(null);
   const [newCustomerPicturePreview, setNewCustomerPicturePreview] = useState('');
+  const [newCustomerPictures, setNewCustomerPictures] = useState<File[]>([]);
+  const [newCustomerPicturesPreviews, setNewCustomerPicturesPreviews] = useState<string[]>([]);
 
   // Product search state
   const [products, setProducts] = useState<ProductResponse[]>([]);
@@ -77,7 +80,7 @@ const CreateInstallment: React.FC = () => {
   // New product modal state
   const [showNewProductModal, setShowNewProductModal] = useState(false);
   const [newProductSaving, setNewProductSaving] = useState(false);
-  const [newProduct, setNewProduct] = useState({ productName: '', sku: '', category: '', brand: '', price: '', quantity: '', description: '' });
+  const [newProduct, setNewProduct] = useState({ productName: '', sku: '', brand: '', price: '', quantity: '' });
   const [newProductImage, setNewProductImage] = useState<File | null>(null);
   const [newProductImagePreview, setNewProductImagePreview] = useState('');
 
@@ -102,8 +105,10 @@ const CreateInstallment: React.FC = () => {
     relationship: string;
     pictureFile: File | null;
     picturePreview: string;
+    pictureFiles: File[];
+    picturePreviews: string[];
   }
-  const emptyGuarantor: LocalGuarantor = { partyId: null, name: '', so: '', phone: '', cnic: '', address: '', relationship: '', pictureFile: null, picturePreview: '' };
+  const emptyGuarantor: LocalGuarantor = { partyId: null, name: '', so: '', phone: '', cnic: '', address: '', relationship: '', pictureFile: null, picturePreview: '', pictureFiles: [], picturePreviews: [] };
   const [guarantors, setGuarantors] = useState<LocalGuarantor[]>([]);
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(0);
 
@@ -122,6 +127,10 @@ const CreateInstallment: React.FC = () => {
   const [preview, setPreview] = useState<InstallmentPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Plan video state
+  const [planVideo, setPlanVideo] = useState<File | null>(null);
+  const [planVideoPreview, setPlanVideoPreview] = useState('');
 
   // Debounced preview from backend
   useEffect(() => {
@@ -250,16 +259,19 @@ const CreateInstallment: React.FC = () => {
     if (!newCustomer.name.trim()) return;
     setNewCustomerSaving(true);
     try {
-      let created = await createCustomer({ ...newCustomer, status: 'active' } as Omit<Customer, 'id'>);
+      // Auto-generate unique email to avoid backend unique constraint
+      const autoEmail = `plan_${Date.now()}_${Math.random().toString(36).substring(2, 8)}@autogen.local`;
+      let created = await createCustomer({ ...newCustomer, email: autoEmail, status: 'active' } as Omit<Customer, 'id'>);
       if (newCustomerPicture) {
         created = await uploadCustomerPicture(created.id, newCustomerPicture);
       }
       setCustomers(prev => [created, ...prev]);
       handleSelectCustomer(created);
       setShowNewCustomerModal(false);
-      setNewCustomer({ name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '' });
+      setNewCustomer({ name: '', so: '', cnic: '', phone: '', address: '', city: '' });
       setNewCustomerPicture(null);
       setNewCustomerPicturePreview('');
+      // Keep the extra pictures in state; they'll be uploaded after plan creation
     } catch {
       setError(t('create_installment.failed_create_customer'));
     } finally {
@@ -273,7 +285,6 @@ const CreateInstallment: React.FC = () => {
     return products.filter((p) =>
       p.productName.toLowerCase().includes(q) ||
       (p.sku && p.sku.toLowerCase().includes(q)) ||
-      (p.category && p.category.toLowerCase().includes(q)) ||
       (p.brand && p.brand.toLowerCase().includes(q))
     );
   }, [products, productSearch]);
@@ -360,13 +371,13 @@ const CreateInstallment: React.FC = () => {
         slug: newProduct.productName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         sku: newProduct.sku || ('PT' + Math.random().toString(36).substring(2, 8).toUpperCase()),
         sellingType: 'pos',
-        category: newProduct.category,
+        category: '',
         subCategory: '',
         brand: newProduct.brand,
         unit: '',
         barcodeSymbology: '',
         itemBarcode: '',
-        description: newProduct.description,
+        description: '',
         productType: 'single',
         quantity: Number(newProduct.quantity) || 0,
         price: Number(newProduct.price) || 0,
@@ -384,7 +395,7 @@ const CreateInstallment: React.FC = () => {
       setProducts(prev => [created, ...prev]);
       handleSelectProduct(created);
       setShowNewProductModal(false);
-      setNewProduct({ productName: '', sku: '', category: '', brand: '', price: '', quantity: '', description: '' });
+      setNewProduct({ productName: '', sku: '', brand: '', price: '', quantity: '' });
       setNewProductImage(null);
       setNewProductImagePreview('');
     } catch {
@@ -416,7 +427,20 @@ const CreateInstallment: React.FC = () => {
         fd.append('relationship', g.relationship);
         if (g.partyId) fd.append('partyId', String(g.partyId));
         if (g.pictureFile) fd.append('picture', g.pictureFile);
-        await addGuarantor(result.id, fd);
+        const gResult = await addGuarantor(result.id, fd);
+        // Upload additional guarantor pictures
+        if (g.pictureFiles.length > 0) {
+          const partyId = gResult.id ? g.partyId || gResult.id : null;
+          await uploadPlanMedia(result.id, 'guarantor', partyId, 'image', g.pictureFiles);
+        }
+      }
+      // Upload customer additional pictures
+      if (newCustomerPictures.length > 0) {
+        await uploadPlanMedia(result.id, 'customer', form.customerId, 'image', newCustomerPictures);
+      }
+      // Upload plan video
+      if (planVideo) {
+        await uploadPlanMedia(result.id, 'plan', null, 'video', [planVideo]);
       }
       navigate('/installment-plans');
     } catch (err: unknown) {
@@ -780,7 +804,7 @@ const CreateInstallment: React.FC = () => {
                               <textarea className="form-control" rows={2} placeholder={t('customers.address_placeholder')} value={g.address}
                                 onChange={e => setGuarantors(prev => prev.map((item, i) => i === idx ? { ...item, address: e.target.value } : item))} />
                             </div>
-                            <div className="col-12 mb-0">
+                            <div className="col-12 mb-3">
                               <label className="form-label">{t('create_installment.photo_id')}</label>
                               <div className="d-flex align-items-center gap-3">
                                 <input type="file" className="form-control" accept="image/*"
@@ -796,6 +820,25 @@ const CreateInstallment: React.FC = () => {
                                   <img src={g.picturePreview} alt="Preview" className="rounded border" style={{ width: 60, height: 60, objectFit: 'cover' }} />
                                 )}
                               </div>
+                            </div>
+                            <div className="col-12 mb-0">
+                              <label className="form-label">Additional Pictures <small className="text-muted">(minimum 2 recommended)</small></label>
+                              <input type="file" className="form-control" accept="image/*" multiple
+                                onChange={e => {
+                                  const files = Array.from(e.target.files || []);
+                                  setGuarantors(prev => prev.map((item, i) => i === idx ? {
+                                    ...item,
+                                    pictureFiles: files,
+                                    picturePreviews: files.map(f => URL.createObjectURL(f))
+                                  } : item));
+                                }} />
+                              {g.picturePreviews.length > 0 && (
+                                <div className="d-flex gap-2 mt-2 flex-wrap">
+                                  {g.picturePreviews.map((src, pi) => (
+                                    <img key={pi} src={src} alt={`Preview ${pi + 1}`} className="rounded border" style={{ width: 60, height: 60, objectFit: 'cover' }} />
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -887,7 +930,7 @@ const CreateInstallment: React.FC = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                   <h6 className="mb-0 fs-13 fw-medium">{product.productName}</h6>
-                                  <small className="text-muted">{product.sku || '-'} &bull; {product.category || '-'} &bull; {product.brand || '-'}</small>
+                                  <small className="text-muted">{product.sku || '-'} &bull; {product.brand || '-'}</small>
                                 </div>
                                 <div className="text-end">
                                   <span className="fw-bold text-primary">Rs {fmt(product.price)}</span>
@@ -913,7 +956,6 @@ const CreateInstallment: React.FC = () => {
                           <h6 className="mb-1 fw-bold">{selectedProduct.productName}</h6>
                           <div className="d-flex gap-3 flex-wrap">
                             <small><strong>{t('create_installment.sku_label')}</strong> {selectedProduct.sku || '-'}</small>
-                            <small><strong>{t('create_installment.category_label')}</strong> {selectedProduct.category || '-'}</small>
                             <small><strong>{t('create_installment.brand_label')}</strong> {selectedProduct.brand || '-'}</small>
                             <small><strong>{t('create_installment.price_label')}</strong> Rs {fmt(selectedProduct.price)}</small>
                           </div>
@@ -1099,6 +1141,26 @@ const CreateInstallment: React.FC = () => {
 
         {/* Submit Buttons */}
         <div className="card">
+          <div className="card-header">
+            <h5 className="card-title mb-0"><i className="ti ti-video me-2"></i>Plan Video</h5>
+          </div>
+          <div className="card-body">
+            <label className="form-label">Upload Short Video <small className="text-muted">(associated with this plan)</small></label>
+            <input type="file" className="form-control" accept="video/*"
+              onChange={e => {
+                const file = e.target.files?.[0] || null;
+                setPlanVideo(file);
+                setPlanVideoPreview(file ? URL.createObjectURL(file) : '');
+              }} />
+            {planVideoPreview && (
+              <div className="mt-3">
+                <video src={planVideoPreview} controls style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8 }} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="card">
           <div className="card-body d-flex justify-content-end gap-2">
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/installment-plans')}>{t('common.cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={!isValid || submitting}>
@@ -1140,19 +1202,9 @@ const CreateInstallment: React.FC = () => {
                       onChange={e => setNewProduct(prev => ({ ...prev, quantity: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">{t('create_installment.category_label')}</label>
-                    <input type="text" className="form-control" placeholder={t('create_installment.category_placeholder')} value={newProduct.category}
-                      onChange={e => setNewProduct(prev => ({ ...prev, category: e.target.value }))} />
-                  </div>
-                  <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.brand_label')}</label>
                     <input type="text" className="form-control" placeholder={t('create_installment.brand_placeholder')} value={newProduct.brand}
                       onChange={e => setNewProduct(prev => ({ ...prev, brand: e.target.value }))} />
-                  </div>
-                  <div className="col-12 mb-3">
-                    <label className="form-label">{t('common.description')}</label>
-                    <textarea className="form-control" rows={2} placeholder={t('create_installment.product_description')} value={newProduct.description}
-                      onChange={e => setNewProduct(prev => ({ ...prev, description: e.target.value }))} />
                   </div>
                   <div className="col-12 mb-0">
                     <label className="form-label">{t('create_installment.product_image')}</label>
@@ -1212,22 +1264,17 @@ const CreateInstallment: React.FC = () => {
                     <input type="text" className="form-control" placeholder={t('create_installment.phone_placeholder')} value={newCustomer.phone}
                       onChange={e => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))} />
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">{t('create_installment.email_modal')}</label>
-                    <input type="email" className="form-control" placeholder={t('create_installment.email_placeholder')} value={newCustomer.email}
-                      onChange={e => setNewCustomer(prev => ({ ...prev, email: e.target.value }))} />
-                  </div>
-                  <div className="col-md-6 mb-3">
+                  {/* <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.city_modal')}</label>
                     <input type="text" className="form-control" placeholder={t('create_installment.city_modal')} value={newCustomer.city}
                       onChange={e => setNewCustomer(prev => ({ ...prev, city: e.target.value }))} />
-                  </div>
+                  </div> */}
                   <div className="col-12 mb-3">
                     <label className="form-label">{t('create_installment.address_modal')}</label>
                     <textarea className="form-control" rows={2} placeholder={t('create_installment.address_placeholder')} value={newCustomer.address}
                       onChange={e => setNewCustomer(prev => ({ ...prev, address: e.target.value }))} />
                   </div>
-                  <div className="col-12 mb-0">
+                  <div className="col-12 mb-3">
                     <label className="form-label">{t('create_installment.photo_label')}</label>
                     <div className="d-flex align-items-center gap-3">
                       <input type="file" className="form-control" accept="image/*"
@@ -1240,6 +1287,22 @@ const CreateInstallment: React.FC = () => {
                         <img src={newCustomerPicturePreview} alt="Preview" className="rounded-circle border" style={{ width: 48, height: 48, objectFit: 'cover' }} />
                       )}
                     </div>
+                  </div>
+                  <div className="col-12 mb-0">
+                    <label className="form-label">Additional Pictures <small className="text-muted">(minimum 2 recommended)</small></label>
+                    <input type="file" className="form-control" accept="image/*" multiple
+                      onChange={e => {
+                        const files = Array.from(e.target.files || []);
+                        setNewCustomerPictures(files);
+                        setNewCustomerPicturesPreviews(files.map(f => URL.createObjectURL(f)));
+                      }} />
+                    {newCustomerPicturesPreviews.length > 0 && (
+                      <div className="d-flex gap-2 mt-2 flex-wrap">
+                        {newCustomerPicturesPreviews.map((src, i) => (
+                          <img key={i} src={src} alt={`Preview ${i + 1}`} className="rounded border" style={{ width: 60, height: 60, objectFit: 'cover' }} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
