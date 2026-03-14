@@ -75,6 +75,7 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const canAccessPath = useCallback(
     (path: string): boolean => {
+      if (path === '/user-dashboard') return true; // Always accessible (fallback dashboard)
       const menuKey = pathToKeyMap[path];
       if (!menuKey) return true; // Path not in menu → allow (e.g. profile, auth pages)
       if (tenantHiddenKeys.has(menuKey)) return false; // Hidden for tenant

@@ -6,6 +6,7 @@ import DashboardRedirect from './components/auth/DashboardRedirect'
 // Dashboard
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const UserDashboard = lazy(() => import('./pages/UserDashboard'))
 const SalesDashboard = lazy(() => import('./pages/misc/SalesDashboard'))
 
 // Super Admin
@@ -344,6 +345,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin-dashboard-2" element={<Dashboard />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/sales-dashboard" element={<SalesDashboard />} />
 
           {/* Super Admin */}

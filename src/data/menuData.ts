@@ -37,6 +37,7 @@ const menuData: MenuSection[] = [
         children: [
           { title: 'Admin Dashboard', path: '/admin-dashboard' },
           { title: 'Admin Dashboard 2', path: '/admin-dashboard-2' },
+          { title: 'User Dashboard', path: '/user-dashboard' },
           // { title: 'Sales Dashboard', path: '/sales-dashboard' },
         ],
       },

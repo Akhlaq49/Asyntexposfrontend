@@ -540,6 +540,20 @@
     "this_month_summary": "This Month Summary"
   },
 
+  "user_dashboard": {
+    "welcome": "Welcome",
+    "user": "User",
+    "subtitle": "Here's an overview of your accessible features",
+    "quick_info": "Quick Info",
+    "accessible_pages": "Accessible Pages",
+    "menu_sections": "Menu Sections",
+    "your_role": "Your Role",
+    "quick_access": "Quick Access",
+    "more_pages": "+{{count}} more pages available in the sidebar",
+    "no_access_title": "No Pages Assigned",
+    "no_access_message": "Your administrator has not assigned any menu permissions to your role yet. Please contact your admin."
+  },
+
   "products": {
     "title": "Product List",
     "subtitle": "Manage your products",
