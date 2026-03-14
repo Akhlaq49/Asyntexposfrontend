@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getFinanceIncomes, createFinanceIncome, updateFinanceIncome, deleteFinanceIncome, getIncomeCategories, getBankAccounts, FinanceIncome, IncomeCategory, BankAccount } from '../../services/financeService';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import { getStores, DropdownOption } from '../../services/productService';
 
 const Income: React.FC = () => {
@@ -22,7 +23,6 @@ const Income: React.FC = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [deleteError, setDeleteError] = useState('');
 
   const fetchData = async () => {
     try {
@@ -59,12 +59,11 @@ const Income: React.FC = () => {
     setShowEditModal(false);
   };
 
-  const openDeleteModal = (id: number) => { setDeleteId(id); setDeleteError(''); setShowDeleteModal(true); };
+  const openDeleteModal = (id: number) => { setDeleteId(id); setShowDeleteModal(true); };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try { await deleteFinanceIncome(deleteId); setIncomes(prev => prev.filter(i => i.id !== deleteId)); setShowDeleteModal(false); }
-    catch (err: any) { setDeleteError(err.response?.data?.message || 'Failed to delete.'); }
+    await deleteFinanceIncome(deleteId); setIncomes(prev => prev.filter(i => i.id !== deleteId)); setShowDeleteModal(false);
   };
 
   const filtered = incomes.filter(i => !searchTerm || i.reference.toLowerCase().includes(searchTerm.toLowerCase()) || i.categoryName.toLowerCase().includes(searchTerm.toLowerCase()) || i.store.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -190,17 +189,7 @@ const Income: React.FC = () => {
         </div>
       )}
 
-      {showDeleteModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered"><div className="modal-content"><div className="page-wrapper-new p-0"><div className="content p-5 px-3 text-center">
-            <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-            <h4 className="fs-20 fw-bold mb-2 mt-1">{t('income.delete_income')}</h4>
-            <p className="fs-14 text-muted">{t('income.delete_confirm')}</p>
-            {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
-            <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button></div>
-          </div></div></div></div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );
 };

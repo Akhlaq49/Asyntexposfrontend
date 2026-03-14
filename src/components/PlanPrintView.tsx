@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan } from '../services/installmentService';
+import { MEDIA_BASE_URL } from '../services/api';
 
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
 
@@ -147,6 +148,13 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   const sValue: React.CSSProperties = { fontWeight: 500 };
   const sTh: React.CSSProperties = { background: '#4a90d9', color: '#fff', padding: '7px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', border: '1px solid #3a7bc8', whiteSpace: 'nowrap' };
   const sTd: React.CSSProperties = { border: '1px solid #ddd', padding: '6px 8px', textAlign: 'center', fontSize: 12 };
+  const sImgBox: React.CSSProperties = { width: 120, height: 120, objectFit: 'cover', borderRadius: 6, border: '2px solid #ddd' };
+  const sImgSection: React.CSSProperties = { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, marginBottom: 12 };
+
+  // Collect all customer images (profile + additional)
+  const customerImages: string[] = [];
+  if (plan.customerImage) customerImages.push(plan.customerImage);
+  if (plan.customerPictures) plan.customerPictures.forEach(p => customerImages.push(p.filePath));
 
   return (
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
@@ -197,18 +205,22 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                       <td style={{ width: '50%', verticalAlign: 'top', paddingRight: 16 }}>
                         <div style={sTitle}>{t('pdf.customer_information')}</div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.name')}:</span><span style={sValue}>{plan.customerName}</span></div>
-                        {plan.customerSo && <div style={sRow}><span style={sLabel}>{t('pdf.so')}:</span><span style={sValue}>{plan.customerSo}</span></div>}
-                        <div style={sRow}><span style={sLabel}>{t('pdf.mobile')}:</span><span style={sValue}>{plan.customerPhone || '-'}</span></div>
-                        {plan.customerCnic && <div style={sRow}><span style={sLabel}>{t('pdf.cnic')}:</span><span style={sValue}>{plan.customerCnic}</span></div>}
-                        <div style={sRow}><span style={sLabel}>{t('pdf.address')}:</span><span style={sValue}>{plan.customerAddress || '-'}</span></div>
+                        <div style={sRow}><span style={sLabel}>{t('pdf.so')}:</span><span style={sValue}>{plan.customerSo || '—'}</span></div>
+                        <div style={sRow}><span style={sLabel}>{t('pdf.mobile')}:</span><span style={sValue}>{plan.customerPhone || '—'}</span></div>
+                        <div style={sRow}><span style={sLabel}>{t('pdf.cnic')}:</span><span style={sValue}>{plan.customerCnic || '—'}</span></div>
+                        <div style={sRow}><span style={sLabel}>{t('pdf.address')}:</span><span style={sValue}>{plan.customerAddress || '—'}</span></div>
+                        {customerImages.length > 0 && (
+                          <div style={sImgSection}>
+                            {customerImages.map((img, i) => (
+                              <img key={i} src={`${MEDIA_BASE_URL}${img}`} alt={`Customer ${i + 1}`} style={sImgBox} crossOrigin="anonymous" />
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td style={{ width: '50%', verticalAlign: 'top', paddingLeft: 16 }}>
                         <div style={sTitle}>{t('pdf.product_information')}</div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.product')}:</span><span style={sValue}>{plan.productName}</span></div>
-                        <div style={sRow}><span style={sLabel}>{t('pdf.price')}:</span><span style={sValue}>Rs {fmt(plan.productPrice)}</span></div>
-                        {plan.financeAmount != null && plan.financeAmount > 0 && plan.financeAmount !== plan.productPrice && (
-                          <div style={sRow}><span style={sLabel}>{t('pdf.finance_amount')}:</span><span style={sValue}>Rs {fmt(plan.financeAmount)}</span></div>
-                        )}
+                        <div style={sRow}><span style={sLabel}>{t('pdf.price')}:</span><span style={sValue}>Rs {fmt(plan.financeAmount ?? plan.productPrice)}</span></div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.down_payment')}:</span><span style={sValue}>Rs {fmt(plan.downPayment)}</span></div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.financed')}:</span><span style={sValue}>Rs {fmt(plan.financedAmount)}</span></div>
                       </td>
@@ -268,16 +280,34 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {plan.guarantors.map((g) => (
-                          <tr key={g.id}>
-                            <td style={{ ...sTd, fontWeight: 700, textAlign: 'left' }}>{g.name}</td>
-                            <td style={sTd}>{g.so || '—'}</td>
-                            <td style={sTd}>{g.phone || '—'}</td>
-                            <td style={sTd}>{g.cnic || '—'}</td>
-                            <td style={{ ...sTd, textAlign: 'left' }}>{g.address || '—'}</td>
-                            <td style={sTd}>{g.relationship || '—'}</td>
-                          </tr>
-                        ))}
+                        {plan.guarantors.map((g) => {
+                          const gImages: string[] = [];
+                          if (g.picture) gImages.push(g.picture);
+                          if (g.pictures) g.pictures.forEach(p => gImages.push(p.filePath));
+                          return (
+                            <React.Fragment key={g.id}>
+                              <tr>
+                                <td style={{ ...sTd, fontWeight: 700, textAlign: 'left' }}>{g.name}</td>
+                                <td style={sTd}>{g.so || '—'}</td>
+                                <td style={sTd}>{g.phone || '—'}</td>
+                                <td style={sTd}>{g.cnic || '—'}</td>
+                                <td style={{ ...sTd, textAlign: 'left' }}>{g.address || '—'}</td>
+                                <td style={sTd}>{g.relationship || '—'}</td>
+                              </tr>
+                              {gImages.length > 0 && (
+                                <tr>
+                                  <td colSpan={6} style={{ ...sTd, textAlign: 'left' }}>
+                                    <div style={sImgSection}>
+                                      {gImages.map((img, i) => (
+                                        <img key={i} src={`${MEDIA_BASE_URL}${img}`} alt={`${g.name} ${i + 1}`} style={sImgBox} crossOrigin="anonymous" />
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -349,24 +379,15 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                 <div style={{ marginBottom: 18 }}>
                   <div style={sTitle}>{t('pdf.payment_record')}</div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                    <colgroup>
-                      <col style={{ width: '6%' }} />
-                      <col style={{ width: '14%' }} />
-                      <col style={{ width: '16%' }} />
-                      <col style={{ width: '16%' }} />
-                      <col style={{ width: '16%' }} />
-                      <col style={{ width: '16%' }} />
-                      <col style={{ width: '16%' }} />
-                    </colgroup>
                     <thead>
                       <tr>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.hash')}</th>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.date')}</th>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.amount_received')}</th>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.payment_method')}</th>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.received_by')}</th>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.signature')}</th>
-                        <th style={{ ...sTh, whiteSpace: 'normal' }}>{t('pdf.remarks')}</th>
+                        <th style={sTh}>{t('pdf.hash')}</th>
+                        <th style={sTh}>{t('pdf.due_date')}</th>
+                        <th style={sTh}>{t('pdf.emi')}</th>
+                        <th style={sTh}>{t('pdf.paid')}</th>
+                        <th style={sTh}>{t('pdf.balance')}</th>
+                        <th style={sTh}>{t('pdf.status')}</th>
+                        <th style={sTh}>{t('pdf.paid_date')}</th>
                       </tr>
                     </thead>
                     <tbody>

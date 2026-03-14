@@ -43,13 +43,13 @@ const ProductProfitReport: React.FC = () => {
             <div className="col-md-3 ms-auto">
               {data && <ExportButtons
                 onExportExcel={() => {
-                  const cols = ['#', t('common.customer'), t('common.phone'), t('common.product'), t('reports.product_price'), t('reports.down_payment'), t('reports.total_payable'), t('reports.interest'), t('reports.profit'), t('reports.profit_pct'), t('reports.tenure'), t('common.status')];
-                  const rows = data.plans.map((p, i) => [i + 1, p.customerName, p.phone || '-', p.productName, p.productPrice, p.downPayment, p.totalPayable, p.interestEarned, p.profit, `${p.profitPercentage}%`, `${p.tenure} months`, p.status]);
+                  const cols = ['#', t('common.customer'), t('common.phone'), t('common.product'), t('reports.product_price'), t('reports.sale_price'), t('reports.down_payment'), t('reports.total_payable'), t('reports.interest'), t('reports.profit'), t('reports.profit_pct'), t('reports.tenure'), t('common.status')];
+                  const rows = data.plans.map((p, i) => [i + 1, p.customerName, p.phone || '-', p.productName, p.productPrice, p.salePrice, p.downPayment, p.totalPayable, p.interestEarned, p.profit, `${p.profitPercentage}%`, `${p.tenure} months`, p.status]);
                   exportToExcel(cols, rows, 'Product-Profit-Report');
                 }}
                 onExportPDF={() => {
-                  const cols = ['#', t('common.customer'), t('common.product'), t('common.price'), t('reports.down_payment'), t('reports.total_payable'), t('reports.profit'), t('reports.profit_pct'), t('common.status')];
-                  const rows = data.plans.map((p, i) => [i + 1, p.customerName, p.productName, `Rs ${p.productPrice.toLocaleString()}`, `Rs ${p.downPayment.toLocaleString()}`, `Rs ${p.totalPayable.toLocaleString()}`, `Rs ${p.profit.toLocaleString()}`, `${p.profitPercentage}%`, p.status]);
+                  const cols = ['#', t('common.customer'), t('common.product'), t('reports.product_price'), t('reports.sale_price'), t('reports.down_payment'), t('reports.total_payable'), t('reports.profit'), t('reports.profit_pct'), t('common.status')];
+                  const rows = data.plans.map((p, i) => [i + 1, p.customerName, p.productName, `Rs ${p.productPrice.toLocaleString()}`, `Rs ${p.salePrice.toLocaleString()}`, `Rs ${p.downPayment.toLocaleString()}`, `Rs ${p.totalPayable.toLocaleString()}`, `Rs ${p.profit.toLocaleString()}`, `${p.profitPercentage}%`, p.status]);
                   exportToPDF(cols, rows, 'Product-Profit-Report', t('reports.product_profit_report'), [
                     { label: t('reports.total_plans'), value: data.totalPlans },
                     { label: t('reports.total_product_cost'), value: `Rs ${data.totalProductCost.toLocaleString()}` },
@@ -121,6 +121,7 @@ const ProductProfitReport: React.FC = () => {
                       <th>{t('common.customer')}</th>
                       <th>{t('common.product')}</th>
                       <th>{t('reports.product_price')}</th>
+                      <th>{t('reports.sale_price')}</th>
                       <th>{t('reports.down_payment')}</th>
                       <th>{t('reports.total_payable')}</th>
                       <th>{t('reports.interest')}</th>
@@ -147,6 +148,7 @@ const ProductProfitReport: React.FC = () => {
                           </div>
                         </td>
                         <td>Rs {p.productPrice.toLocaleString()}</td>
+                        <td>Rs {p.salePrice.toLocaleString()}</td>
                         <td>Rs {p.downPayment.toLocaleString()}</td>
                         <td>Rs {p.totalPayable.toLocaleString()}</td>
                         <td>Rs {p.interestEarned.toLocaleString()}</td>
@@ -167,7 +169,7 @@ const ProductProfitReport: React.FC = () => {
                       </tr>
                     ))}
                     {data.plans.length === 0 && (
-                      <tr><td colSpan={11} className="text-center text-muted py-4">{t('reports.no_plans_found')}</td></tr>
+                      <tr><td colSpan={12} className="text-center text-muted py-4">{t('reports.no_plans_found')}</td></tr>
                     )}
                   </tbody>
                   {data.plans.length > 0 && (
@@ -175,6 +177,7 @@ const ProductProfitReport: React.FC = () => {
                       <tr className="fw-bold">
                         <td colSpan={3}>{t('common.total')}</td>
                         <td>Rs {data.totalProductCost.toLocaleString()}</td>
+                        <td></td>
                         <td>Rs {data.totalDownPayments.toLocaleString()}</td>
                         <td>Rs {data.totalFinancedAmount.toLocaleString()}</td>
                         <td>Rs {data.totalInterestEarned.toLocaleString()}</td>

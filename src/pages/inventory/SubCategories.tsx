@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 interface SubCategory {
   id: string;
@@ -34,7 +35,6 @@ const SubCategories: React.FC = () => {
   // Delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState('');
 
   const addFileRef = useRef<HTMLInputElement>(null);
   const editFileRef = useRef<HTMLInputElement>(null);
@@ -152,19 +152,14 @@ const SubCategories: React.FC = () => {
   };
 
   // Delete
-  const openDeleteModal = (id: string) => { setDeleteId(id); setDeleteError(''); setShowDeleteModal(true); };
+  const openDeleteModal = (id: string) => { setDeleteId(id); setShowDeleteModal(true); };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await api.delete(`/sub-categories/${deleteId}`);
-      setData((prev) => prev.filter((c) => c.id !== deleteId));
-      setShowDeleteModal(false);
-      setDeleteId(null);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to delete sub-category.';
-      setDeleteError(msg);
-    }
+    await api.delete(`/sub-categories/${deleteId}`);
+    setData((prev) => prev.filter((c) => c.id !== deleteId));
+    setShowDeleteModal(false);
+    setDeleteId(null);
   };
 
   const removeEditImage = () => {
@@ -467,28 +462,7 @@ const SubCategories: React.FC = () => {
       )}
 
       {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="page-wrapper-new p-0">
-                <div className="content p-5 px-3 text-center">
-                  <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
-                    <i className="ti ti-trash fs-24 text-danger"></i>
-                  </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('sub_categories.delete_sub_category')}</h4>
-                  <p className="mb-0 fs-16">{t('sub_categories.delete_confirm')}</p>
-                  {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
-                  <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
-                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={handleDelete}>{t('common.yes_delete')}</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );
 };

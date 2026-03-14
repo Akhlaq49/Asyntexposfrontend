@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import { getParties, createParty, updateParty, deleteParty, uploadPartyPicture, Party, CreatePartyPayload } from '../../services/partyService';
 import { showSuccess, showError } from '../../utils/alertUtils';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const ROLE = 'Biller';
 
@@ -78,8 +79,7 @@ const Billers: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!deleteId) return;
-    try { await deleteParty(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess(t('billers.biller_deleted')); loadData(); }
-    catch { showError(t('billers.failed_delete')); }
+    await deleteParty(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess(t('billers.biller_deleted')); loadData();
   };
 
   return (
@@ -206,23 +206,7 @@ const Billers: React.FC = () => {
         </div>
       )}
 
-      {showDeleteModal && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content p-5">
-              <div className="modal-body text-center p-0">
-                <div className="mb-3"><i className="ti ti-trash-x fs-36 text-danger"></i></div>
-                <h4>{t('billers.delete_biller')}</h4>
-                <p className="text-muted">{t('billers.delete_confirm')}</p>
-                <div className="d-flex justify-content-center gap-2">
-                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
-                  <button className="btn btn-danger" onClick={confirmDelete}>{t('common.delete')}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );
 };

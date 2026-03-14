@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getProducts, deleteProduct, getCategories, getBrands, ProductResponse, DropdownOption } from '../../services/productService';
 import { mediaUrl } from '../../services/api';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const fmt = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
@@ -21,7 +22,6 @@ const ProductList: React.FC = () => {
   // Delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,19 +62,14 @@ const ProductList: React.FC = () => {
     });
   }, []);
 
-  const openDeleteModal = (id: string) => { setDeleteId(id); setDeleteError(''); setShowDeleteModal(true); };
+  const openDeleteModal = (id: string) => { setDeleteId(id); setShowDeleteModal(true); };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await deleteProduct(deleteId);
-      setProducts((prev) => prev.filter((p) => p.id !== deleteId));
-      setShowDeleteModal(false);
-      setDeleteId(null);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || t('products.failed_delete');
-      setDeleteError(msg);
-    }
+    await deleteProduct(deleteId);
+    setProducts((prev) => prev.filter((p) => p.id !== deleteId));
+    setShowDeleteModal(false);
+    setDeleteId(null);
   };
 
   const filtered = useMemo(() => products.filter((p) => {
@@ -225,26 +220,7 @@ const ProductList: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body text-center pt-4 pb-4">
-                <div className="mb-3">
-                  <i className="ti ti-trash-x fs-36 text-danger"></i>
-                </div>
-                <h4>Delete Product</h4>
-                <p className="text-muted">{t('products.delete_confirm')}</p>
-                {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
-                <div className="d-flex justify-content-center gap-2 mt-3">
-                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
-                  <button className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );
 };

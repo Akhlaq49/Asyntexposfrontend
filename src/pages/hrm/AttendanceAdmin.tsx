@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import { getAttendances, getEmployees, createAttendance, updateAttendance, deleteAttendance, Attendance, CreateAttendance, Employee } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const AttendanceAdmin: React.FC = () => {
   const { t } = useTranslation();
@@ -62,8 +63,7 @@ const AttendanceAdmin: React.FC = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try { await deleteAttendance(deleteId); showSuccess(t('hrm.attendance_deleted')); setShowDelete(false); load(); }
-    catch { showError(t('hrm.failed_delete')); }
+    await deleteAttendance(deleteId); showSuccess(t('hrm.attendance_deleted')); setShowDelete(false); load();
   };
 
   const statusBadge = (s: string) => {
@@ -245,23 +245,7 @@ const AttendanceAdmin: React.FC = () => {
       )}
 
       {/* Delete Modal */}
-      {showDelete && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body text-center pt-4">
-                <div className="mb-3"><i className="ti ti-trash fs-36 text-danger"></i></div>
-                <h4>{t('hrm.delete_attendance')}</h4>
-                <p className="text-muted">{t('hrm.action_cannot_undone')}</p>
-                <div className="d-flex justify-content-center gap-2 mt-3">
-                  <button className="btn btn-secondary" onClick={() => setShowDelete(false)}>{t('common.cancel')}</button>
-                  <button className="btn btn-danger" onClick={handleDelete}>{t('common.delete')}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDelete} onClose={() => setShowDelete(false)} onConfirm={handleDelete} />
     </>
   );
 };

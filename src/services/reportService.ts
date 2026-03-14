@@ -354,6 +354,7 @@ export interface ProductProfitItem {
   productName: string;
   productImage?: string;
   productPrice: number;
+  salePrice: number;
   financedAmount: number;
   totalPayable: number;
   downPayment: number;

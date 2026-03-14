@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getBankAccounts, createBankAccount, updateBankAccount, deleteBankAccount, getAccountTypes, BankAccount, AccountType } from '../../services/financeService';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const BankSettingsGrid: React.FC = () => {
   const { t } = useTranslation();
@@ -15,7 +16,6 @@ const BankSettingsGrid: React.FC = () => {
   const [editForm, setEditForm] = useState({ id: 0, holderName: '', accountNumber: '', bankName: '', branch: '', ifsc: '', accountTypeId: 0, openingBalance: 0, notes: '', status: 'active', isDefault: false });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(0);
-  const [deleteError, setDeleteError] = useState('');
 
   const fetchData = async () => {
     try { const [aRes, tRes] = await Promise.all([getBankAccounts(), getAccountTypes()]); setAccounts(aRes.data); setAccountTypes(tRes.data); } catch {}
@@ -41,8 +41,9 @@ const BankSettingsGrid: React.FC = () => {
     setShowEditModal(false);
   };
   const handleDelete = async () => {
-    try { await deleteBankAccount(deleteId); setAccounts(prev => prev.filter(a => a.id !== deleteId)); setShowDeleteModal(false); }
-    catch (err: any) { setDeleteError(err.response?.data?.message || t('settings.failed_to_delete')); }
+    await deleteBankAccount(deleteId);
+    setAccounts(prev => prev.filter(a => a.id !== deleteId));
+    setShowDeleteModal(false);
   };
 
   const maskAccountNumber = (num: string) => num.length > 4 ? '****' + num.slice(-4) : num;
@@ -85,7 +86,7 @@ const BankSettingsGrid: React.FC = () => {
                       </a>
                       <ul className="dropdown-menu dropdown-menu-end p-2">
                         <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); openEdit(acc); }}><i className="ti ti-edit me-2"></i>{t('settings.edit')}</a></li>
-                        <li><a className="dropdown-item rounded-1 text-danger" href="#" onClick={e => { e.preventDefault(); setDeleteId(acc.id); setDeleteError(''); setShowDeleteModal(true); }}><i className="ti ti-trash me-2"></i>{t('settings.delete')}</a></li>
+                        <li><a className="dropdown-item rounded-1 text-danger" href="#" onClick={e => { e.preventDefault(); setDeleteId(acc.id); setShowDeleteModal(true); }}><i className="ti ti-trash me-2"></i>{t('settings.delete')}</a></li>
                       </ul>
                     </div>
                   </div>
@@ -168,15 +169,7 @@ const BankSettingsGrid: React.FC = () => {
       )}
 
       {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}><div className="modal-dialog modal-dialog-centered"><div className="modal-content"><div className="page-wrapper-new p-0"><div className="content p-5 px-3 text-center">
-          <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-          <h4 className="fs-20 fw-bold mb-2 mt-1">{t('settings.delete_bank_account')}</h4>
-          <p className="fs-14 text-muted">{t('settings.confirm_delete_bank')}</p>
-          {deleteError && <div className="alert alert-danger py-2 px-3 text-start">{deleteError}</div>}
-          <div className="d-flex justify-content-center gap-2"><button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('settings.cancel')}</button><button type="button" className="btn btn-danger" onClick={handleDelete}>{t('settings.delete')}</button></div>
-        </div></div></div></div></div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );
 };

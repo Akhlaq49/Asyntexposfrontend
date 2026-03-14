@@ -13,6 +13,7 @@ import {
 } from '../../services/customerService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 import WhatsAppSendModal from '../../components/WhatsAppSendModal';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; status: 'active' | 'inactive' } = { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', status: 'active' };
 
@@ -165,16 +166,9 @@ const Customers: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    setSaving(true);
-    try {
-      await deleteCustomer(deleteId);
-      setCustomers((prev) => prev.filter((c) => c.id !== deleteId));
-      setShowDeleteModal(false);
-    } catch {
-      /* ignore */
-    } finally {
-      setSaving(false);
-    }
+    await deleteCustomer(deleteId);
+    setCustomers((prev) => prev.filter((c) => c.id !== deleteId));
+    setShowDeleteModal(false);
   };
 
   const handleBulkDelete = async () => {
@@ -437,25 +431,7 @@ const Customers: React.FC = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body text-center p-5">
-                <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-                <h4 className="fs-20 fw-bold mb-2 mt-1">{t('customers.delete_customer')}</h4>
-                <p className="text-muted mb-0">{t('customers.cannot_undo')}</p>
-                <div className="mt-3 d-flex justify-content-center gap-2">
-                  <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
-                  <button className="btn btn-danger" disabled={saving} onClick={handleDelete}>
-                    {saving ? <span className="spinner-border spinner-border-sm"></span> : t('common.delete')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(''); }} onConfirm={handleDelete} />
 
       {/* View Customer Modal */}
       {showViewModal && viewCustomer && (

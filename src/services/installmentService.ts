@@ -15,6 +15,7 @@ export interface PartySearchResult {
 
 export interface GuarantorDto {
   id: number;
+  partyId: number;
   name: string;
   so?: string;
   phone?: string;

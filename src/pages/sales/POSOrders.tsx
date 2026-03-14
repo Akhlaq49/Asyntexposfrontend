@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import { recordSaleIncome } from '../../services/financeService';
 
 /* ---------- Types ---------- */
@@ -239,7 +240,7 @@ const POSOrders: React.FC = () => {
   /* ---- Delete ---- */
   const confirmDelete = async () => {
     if (!deleteId) return;
-    try { await api.delete(`/sales/${deleteId}`); setShowDeleteModal(false); setDeleteId(null); fetchData(); } catch { /* ignore */ }
+    await api.delete(`/sales/${deleteId}`); setShowDeleteModal(false); setDeleteId(null); fetchData();
   };
 
   /* ---- Detail modal ---- */
@@ -808,27 +809,7 @@ const POSOrders: React.FC = () => {
       )}
 
       {/* ===================== Delete Modal ===================== */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body p-0">
-                <div className="success-wrap text-center p-4">
-                  <div className="icon-success bg-danger-transparent text-danger mb-2" style={{ width: 50, height: 50, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <i className="ti ti-trash fs-20"></i>
-                  </div>
-                  <h3 className="mb-2">{t('sales.delete_sale')}</h3>
-                  <p className="fs-16 mb-3">{t('sales.delete_confirm')}</p>
-                  <div className="d-flex align-items-center justify-content-center gap-2">
-                    <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteId(null); }}>{t('common.no_cancel')}</button>
-                    <button type="button" className="btn btn-primary" onClick={confirmDelete}>{t('common.yes_delete')}</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );
 };

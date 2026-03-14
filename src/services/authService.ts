@@ -69,4 +69,13 @@ export const authService = {
   isAuthenticated(): boolean {
     return !!localStorage.getItem(TOKEN_KEY);
   },
+
+  async verifyAdminPassword(password: string): Promise<boolean> {
+    try {
+      await api.post('/auth/verify-admin-password', { password });
+      return true;
+    } catch {
+      return false;
+    }
+  },
 };

@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { userService, UserDto, CreateUserPayload, UpdateUserPayload } from '../../services/userService';
 import { useTranslation } from 'react-i18next';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const ROLES = ['Admin', 'Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
 
@@ -33,8 +34,6 @@ const Users: React.FC = () => {
   // ── Delete modal ──
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [deleteName, setDeleteName] = useState('');
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // ── Fetch users ──
   const fetchUsers = useCallback(async () => {
@@ -137,22 +136,14 @@ const Users: React.FC = () => {
   // ── Delete user ──
   const openDelete = (user: UserDto) => {
     setDeleteId(user.id);
-    setDeleteName(user.fullName);
     setShowDelete(true);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    setDeleteLoading(true);
-    try {
-      await userService.delete(deleteId);
-      setShowDelete(false);
-      fetchUsers();
-    } catch {
-      setError(t('users.failed_delete'));
-    } finally {
-      setDeleteLoading(false);
-    }
+    await userService.delete(deleteId);
+    setShowDelete(false);
+    fetchUsers();
   };
 
   return (
@@ -465,34 +456,7 @@ const Users: React.FC = () => {
       )}
 
       {/* ══════ Delete Confirmation Modal ══════ */}
-      {showDelete && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowDelete(false)}>
-          <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-content">
-              <div className="page-wrapper-new p-0">
-                <div className="content p-5 px-3 text-center">
-                  <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
-                    <i className="ti ti-trash fs-24 text-danger"></i>
-                  </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">{t('users.delete_user')}</h4>
-                  <p className="mb-0 fs-16">{t('users.delete_confirm', { name: deleteName })}</p>
-                  <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDelete(false)}>{t('common.cancel')}</button>
-                    <button
-                      type="button"
-                      className="btn btn-primary fs-13 fw-medium p-2 px-3"
-                      disabled={deleteLoading}
-                      onClick={handleDelete}
-                    >
-                      {deleteLoading ? t('common.loading') : t('common.yes') + ' ' + t('common.delete')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDelete} onClose={() => setShowDelete(false)} onConfirm={handleDelete} />
     </>
   );
 };

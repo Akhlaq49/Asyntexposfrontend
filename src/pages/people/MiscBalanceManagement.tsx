@@ -7,6 +7,7 @@ import {
   createMiscTransaction, 
   deleteMiscTransaction 
 } from '../../services/miscService';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 interface CustomerMiscSummary {
   customerId: number;
@@ -26,6 +27,8 @@ const MiscBalanceManagement: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateMiscTransaction>({
     customerId: 0,
     transactionType: 'Credit',
@@ -90,16 +93,18 @@ const MiscBalanceManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this transaction?')) return;
-    try {
-      await deleteMiscTransaction(id);
-      await fetchSummary();
-      if (selectedCustomerId) {
-        await fetchCustomerTransactions(selectedCustomerId, selectedCustomerName);
-      }
-    } catch {
-      alert('Failed to delete transaction');
+  const handleDelete = (id: string) => {
+    setDeleteTransactionId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTransactionId) return;
+    await deleteMiscTransaction(deleteTransactionId);
+    setShowDeleteModal(false);
+    await fetchSummary();
+    if (selectedCustomerId) {
+      await fetchCustomerTransactions(selectedCustomerId, selectedCustomerName);
     }
   };
 
@@ -317,6 +322,8 @@ const MiscBalanceManagement: React.FC = () => {
           </div>
         </div>
       )}
+
+      <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={confirmDelete} />
     </>
   );
 };

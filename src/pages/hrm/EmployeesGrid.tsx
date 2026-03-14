@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getEmployees, deleteEmployee, getDepartments, getDesignations, Employee, Department, Designation as DesignationType } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const EmployeesGrid: React.FC = () => {
   const { t } = useTranslation();
@@ -38,8 +39,7 @@ const EmployeesGrid: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!deleteId) return;
-    try { await deleteEmployee(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess(t('hrm.employee_deleted')); loadData(); }
-    catch { showError(t('hrm.failed_delete')); }
+    await deleteEmployee(deleteId); setShowDeleteModal(false); setDeleteId(null); showSuccess(t('hrm.employee_deleted')); loadData();
   };
 
   const totalCount = items.length;
@@ -148,23 +148,7 @@ const EmployeesGrid: React.FC = () => {
       )}
 
       {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="content p-5 px-3 text-center">
-                <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i className="ti ti-trash fs-24 text-danger"></i></span>
-                <h4 className="fs-20 text-gray-9 fw-bold mb-2 mt-1">{t('hrm.delete_employee')}</h4>
-                <p className="text-gray-6 mb-0 fs-16">{t('hrm.confirm_delete_employee')}</p>
-                <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                  <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
-                  <button type="button" className="btn btn-submit fs-13 fw-medium p-2 px-3" onClick={confirmDelete}>{t('common.yes_delete')}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );
 };

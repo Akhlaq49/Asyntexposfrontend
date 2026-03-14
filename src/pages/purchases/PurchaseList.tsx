@@ -10,7 +10,8 @@ import {
 } from '../../services/purchaseService';
 import { getProducts, ProductResponse } from '../../services/productService';
 import { recordPurchaseExpense } from '../../services/financeService';
-import { showConfirm, showSuccess, showError } from '../../utils/alertUtils';
+import { showSuccess, showError } from '../../utils/alertUtils';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 const PurchaseList: React.FC = () => {
   const { t } = useTranslation();
@@ -70,6 +71,10 @@ const PurchaseList: React.FC = () => {
     unitCost: 0,
     totalCost: 0,
   });
+
+  // Delete modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePurchaseId, setDeletePurchaseId] = useState<number | null>(null);
 
   const suppliers = ['Apex Computers', 'Dazzle Shoes', 'Best Accessories', 'Global Traders'];
   const statuses = ['Received', 'Pending', 'Ordered', 'Cancelled'];
@@ -183,23 +188,17 @@ const PurchaseList: React.FC = () => {
     setShowEditModal(true);
   };
 
-  const handleDeletePurchase = async (id: number) => {
-    const confirmed = await showConfirm(
-      'Delete Purchase',
-      'Are you sure you want to delete this purchase?',
-      'Delete',
-      'Cancel'
-    );
+  const handleDeletePurchase = (id: number) => {
+    setDeletePurchaseId(id);
+    setShowDeleteModal(true);
+  };
 
-    if (confirmed.isConfirmed) {
-      try {
-        await deletePurchase(id);
-        showSuccess('Purchase deleted successfully');
-        loadPurchases();
-      } catch (error) {
-        showError('Failed to delete purchase');
-      }
-    }
+  const confirmDeletePurchase = async () => {
+    if (!deletePurchaseId) return;
+    await deletePurchase(deletePurchaseId);
+    showSuccess('Purchase deleted successfully');
+    setShowDeleteModal(false);
+    loadPurchases();
   };
 
   const resetForm = () => {
@@ -1176,6 +1175,8 @@ const PurchaseList: React.FC = () => {
           </div>
         </div>
         )}
+
+      <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={confirmDeletePurchase} />
     </>
   );
 };

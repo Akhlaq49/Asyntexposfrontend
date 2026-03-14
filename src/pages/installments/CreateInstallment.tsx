@@ -430,8 +430,7 @@ const CreateInstallment: React.FC = () => {
         const gResult = await addGuarantor(result.id, fd);
         // Upload additional guarantor pictures
         if (g.pictureFiles.length > 0) {
-          const partyId = gResult.id ? g.partyId || gResult.id : null;
-          await uploadPlanMedia(result.id, 'guarantor', partyId, 'image', g.pictureFiles);
+          await uploadPlanMedia(result.id, 'guarantor', gResult.partyId, 'image', g.pictureFiles);
         }
       }
       // Upload customer additional pictures

@@ -70,7 +70,7 @@ const InstallmentPlans: React.FC = () => {
       ``,
       `👤 Customer: ${p.customerName}`,
       `📦 Product: ${p.productName}`,
-      `💰 Product Price: Rs ${fmt(p.productPrice)}`,
+      `💰 Sale Price: Rs ${fmt(p.financeAmount ?? p.productPrice)}`,
       `📊 Down Payment: Rs ${fmt(p.downPayment)}`,
       `💳 Monthly EMI: Rs ${fmt(p.emiAmount)}`,
       `📅 Tenure: ${p.tenure} months`,
@@ -263,7 +263,7 @@ const InstallmentPlans: React.FC = () => {
                           <span>{plan.productName}</span>
                         </div>
                       </td>
-                      <td>{fmt(plan.productPrice)}</td>
+                      <td>{fmt(plan.financeAmount ?? plan.productPrice)}</td>
                       <td>{fmt(plan.downPayment)}</td>
                       <td className="fw-medium">{fmt(plan.emiAmount)}</td>
                       <td>{plan.tenure} {t('common.mo')}</td>

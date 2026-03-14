@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 /* ---------- Types ---------- */
 interface QuotationItemDto {
@@ -245,7 +246,7 @@ const QuotationList: React.FC = () => {
   /* ---- Delete ---- */
   const confirmDelete = async () => {
     if (!deleteId) return;
-    try { await api.delete(`/quotations/${deleteId}`); setShowDeleteModal(false); setDeleteId(null); fetchData(); } catch { /* ignore */ }
+    await api.delete(`/quotations/${deleteId}`); setShowDeleteModal(false); setDeleteId(null); fetchData();
   };
 
   /* ====================== RENDER ====================== */
@@ -630,27 +631,7 @@ const QuotationList: React.FC = () => {
       )}
 
       {/* ===================== Delete Modal ===================== */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body p-0">
-                <div className="success-wrap text-center p-5">
-                  <span className="rounded-circle d-inline-flex align-items-center justify-content-center" style={{ width: 54, height: 54, backgroundColor: '#fff2f0' }}>
-                    <i className="ti ti-trash fs-24 text-danger"></i>
-                  </span>
-                  <h4 className="mt-3 mb-2">{t('quotations.delete_quotation')}</h4>
-                  <p className="fs-16 mb-3">{t('quotations.delete_confirm')}</p>
-                  <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.no_cancel')}</button>
-                    <button type="button" className="btn btn-primary" onClick={confirmDelete}>{t('common.yes_delete')}</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );
 };

@@ -39,6 +39,21 @@ const InstallmentDetails: React.FC = () => {
     const fetchPlan = async () => {
       try {
         const result = await getInstallmentById(id || '');
+        // Merge guarantor pictures from planMedia into each guarantor
+        if (result.guarantors && result.planMedia) {
+          const guarantorMedia = result.planMedia.filter(m => m.entityType === 'guarantor' && m.mediaType === 'image');
+          if (guarantorMedia.length > 0) {
+            result.guarantors = result.guarantors.map(g => {
+              const mediaPics = guarantorMedia.filter(m => m.entityId != null && Number(m.entityId) === Number(g.partyId));
+              if (mediaPics.length > 0) {
+                const existingIds = new Set((g.pictures || []).map(p => p.id));
+                const newPics = mediaPics.filter(p => !existingIds.has(p.id));
+                return { ...g, pictures: [...(g.pictures || []), ...newPics] };
+              }
+              return g;
+            });
+          }
+        }
         setPlan(result);
       } catch {
         setPlan(null);
@@ -194,7 +209,7 @@ const totalRemaining = useMemo(() => {
               ``,
               `👤 Customer: ${plan.customerName}`,
               `📦 Product: ${plan.productName}`,
-              `💰 Product Price: Rs ${fmt(plan.productPrice)}`,
+              `💰 Sale Price: Rs ${fmt(plan.financeAmount ?? plan.productPrice)}`,
               `📊 Down Payment: Rs ${fmt(plan.downPayment)}`,
               `💳 Monthly EMI: Rs ${fmt(plan.emiAmount)}`,
               `📅 Tenure: ${plan.tenure} months`,
@@ -294,7 +309,7 @@ const totalRemaining = useMemo(() => {
                 <a className="avatar avatar-lg me-3"><img src={mediaUrl(plan.productImage)} alt="product" /></a>
                 <div>
                   <h6 className="fw-bold mb-1">{plan.productName}</h6>
-                  <span className="text-muted">Rs {fmt(plan.productPrice)}</span>
+                  <span className="text-muted">Rs {fmt(plan.financeAmount ?? plan.productPrice)}</span>
                 </div>
               </div>
             </div>
@@ -306,9 +321,7 @@ const totalRemaining = useMemo(() => {
             <div className="card-body">
               <table className="table table-borderless table-sm mb-0">
                 <tbody>
-                  {plan.financeAmount != null && plan.financeAmount > 0 && plan.financeAmount !== plan.productPrice && (
-                    <tr><td className="text-muted">{t('installment_details.finance_amount')}</td><td className="text-end text-info fw-bold">Rs {fmt(plan.financeAmount)}</td></tr>
-                  )}
+                  <tr><td className="text-muted">{t('installment_details.finance_amount')}</td><td className="text-end text-info fw-bold">Rs {fmt(plan.financeAmount ?? plan.productPrice)}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.down_payment')}</td><td className="text-end">Rs {fmt(plan.downPayment)}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.financed_amount')}</td><td className="text-end">Rs {fmt(plan.financedAmount)}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.interest_rate')}</td><td className="text-end">{plan.interestRate}% {t('create_installment.pa_suffix')}</td></tr>
@@ -352,21 +365,26 @@ const totalRemaining = useMemo(() => {
                   <div key={g.id} className={`${idx > 0 ? 'border-top pt-3 mt-3' : ''}`}>
                     <div className="d-flex align-items-start gap-3" style={{ cursor: 'pointer' }} onClick={() => setSelectedGuarantor(g)}>
                       {g.picture ? (
-                        <img src={`${MEDIA_BASE_URL}${g.picture}`} alt={g.name} className="rounded border" style={{ width: 64, height: 64, objectFit: 'cover' }} />
+                        <img src={`${MEDIA_BASE_URL}${g.picture}`} alt={g.name} className="rounded-circle border me-1" style={{ width: 56, height: 56, objectFit: 'cover' }} />
                       ) : (
-                        <div className="rounded border bg-light d-flex align-items-center justify-content-center" style={{ width: 64, height: 64 }}>
-                          <i className="ti ti-user fs-24 text-muted"></i>
-                        </div>
+                        <span className="avatar avatar-lg me-1 bg-primary-transparent text-primary d-flex align-items-center justify-content-center rounded-circle fw-bold fs-20">
+                          {g.name.charAt(0).toUpperCase()}
+                        </span>
                       )}
                       <div className="flex-fill">
                         <h6 className="fw-bold mb-1">{g.name}</h6>
                         {g.so && <p className="mb-1 small text-muted">{t('create_installment.so_label')} {g.so}</p>}
                         {g.relationship && <span className="badge bg-primary-transparent text-primary me-2 mb-1">{g.relationship}</span>}
                         {g.phone && <p className="mb-1 small"><i className="ti ti-phone me-1"></i><a href={`tel:${g.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{g.phone}</p>}
-                        {g.pictures && g.pictures.length > 0 && (
+                        {(g.picture || (g.pictures && g.pictures.length > 0)) && (
                           <div className="d-flex gap-2 mt-2 flex-wrap">
-                            {g.pictures.map((pic) => (
-                              <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Guarantor" className="rounded border" style={{ width: 48, height: 48, objectFit: 'cover', cursor: 'pointer' }} />
+                            {g.picture && (
+                              <img src={`${MEDIA_BASE_URL}${g.picture}`} alt={g.name} className="rounded border" style={{ width: 48, height: 48, objectFit: 'cover', cursor: 'pointer' }}
+                                onClick={(e) => { e.stopPropagation(); window.open(`${MEDIA_BASE_URL}${g.picture}`, '_blank'); }} />
+                            )}
+                            {g.pictures && g.pictures.map((pic) => (
+                              <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Guarantor" className="rounded border" style={{ width: 48, height: 48, objectFit: 'cover', cursor: 'pointer' }}
+                                onClick={(e) => { e.stopPropagation(); window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank'); }} />
                             ))}
                           </div>
                         )}
@@ -383,22 +401,6 @@ const totalRemaining = useMemo(() => {
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-          {/* Customer Pictures */}
-          {plan.customerPictures && plan.customerPictures.length > 0 && (
-            <div className="card">
-              <div className="card-header">
-                <h5 className="card-title mb-0"><i className="ti ti-photo me-2"></i>Customer Pictures ({plan.customerPictures.length})</h5>
-              </div>
-              <div className="card-body">
-                <div className="d-flex gap-2 flex-wrap">
-                  {plan.customerPictures.map((pic) => (
-                    <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Customer" className="rounded border" style={{ width: 100, height: 100, objectFit: 'cover', cursor: 'pointer' }}
-                      onClick={() => window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank')} />
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -711,9 +713,13 @@ const totalRemaining = useMemo(() => {
                 )}
                 <h4 className="fw-bold mb-1">{plan.customerName}</h4>
                 <p className="text-muted mb-3">{t('installment_details.customer')}</p>
-                {plan.customerPictures && plan.customerPictures.length > 0 && (
+                {(plan.customerImage || (plan.customerPictures && plan.customerPictures.length > 0)) && (
                   <div className="d-flex gap-2 flex-wrap justify-content-center mb-3">
-                    {plan.customerPictures.map((pic) => (
+                    {plan.customerImage && (
+                      <img src={`${MEDIA_BASE_URL}${plan.customerImage}`} alt={plan.customerName} className="rounded border" style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'pointer' }}
+                        onClick={() => window.open(`${MEDIA_BASE_URL}${plan.customerImage}`, '_blank')} />
+                    )}
+                    {plan.customerPictures && plan.customerPictures.map((pic) => (
                       <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Customer" className="rounded border" style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'pointer' }}
                         onClick={() => window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank')} />
                     ))}
@@ -792,9 +798,13 @@ const totalRemaining = useMemo(() => {
                 <h4 className="fw-bold mb-1">{selectedGuarantor.name}</h4>
                 {selectedGuarantor.so && <p className="text-muted mb-1">{t('create_installment.so_label')} {selectedGuarantor.so}</p>}
                 {selectedGuarantor.relationship && <span className="badge bg-primary-transparent text-primary mb-3">{selectedGuarantor.relationship}</span>}
-                {selectedGuarantor.pictures && selectedGuarantor.pictures.length > 0 && (
+                {(selectedGuarantor.picture || (selectedGuarantor.pictures && selectedGuarantor.pictures.length > 0)) && (
                   <div className="d-flex gap-2 flex-wrap justify-content-center mt-2 mb-3">
-                    {selectedGuarantor.pictures.map((pic) => (
+                    {selectedGuarantor.picture && (
+                      <img src={`${MEDIA_BASE_URL}${selectedGuarantor.picture}`} alt={selectedGuarantor.name} className="rounded border" style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'pointer' }}
+                        onClick={() => window.open(`${MEDIA_BASE_URL}${selectedGuarantor.picture}`, '_blank')} />
+                    )}
+                    {selectedGuarantor.pictures && selectedGuarantor.pictures.map((pic) => (
                       <img key={pic.id} src={`${MEDIA_BASE_URL}${pic.filePath}`} alt="Guarantor" className="rounded border" style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'pointer' }}
                         onClick={() => window.open(`${MEDIA_BASE_URL}${pic.filePath}`, '_blank')} />
                     ))}

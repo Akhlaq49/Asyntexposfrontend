@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 /* ---------- Types ---------- */
 interface DropdownOption { value: string; label: string; }
@@ -187,7 +188,8 @@ const StockAdjustment: React.FC = () => {
   const openDeleteModal = (id: number) => { setDeleteId(id); setShowDeleteModal(true); };
   const handleDelete = async () => {
     if (deleteId == null) return;
-    try { await api.delete(`/stock-adjustments/${deleteId}`); await fetchData(); } catch { /* ignore */ }
+    await api.delete(`/stock-adjustments/${deleteId}`);
+    await fetchData();
     setShowDeleteModal(false); setDeleteId(null);
   };
 
@@ -555,27 +557,7 @@ const StockAdjustment: React.FC = () => {
       )}
 
       {/* ====== Delete Modal ====== */}
-      {showDeleteModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body p-0">
-                <div className="success-wrap text-center p-5">
-                  <div className="icon-success bg-danger-transparent text-danger mb-2">
-                    <i className="ti ti-trash"></i>
-                  </div>
-                  <h3 className="mb-2">{t('stocks.delete_adjustment_title')}</h3>
-                  <p className="fs-16 mb-3">{t('stocks.delete_adjustment_text')}</p>
-                  <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                    <button type="button" className="btn btn-md btn-secondary" onClick={() => setShowDeleteModal(false)}>{t('common.no_cancel')}</button>
-                    <button type="button" className="btn btn-md btn-primary" onClick={handleDelete}>{t('common.yes_delete')}</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );
 };

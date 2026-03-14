@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../../services/api';
 import PageHeader from '../../components/common/PageHeader';
+import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
 interface CouponDto {
   id: number;
@@ -147,12 +148,10 @@ const Coupons: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    try {
-      await api.delete(`/coupons/${deleteTarget.id}`);
-      setShowDelete(false);
-      setDeleteTarget(null);
-      load();
-    } catch { /* ignore */ }
+    await api.delete(`/coupons/${deleteTarget.id}`);
+    setShowDelete(false);
+    setDeleteTarget(null);
+    load();
   };
 
   /* ─── search filter ─── */
@@ -419,27 +418,7 @@ const Coupons: React.FC = () => {
       )}
 
       {/* ─── Delete Modal ─── */}
-      {showDelete && deleteTarget && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="page-wrapper-new p-0">
-                <div className="content p-5 px-3 text-center">
-                  <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
-                    <i className="ti ti-trash fs-24 text-danger"></i>
-                  </span>
-                  <h4 className="fs-20 fw-bold mb-2 mt-1">Delete Coupon</h4>
-                  <p className="mb-0 fs-16">Are you sure you want to delete coupon?</p>
-                  <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                    <button type="button" className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none" onClick={() => setShowDelete(false)}>Cancel</button>
-                    <button type="button" className="btn btn-primary fs-13 fw-medium p-2 px-3" onClick={confirmDelete}>Yes Delete</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminDeleteModal show={showDelete && !!deleteTarget} onClose={() => setShowDelete(false)} onConfirm={confirmDelete} />
     </>
   );
 };
