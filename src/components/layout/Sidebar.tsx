@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../context/PermissionContext';
 import { filterMenuDataByKeys } from '../../utils/menuKeys';
 import { translateMenuTitle } from '../../i18n/menuTranslations';
+import './Sidebar.css';
 
 interface MenuItemType {
   title: string;
@@ -239,7 +240,7 @@ const Sidebar: React.FC = () => {
           e.preventDefault();
           document.body.classList.toggle('mini-sidebar');
         }}>
-          <i data-feather="chevrons-left" className="feather-16"></i>
+          <i className="ti ti-chevrons-left" style={{ fontSize: '16px' }}></i>
         </a>
       </div>
 
@@ -305,7 +306,6 @@ const Sidebar: React.FC = () => {
       {/* Navigation Menu */}
       <div className="sidebar-inner slimscroll" style={{
         overflowY: 'auto',
-        height: 'calc(100vh - 60px)',
         scrollbarWidth: 'thin',
         scrollbarColor: '#ccc transparent',
       }}>

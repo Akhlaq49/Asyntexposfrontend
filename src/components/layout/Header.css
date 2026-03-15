@@ -5,6 +5,47 @@
    ============================================= */
 
 @media (max-width: 991.96px) {
+  /* Make main-header a proper flex row so logo, toggle, and menu share space */
+  .header .main-header {
+    display: flex !important;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Fix header-left: undo absolute positioning, shrink to logo size */
+  .header .header-left,
+  .header .header-left.active {
+    position: relative !important;
+    width: auto !important;
+    flex-shrink: 0;
+    padding: 0 8px 0 10px;
+    height: 100%;
+    display: flex !important;
+    align-items: center;
+  }
+
+  /* Constrain logo images on mobile */
+  .header .header-left .logo img {
+    max-width: 110px;
+    height: auto;
+  }
+  .header .header-left .logo-small img {
+    max-width: 36px;
+    height: auto;
+  }
+
+  /* Mobile toggle button — keep inline in the flex row */
+  .header .mobile_btn {
+    position: relative !important;
+    flex-shrink: 0;
+    width: auto !important;
+    padding: 0 10px !important;
+    height: 100%;
+    display: flex !important;
+    align-items: center;
+  }
+
   /* Show the full user-menu on mobile instead of hiding it */
   .user-menu {
     display: flex !important;
@@ -16,6 +57,7 @@
     scrollbar-width: none;
     flex: 1;
     min-width: 0;
+    justify-content: flex-end;
   }
   .user-menu::-webkit-scrollbar {
     display: none;
@@ -91,20 +133,29 @@
     width: 250px !important;
     top: 60px !important;
   }
-
-  /* Adjust header-left to not overlap menu on mobile */
-  .header .header-left.active {
-    width: auto;
-    padding: 0 10px;
-  }
 }
 
-@media (max-width: 575.98px) {
-  .user-menu > li {
-    margin-left: 3px;
+@media (max-width: 767.98px) {
+  /* On tablets and small devices: hide normal logo, show small logo */
+  .header .header-left .logo {
+    display: none !important;
+  }
+  .header .header-left .logo-small {
+    display: inline-block !important;
   }
 
-  /* Hide button text labels on very small screens, show only icons */
+  /* Constrain small logo */
+  .header .header-left .logo-small img {
+    max-width: 32px;
+    height: auto;
+  }
+
+  .header .header-left,
+  .header .header-left.active {
+    padding: 0 4px 0 8px;
+  }
+
+  /* Hide button text labels on smaller screens, show only icons */
   .user-menu .link-nav .btn .header-btn-text,
   .user-menu .pos-nav .btn .header-btn-text {
     display: none;
@@ -113,6 +164,12 @@
   .user-menu .pos-nav .btn i {
     margin-right: 0 !important;
     margin-inline-end: 0 !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .user-menu > li {
+    margin-left: 3px;
   }
 
   /* Compact icon boxes further */
@@ -125,5 +182,9 @@
   .user-menu .link-nav .btn,
   .user-menu .pos-nav .btn {
     padding: 4px 6px;
+  }
+
+  .header .mobile_btn {
+    padding: 0 6px !important;
   }
 }

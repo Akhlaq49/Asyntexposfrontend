@@ -1,0 +1,68 @@
+/* =============================================
+   Sidebar Fixes
+   - Ensures logo is always visible at top
+   - Ensures expand/collapse icon stays visible
+     when the sidebar is collapsed (mini-sidebar)
+   ============================================= */
+
+/* Keep sidebar-logo pinned at top and never hidden by scroll content */
+.sidebar .sidebar-logo {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* Constrain logo images so they don't overflow the sidebar-logo container */
+.sidebar .sidebar-logo .logo img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+.sidebar .sidebar-logo .logo-small img {
+  max-width: 38px;
+  height: auto;
+  display: block;
+}
+
+/* Make the sidebar a flex column so the logo stays on top */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The scrollable inner area fills remaining space below logo/profile */
+.sidebar .sidebar-inner.slimscroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto;
+}
+
+/* Always show the toggle button, even in mini-sidebar mode */
+@media (min-width: 992px) {
+  .mini-sidebar .sidebar .sidebar-logo #toggle_btn {
+    opacity: 1 !important;
+    right: -13px;
+    z-index: 10;
+  }
+
+  /* Rotate the Tabler icon when sidebar is collapsed */
+  .mini-sidebar .sidebar .sidebar-logo #toggle_btn i {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+  }
+
+  /* Reset rotation when sidebar is expanded on hover */
+  .mini-sidebar.expand-menu .sidebar .sidebar-logo #toggle_btn i {
+    transform: rotate(0deg);
+  }
+}
+
+/* Transition for smooth icon rotation */
+.sidebar .sidebar-logo #toggle_btn i {
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
