@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getDesignations, createDesignation, updateDesignation, deleteDesignation, getDepartments, Designation as DesignationType, CreateDesignation, Department } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const Designation: React.FC = () => {
   const { t } = useTranslation();
@@ -161,6 +162,7 @@ const Designation: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

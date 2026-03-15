@@ -4,6 +4,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getPurchaseReport, PurchaseReportItemDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const PurchaseReport: React.FC = () => {
   const { t } = useTranslation();
@@ -25,6 +27,8 @@ const PurchaseReport: React.FC = () => {
   const filtered = items.filter(i =>
     !search || i.productName.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('common.reference'), t('common.sku'), t('reports.due_date'), t('common.product_name'), t('common.category'), t('reports.in_stock_qty'), t('reports.purchase_qty'), t('reports.purchase_amount')];
   const rows = filtered.map(i => [i.reference, i.sku, i.dueDate, i.productName, i.category, i.inStockQty, i.purchaseQty, i.purchaseAmount.toFixed(2)]);
@@ -50,8 +54,8 @@ const PurchaseReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.reference}</td><td>{item.sku}</td><td>{item.dueDate}</td><td>{item.productName}</td>
                       <td>{item.category}</td><td>{item.inStockQty}</td><td>{item.purchaseQty}</td><td>{item.purchaseAmount.toFixed(2)}</td>
@@ -62,6 +66,7 @@ const PurchaseReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getParties, createParty, updateParty, deleteParty, Party, CreatePartyPayload } from '../../services/partyService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const ROLE = 'Supplier';
 
@@ -21,7 +22,7 @@ const Suppliers: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [currentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const emptyForm: CreatePartyPayload = { fullName: '', lastName: '', email: '', phone: '', address: '', city: '', state: '', country: '', postalCode: '', code: '', role: ROLE, status: 'active', isActive: true };
@@ -185,6 +186,8 @@ const Suppliers: React.FC = () => {
       )}
 
       {/* Delete Modal */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

@@ -2,6 +2,8 @@
 import api from '../../services/api';
 import PageHeader from '../../components/common/PageHeader';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface CouponDto {
   id: number;
@@ -162,6 +164,8 @@ const Coupons: React.FC = () => {
       )
     : items;
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
   /* ─── format discount display ─── */
   const fmtDiscount = (c: CouponDto) =>
     c.type === 'Percentage' ? `${c.discount}%` : `$${c.discount}`;
@@ -245,7 +249,7 @@ const Coupons: React.FC = () => {
                   <tr><td colSpan={10} className="text-center py-4">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
                   <tr><td colSpan={10} className="text-center py-4">No coupons found</td></tr>
-                ) : filtered.map(c => (
+                ) : paginatedData.map(c => (
                   <tr key={c.id}>
                     <td><label className="checkboxs"><input type="checkbox" /><span className="checkmarks"></span></label></td>
                     <td className="text-gray-9">{c.name}</td>
@@ -418,6 +422,7 @@ const Coupons: React.FC = () => {
       )}
 
       {/* ─── Delete Modal ─── */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDelete && !!deleteTarget} onClose={() => setShowDelete(false)} onConfirm={confirmDelete} />
     </>
   );

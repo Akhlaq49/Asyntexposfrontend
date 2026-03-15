@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import { getFinanceIncomes, createFinanceIncome, updateFinanceIncome, deleteFinanceIncome, getIncomeCategories, getBankAccounts, FinanceIncome, IncomeCategory, BankAccount } from '../../services/financeService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 import { getStores, DropdownOption } from '../../services/productService';
 
 const Income: React.FC = () => {
@@ -68,6 +70,8 @@ const Income: React.FC = () => {
 
   const filtered = incomes.filter(i => !searchTerm || i.reference.toLowerCase().includes(searchTerm.toLowerCase()) || i.categoryName.toLowerCase().includes(searchTerm.toLowerCase()) || i.store.toLowerCase().includes(searchTerm.toLowerCase()));
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
   return (
     <>
       <div className="page-header">
@@ -103,7 +107,7 @@ const Income: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(inc => (
+                  {paginatedData.map(inc => (
                     <tr key={inc.id}>
                       <td><label className="checkboxs"><input type="checkbox" checked={selectedIds.has(inc.id)} onChange={e => handleSelectOne(inc.id, e.target.checked)} /><span className="checkmarks"></span></label></td>
                       <td>{inc.date}</td>
@@ -189,6 +193,7 @@ const Income: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );

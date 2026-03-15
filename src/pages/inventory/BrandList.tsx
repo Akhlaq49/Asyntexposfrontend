@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface BrandDto {
   id: number;
@@ -92,6 +94,8 @@ const BrandList: React.FC = () => {
       if (sortMode === 'desc') return b.name.localeCompare(a.name);
       return 0; // latest – already sorted by CreatedAt desc from API
     });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filteredData);
 
   const handleSelectAll = useCallback((checked: boolean) => {
     setSelectAll(checked);
@@ -295,7 +299,7 @@ const BrandList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData.map((item) => (
+                  {paginatedData.map((item) => (
                     <tr key={item.id}>
                       <td>
                         <label className="checkboxs">
@@ -470,6 +474,7 @@ const BrandList: React.FC = () => {
       )}
 
       {/* Delete Modal */}
+      <Pagination currentPage={currentPage} totalItems={filteredData.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );

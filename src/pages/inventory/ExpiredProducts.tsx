@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface ProductDto {
   id: string;
@@ -143,6 +145,8 @@ const ExpiredProducts: React.FC = () => {
     return matchesSearch && matchesProduct;
   });
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filteredProducts);
+
   const productNames = [...new Set(products.map((p) => p.name))];
 
   return (
@@ -262,7 +266,7 @@ const ExpiredProducts: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((product) => (
+                  {paginatedData.map((product) => (
                     <tr key={product.id}>
                       <td>
                         <label className="checkboxs">
@@ -387,6 +391,7 @@ const ExpiredProducts: React.FC = () => {
       )}
 
       {/* Delete Confirmation Modal */}
+      <Pagination currentPage={currentPage} totalItems={filteredProducts.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );

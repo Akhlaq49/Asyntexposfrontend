@@ -1,6 +1,8 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { getIncomeCategories, createIncomeCategory, updateIncomeCategory, deleteIncomeCategory, IncomeCategory as IncomeCategoryType } from '../../services/financeService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const IncomeCategory: React.FC = () => {
   const [categories, setCategories] = useState<IncomeCategoryType[]>([]);
@@ -60,6 +62,8 @@ const IncomeCategory: React.FC = () => {
 
   const filtered = categories.filter(c => !searchTerm || c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase()));
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
   return (
     <>
       <div className="page-header">
@@ -92,7 +96,7 @@ const IncomeCategory: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(cat => (
+                  {paginatedData.map(cat => (
                     <tr key={cat.id}>
                       <td><label className="checkboxs"><input type="checkbox" checked={selectedIds.has(cat.id)} onChange={e => handleSelectOne(cat.id, e.target.checked)} /><span className="checkmarks"></span></label></td>
                       <td>{cat.code}</td>
@@ -143,6 +147,7 @@ const IncomeCategory: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );

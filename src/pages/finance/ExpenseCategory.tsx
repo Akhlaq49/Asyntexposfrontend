@@ -1,6 +1,8 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { getExpenseCategories, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory, ExpenseCategory as ExpenseCategoryType } from '../../services/financeService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const ExpenseCategory: React.FC = () => {
   const [categories, setCategories] = useState<ExpenseCategoryType[]>([]);
@@ -64,6 +66,8 @@ const ExpenseCategory: React.FC = () => {
     return matchSearch && matchStatus;
   });
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
   return (
     <>
       <div className="page-header">
@@ -106,7 +110,7 @@ const ExpenseCategory: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(cat => (
+                  {paginatedData.map(cat => (
                     <tr key={cat.id}>
                       <td><label className="checkboxs"><input type="checkbox" checked={selectedIds.has(cat.id)} onChange={e => handleSelectOne(cat.id, e.target.checked)} /><span className="checkmarks"></span></label></td>
                       <td>{cat.name}</td>
@@ -153,6 +157,7 @@ const ExpenseCategory: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );

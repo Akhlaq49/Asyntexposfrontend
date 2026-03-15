@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getShifts, createShift, updateShift, deleteShift, Shift as ShiftType, CreateShift } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const Shift: React.FC = () => {
   const { t } = useTranslation();
@@ -151,6 +152,7 @@ const Shift: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

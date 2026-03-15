@@ -1,6 +1,8 @@
 ﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAttendances, Attendance } from '../../services/hrmService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const AttendanceEmployee: React.FC = () => {
   const { t } = useTranslation();
@@ -56,6 +58,8 @@ const AttendanceEmployee: React.FC = () => {
     const matchStatus = !statusFilter || r.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const statusBadge = (s: string) => {
     const cls = s === 'Present' ? 'badge-success' : s === 'Absent' ? 'badge-danger' : s === 'Holiday' ? 'badge-purple' : 'badge-warning';
@@ -200,7 +204,7 @@ const AttendanceEmployee: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(r => (
+                  {paginatedData.map(r => (
                     <tr key={r.id}>
                       <td>{new Date(r.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                       <td>{statusBadge(r.status)}</td>
@@ -213,7 +217,7 @@ const AttendanceEmployee: React.FC = () => {
                       <td>{r.totalHours || '-'}</td>
                     </tr>
                   ))}
-                  {filtered.length === 0 && (
+                  {paginatedData.length === 0 && (
                     <tr><td colSpan={9} className="text-center py-4 text-muted">{t('hrm.no_attendance_records')}</td></tr>
                   )}
                 </tbody>
@@ -222,6 +226,7 @@ const AttendanceEmployee: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

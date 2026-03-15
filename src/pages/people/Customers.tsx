@@ -14,6 +14,8 @@ import {
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 import WhatsAppSendModal from '../../components/WhatsAppSendModal';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; status: 'active' | 'inactive' } = { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', status: 'active' };
 
@@ -87,6 +89,8 @@ const Customers: React.FC = () => {
     }
     return list;
   }, [customers, search, statusFilter]);
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const allSelected = filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id));
 
@@ -346,7 +350,7 @@ const Customers: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((c) => (
+                  {paginatedData.map((c) => (
                     <tr key={c.id}>
                       <td>
                         <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => toggleSelect(c.id)} /><span className="checkmarks"></span></label>
@@ -593,6 +597,7 @@ const Customers: React.FC = () => {
         defaultMessage={whatsappCustomer ? `Hello ${whatsappCustomer.name},\n\nThis is a message from Asyentyx.\n\nRegards` : ''}
         title={t('customers.message_customer')}
       />
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

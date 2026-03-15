@@ -4,6 +4,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getDpdReport, DpdReport, DpdCustomerItem } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -41,6 +43,8 @@ const DpdReportPage: React.FC = () => {
   const customers = (report?.customers ?? []).filter(c =>
     !search || c.customerName.toLowerCase().includes(search.toLowerCase()) || (c.phone ?? '').includes(search)
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(customers);
 
   const cols = ['Customer', 'Phone', 'Total Amount', 'Paid', 'Due', 'Orders', 'Overdue', 'Max DPD'];
   const rows = customers.map(c => [c.customerName, c.phone ?? '', fmt(c.totalAmount), fmt(c.paidAmount), fmt(c.dueAmount), String(c.totalOrders), String(c.overdueOrders), String(c.maxDpd)]);
@@ -121,7 +125,7 @@ const DpdReportPage: React.FC = () => {
               <div className="p-3">
                 {customers.length === 0 ? (
                   <div className="text-center py-5 text-muted">No pending orders with expected dates found</div>
-                ) : customers.map((c: DpdCustomerItem) => (
+                ) : paginatedData.map((c: DpdCustomerItem) => (
                   <div key={c.customerId} className="card border mb-3">
                     <div className="card-body">
                       <div className="row align-items-center">
@@ -231,6 +235,7 @@ const DpdReportPage: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={customers.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

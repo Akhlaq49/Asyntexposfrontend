@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { getProducts, deleteProduct, getCategories, getBrands, ProductResponse, DropdownOption } from '../../services/productService';
 import { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const fmt = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
@@ -79,6 +81,8 @@ const ProductList: React.FC = () => {
     const matchBrand = !brandFilter || p.brand === brandFilter;
     return matchSearch && matchCategory && matchBrand;
   }), [products, searchTerm, categoryFilter, brandFilter]);
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   return (
     <>
@@ -172,10 +176,10 @@ const ProductList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
+                  {paginatedData.length === 0 ? (
                     <tr><td colSpan={9} className="text-center py-4 text-muted">{t('products.no_products')}</td></tr>
                   ) : (
-                    filtered.map((p) => (
+                    paginatedData.map((p) => (
                       <tr key={p.id}>
                         <td>
                           <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={(e) => handleSelectOne(p.id, e.target.checked)} /><span className="checkmarks"></span></label>
@@ -220,6 +224,7 @@ const ProductList: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );

@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 import { recordSaleIncome } from '../../services/financeService';
 
 /* ---------- Types ---------- */
@@ -149,6 +151,8 @@ const OnlineOrders: React.FC = () => {
       if (sortBy === 'desc') return b.grandTotal - a.grandTotal;
       return 0;
     });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => { setSelectAll(checked); setSelectedIds(checked ? new Set(filtered.map((s) => s.id)) : new Set()); };
@@ -379,9 +383,9 @@ const OnlineOrders: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
+                  {paginatedData.length === 0 ? (
                     <tr><td colSpan={11} className="text-center py-4">{t('sales.no_sales')}</td></tr>
-                  ) : filtered.map((s) => (
+                  ) : paginatedData.map((s) => (
                     <tr key={s.id}>
                       <td>
                         <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(s.id)} onChange={(e) => handleSelectOne(s.id, e.target.checked)} /><span className="checkmarks"></span></label>
@@ -798,6 +802,7 @@ const OnlineOrders: React.FC = () => {
       )}
 
       {/* ===================== Delete Modal ===================== */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

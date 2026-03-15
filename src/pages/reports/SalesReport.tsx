@@ -4,6 +4,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getSalesReport, SalesReportDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const fmt = (v: number) => `Rs ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -28,6 +30,8 @@ const SalesReport: React.FC = () => {
     !search || i.productName.toLowerCase().includes(search.toLowerCase()) ||
     i.sku.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('common.sku'), t('common.product_name'), t('common.brand'), t('common.category'), t('reports.sold_qty'), t('reports.sold_amount'), t('reports.in_stock_qty')];
   const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2), i.inStockQty]);
@@ -74,8 +78,8 @@ const SalesReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.brand}</td><td>{item.category}</td>
                       <td>{item.soldQty}</td><td>{item.soldAmount.toFixed(2)}</td><td>{item.inStockQty}</td>
@@ -86,6 +90,7 @@ const SalesReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

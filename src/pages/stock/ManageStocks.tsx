@@ -1,6 +1,8 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 import { useTranslation } from 'react-i18next';
 
 /* ---------- Types ---------- */
@@ -116,6 +118,8 @@ const ManageStocks: React.FC = () => {
     const matchProduct = !filterProduct || e.productName === filterProduct;
     return matchSearch && matchWarehouse && matchStore && matchProduct;
   });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => {
@@ -328,7 +332,7 @@ const ManageStocks: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((entry) => (
+                  {paginatedData.map((entry) => (
                     <tr key={entry.id}>
                       <td>
                         <label className="checkboxs">
@@ -595,6 +599,7 @@ const ManageStocks: React.FC = () => {
       )}
 
       {/* ====== Delete Modal ====== */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );

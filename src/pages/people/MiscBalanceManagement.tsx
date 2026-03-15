@@ -8,6 +8,8 @@ import {
   deleteMiscTransaction 
 } from '../../services/miscService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface CustomerMiscSummary {
   customerId: number;
@@ -21,6 +23,7 @@ interface CustomerMiscSummary {
 
 const MiscBalanceManagement: React.FC = () => {
   const [summary, setSummary] = useState<CustomerMiscSummary[]>([]);
+  const { paginatedData: paginatedSummary, currentPage, setCurrentPage, itemsPerPage } = usePagination(summary);
   const [transactions, setTransactions] = useState<MiscTransaction[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedCustomerName, setSelectedCustomerName] = useState<string>('');
@@ -149,7 +152,7 @@ const MiscBalanceManagement: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {summary.map((s) => (
+                      {paginatedSummary.map((s) => (
                         <tr key={s.customerId}>
                           <td>
                             <div>
@@ -323,6 +326,7 @@ const MiscBalanceManagement: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={summary.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={confirmDelete} />
     </>
   );

@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface ProductDto {
   id: string;
@@ -110,6 +112,8 @@ const LowStocks: React.FC = () => {
     return matchSearch && matchWarehouse && matchStore && matchCategory;
   });
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filteredData);
+
   // Unique values for filters
   const allItems = [...lowStocks, ...outOfStocks];
   const warehouses = [...new Set(allItems.map((p) => p.warehouse).filter(Boolean))];
@@ -210,7 +214,7 @@ const LowStocks: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredData.map((item) => (
+          {paginatedData.map((item) => (
             <tr key={item.id}>
               <td>
                 <label className="checkboxs">
@@ -491,6 +495,7 @@ const LowStocks: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filteredData.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       {/* Delete Modal */}
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
 

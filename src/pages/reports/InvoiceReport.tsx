@@ -4,6 +4,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getInvoiceReport, InvoiceReportDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const fmt = (v: number) => `Rs ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -27,6 +29,8 @@ const InvoiceReport: React.FC = () => {
   const filtered = (data?.items ?? []).filter(i =>
     !search || i.invoiceNo.toLowerCase().includes(search.toLowerCase()) || i.customerName.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('reports.invoice_no'), t('common.customer'), t('reports.due_date'), t('common.amount'), t('common.paid'), t('reports.amount_due'), t('common.status')];
   const rows = filtered.map(i => [i.invoiceNo, i.customerName, i.dueDate, i.amount.toFixed(2), i.paid.toFixed(2), i.amountDue.toFixed(2), i.status]);
@@ -74,8 +78,8 @@ const InvoiceReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.invoiceNo}</td><td>{item.customerName}</td><td>{item.dueDate}</td>
                       <td>{item.amount.toFixed(2)}</td><td>{item.paid.toFixed(2)}</td><td>{item.amountDue.toFixed(2)}</td>
@@ -87,6 +91,7 @@ const InvoiceReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

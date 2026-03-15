@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { InstallmentPlan, getInstallmentPlans, cancelInstallment } from '../../services/installmentService';
 import { mediaUrl, MEDIA_BASE_URL } from '../../services/api';
 import WhatsAppSendModal from '../../components/WhatsAppSendModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const InstallmentPlans: React.FC = () => {
   const { t } = useTranslation();
@@ -115,6 +117,8 @@ const InstallmentPlans: React.FC = () => {
     const matchStatus = !statusFilter || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   return (
     <>
@@ -237,7 +241,7 @@ const InstallmentPlans: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((plan) => (
+                  {paginatedData.map((plan) => (
                     <tr key={plan.id}>
                       <td>
                         <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(plan.id)} onChange={(e) => handleSelectOne(plan.id, e.target.checked)} /><span className="checkmarks"></span></label>
@@ -351,6 +355,7 @@ const InstallmentPlans: React.FC = () => {
           guarantors: whatsappPlan.guarantors?.map(g => ({ name: g.name, phone: g.phone })),
         } : undefined}
       />
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment, getEmployees, Department, CreateDepartment, Employee } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const DepartmentList: React.FC = () => {
   const { t } = useTranslation();
@@ -153,6 +154,7 @@ const DepartmentList: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

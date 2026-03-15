@@ -2,6 +2,7 @@
 import { getParties, createParty, updateParty, deleteParty, Party, CreatePartyPayload } from '../../services/partyService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const ROLE = 'Warehouse';
 
@@ -18,7 +19,7 @@ const Warehouse: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [currentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const emptyForm: CreatePartyPayload = { fullName: '', contactPerson: '', email: '', phone: '', phoneWork: '', address: '', city: '', state: '', country: '', postalCode: '', role: ROLE, status: 'active', isActive: true };
@@ -181,6 +182,8 @@ const Warehouse: React.FC = () => {
           </div>
         </div>
       )}
+
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
 
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>

@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 /* ---------- Types ---------- */
 interface QuotationItemDto {
@@ -134,6 +136,8 @@ const QuotationList: React.FC = () => {
       if (sortBy === 'desc') return b.grandTotal - a.grandTotal;
       return 0;
     });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => { setSelectAll(checked); setSelectedIds(checked ? new Set(filtered.map(q => q.id)) : new Set()); };
@@ -346,9 +350,9 @@ const QuotationList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
+                  {paginatedData.length === 0 ? (
                     <tr><td colSpan={6} className="text-center py-4">{t('quotations.no_quotations')}</td></tr>
-                  ) : filtered.map(q => (
+                  ) : paginatedData.map(q => (
                     <tr key={q.id}>
                       <td>
                         <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(q.id)} onChange={e => handleSelectOne(q.id, e.target.checked)} /><span className="checkmarks"></span></label>
@@ -631,6 +635,7 @@ const QuotationList: React.FC = () => {
       )}
 
       {/* ===================== Delete Modal ===================== */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

@@ -4,6 +4,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getExpenseReport, ExpenseReportItemDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const ExpenseReport: React.FC = () => {
   const { t } = useTranslation();
@@ -25,6 +27,8 @@ const ExpenseReport: React.FC = () => {
   const filtered = items.filter(i =>
     !search || i.expenseName.toLowerCase().includes(search.toLowerCase()) || i.category.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const totalExpense = filtered.reduce((sum, i) => sum + i.amount, 0);
   const cols = [t('reports.expense_name'), t('common.category'), t('common.description'), t('common.date'), t('common.amount'), t('common.status')];
@@ -56,8 +60,8 @@ const ExpenseReport: React.FC = () => {
               <div className="table-responsive"><table className="table table-hover">
                 <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
                 <tbody>
-                  {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                    : filtered.map((item, idx) => (
+                  {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                    : paginatedData.map((item, idx) => (
                       <tr key={idx}>
                         <td>{item.expenseName}</td><td>{item.category}</td><td>{item.description}</td><td>{item.date}</td>
                         <td>{item.amount.toFixed(2)}</td>
@@ -70,6 +74,7 @@ const ExpenseReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

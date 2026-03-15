@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getLeaves, createLeave, updateLeave, deleteLeave, getLeaveTypes, getEmployees, Leave, CreateLeave, LeaveType, Employee } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const LeavesAdmin: React.FC = () => {
   const { t } = useTranslation();
@@ -200,6 +201,7 @@ const LeavesAdmin: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

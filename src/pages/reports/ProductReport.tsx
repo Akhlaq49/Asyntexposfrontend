@@ -5,6 +5,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getProductReport, ProductReportItemDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const ProductReport: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +28,8 @@ const ProductReport: React.FC = () => {
   const filtered = items.filter(i =>
     !search || i.productName.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('common.sku'), t('common.product_name'), t('common.category'), t('common.brand'), t('common.qty'), t('common.price'), t('reports.total_ordered'), t('reports.revenue')];
   const rows = filtered.map(i => [i.sku, i.productName, i.category, i.brand, i.qty, i.price.toFixed(2), i.totalOrdered, i.revenue.toFixed(2)]);
@@ -58,8 +62,8 @@ const ProductReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.category}</td><td>{item.brand}</td>
                       <td>{item.qty}</td><td>{item.price.toFixed(2)}</td><td>{item.totalOrdered}</td><td>{item.revenue.toFixed(2)}</td>
@@ -70,6 +74,7 @@ const ProductReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

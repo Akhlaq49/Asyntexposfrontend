@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import { getLeaves, createLeave, getLeaveTypes, Leave, CreateLeave, LeaveType } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
+import Pagination from '../../components/common/Pagination';
 
 const LeavesEmployee: React.FC = () => {
   const { t } = useTranslation();
@@ -145,6 +146,7 @@ const LeavesEmployee: React.FC = () => {
           </div>
         </div>
       )}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

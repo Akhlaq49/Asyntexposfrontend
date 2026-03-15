@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getHolidays, createHoliday, updateHoliday, deleteHoliday, Holiday, CreateHoliday } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
 
 const Holidays: React.FC = () => {
   const { t } = useTranslation();
@@ -155,6 +156,7 @@ const Holidays: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

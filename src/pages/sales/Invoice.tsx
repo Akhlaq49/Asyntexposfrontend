@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface InvoiceItemDto {
   id: number; description: string; quantity: number; cost: number; discount: number; total: number;
@@ -78,6 +80,8 @@ const Invoice: React.FC = () => {
       if (sortBy === 'desc') return b.totalAmount - a.totalAmount;
       return 0; // recent = default server order
     });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const handleSelectAll = (checked: boolean) => { setSelectAll(checked); setSelectedIds(checked ? new Set(filtered.map(i => i.id)) : new Set()); };
   const handleSelectOne = (id: number, checked: boolean) => { setSelectedIds(prev => { const n = new Set(prev); if (checked) n.add(id); else n.delete(id); return n; }); };
@@ -169,9 +173,9 @@ const Invoice: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
+                  {paginatedData.length === 0 ? (
                     <tr><td colSpan={9} className="text-center py-4">{t('invoices.no_invoices')}</td></tr>
-                  ) : filtered.map(inv => (
+                  ) : paginatedData.map(inv => (
                     <tr key={inv.id}>
                       <td>
                         <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(inv.id)} onChange={e => handleSelectOne(inv.id, e.target.checked)} /><span className="checkmarks"></span></label>
@@ -215,6 +219,7 @@ const Invoice: React.FC = () => {
       </div>
 
       {/* Delete Modal */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

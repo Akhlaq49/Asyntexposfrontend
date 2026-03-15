@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import { getExpenses, createExpense, updateExpense, deleteExpense, getExpenseCategories, Expense, ExpenseCategory } from '../../services/financeService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const ExpenseList: React.FC = () => {
   const { t } = useTranslation();
@@ -74,6 +76,8 @@ const ExpenseList: React.FC = () => {
     return matchSearch && matchStatus;
   });
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
   return (
     <>
       <div className="page-header">
@@ -120,7 +124,7 @@ const ExpenseList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(exp => (
+                  {paginatedData.map(exp => (
                     <tr key={exp.id}>
                       <td><label className="checkboxs"><input type="checkbox" checked={selectedIds.has(exp.id)} onChange={e => handleSelectOne(exp.id, e.target.checked)} /><span className="checkmarks"></span></label></td>
                       <td>{exp.reference}</td>
@@ -197,6 +201,7 @@ const ExpenseList: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );

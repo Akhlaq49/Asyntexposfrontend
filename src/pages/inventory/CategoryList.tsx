@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface Category {
   id: string;
@@ -119,6 +121,7 @@ const CategoryList: React.FC = () => {
     return matchSearch && matchStatus;
   });
 
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
   return (
     <>
       {/* Page Header */}
@@ -204,7 +207,7 @@ const CategoryList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((cat) => (
+                  {paginatedData.map((cat) => (
                     <tr key={cat.id}>
                       <td>
                         <label className="checkboxs">
@@ -318,6 +321,7 @@ const CategoryList: React.FC = () => {
       )}
 
       {/* Delete Modal */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );

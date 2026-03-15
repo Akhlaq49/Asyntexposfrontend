@@ -5,6 +5,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getProductExpiryReport, ProductExpiryReportItemDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const ProductExpiryReport: React.FC = () => {
   const { t } = useTranslation();
@@ -24,6 +26,8 @@ const ProductExpiryReport: React.FC = () => {
   const filtered = items.filter(i =>
     !search || i.productName.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('common.sku'), t('reports.serial_no'), t('common.product_name'), t('reports.manufactured_date'), t('reports.expired_date')];
   const rows = filtered.map(i => [i.sku, i.serialNo, i.productName, i.manufacturedDate, i.expiredDate]);
@@ -56,8 +60,8 @@ const ProductExpiryReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx} className={isExpired(item.expiredDate) ? 'table-danger' : ''}>
                       <td>{item.sku}</td><td>{item.serialNo}</td><td>{item.productName}</td>
                       <td>{item.manufacturedDate}</td><td>{item.expiredDate}</td>
@@ -68,6 +72,7 @@ const ProductExpiryReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

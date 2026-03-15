@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { getAttendances, getEmployees, createAttendance, updateAttendance, deleteAttendance, Attendance, CreateAttendance, Employee } from '../../services/hrmService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const AttendanceAdmin: React.FC = () => {
   const { t } = useTranslation();
@@ -39,6 +41,8 @@ const AttendanceAdmin: React.FC = () => {
     const matchStatus = !statusFilter || r.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const openAdd = () => {
     setEditId(null);
@@ -131,7 +135,7 @@ const AttendanceAdmin: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(r => (
+                  {paginatedData.map(r => (
                     <tr key={r.id}>
                       <td>
                         <div className="d-flex align-items-center">
@@ -163,7 +167,7 @@ const AttendanceAdmin: React.FC = () => {
                       </td>
                     </tr>
                   ))}
-                  {filtered.length === 0 && (
+                  {paginatedData.length === 0 && (
                     <tr><td colSpan={9} className="text-center py-4 text-muted">{t('hrm.no_attendance_records_date')}</td></tr>
                   )}
                 </tbody>
@@ -244,6 +248,7 @@ const AttendanceAdmin: React.FC = () => {
         </div>
       )}
 
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       {/* Delete Modal */}
       <AdminDeleteModal show={showDelete} onClose={() => setShowDelete(false)} onConfirm={handleDelete} />
     </>

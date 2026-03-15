@@ -1,6 +1,8 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 interface WarrantyDto {
   id: number;
@@ -82,6 +84,8 @@ const Warranty: React.FC = () => {
     const matchStatus = !statusFilter || w.status.toLowerCase() === statusFilter.toLowerCase();
     return matchSearch && matchStatus;
   });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filteredData);
 
   const handleSelectAll = useCallback((checked: boolean) => {
     setSelectAll(checked);
@@ -260,7 +264,7 @@ const Warranty: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData.map((item) => (
+                  {paginatedData.map((item) => (
                     <tr key={item.id}>
                       <td>
                         <label className="checkboxs">
@@ -350,6 +354,7 @@ const Warranty: React.FC = () => {
       )}
 
       {/* Delete Modal */}
+      <Pagination currentPage={currentPage} totalItems={filteredData.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );

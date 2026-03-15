@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import { getBankAccounts, createBankAccount, updateBankAccount, deleteBankAccount, getAccountTypes, createAccountType, updateAccountType, deleteAccountType, BankAccount, AccountType } from '../../services/financeService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const AccountList: React.FC = () => {
   const { t } = useTranslation();
@@ -87,6 +89,7 @@ const AccountList: React.FC = () => {
   };
 
   const filteredAccounts = bankAccounts.filter(a => !searchTerm || a.holderName.toLowerCase().includes(searchTerm.toLowerCase()) || a.bankName.toLowerCase().includes(searchTerm.toLowerCase()) || a.accountNumber.includes(searchTerm));
+  const { paginatedData: paginatedAccounts, currentPage, setCurrentPage, itemsPerPage } = usePagination(filteredAccounts);
   const filteredTypes = accountTypes.filter(t => !searchTerm || t.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
@@ -135,7 +138,7 @@ const AccountList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAccounts.map(acc => (
+                  {paginatedAccounts.map(acc => (
                     <tr key={acc.id}>
                       <td><label className="checkboxs"><input type="checkbox" checked={selectedIds.has(acc.id)} onChange={e => handleSelectOne(acc.id, e.target.checked)} /><span className="checkmarks"></span></label></td>
                       <td>{acc.holderName}</td>
@@ -277,6 +280,7 @@ const AccountList: React.FC = () => {
       )}
 
       {/* Delete Modal */}
+      <Pagination currentPage={currentPage} totalItems={filteredAccounts.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} />
     </>
   );

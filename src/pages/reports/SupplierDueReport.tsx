@@ -5,6 +5,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getSupplierDueReport, SupplierDueReportItemDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const SupplierDueReport: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +28,8 @@ const SupplierDueReport: React.FC = () => {
   const filtered = items.filter(i =>
     !search || i.supplier.toLowerCase().includes(search.toLowerCase()) || i.reference.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('common.reference'), t('reports.id'), t('reports.supplier'), t('reports.total_amount'), t('reports.paid'), t('reports.due'), t('common.status')];
   const rows = filtered.map(i => [i.reference, i.id, i.supplier, i.totalAmount.toFixed(2), i.paid.toFixed(2), i.due.toFixed(2), i.status]);
@@ -58,8 +62,8 @@ const SupplierDueReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.reference}</td><td>{item.id}</td><td>{item.supplier}</td>
                       <td>{item.totalAmount.toFixed(2)}</td><td>{item.paid.toFixed(2)}</td><td>{item.due.toFixed(2)}</td>
@@ -71,6 +75,7 @@ const SupplierDueReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

@@ -2,6 +2,8 @@
 import { userService, UserDto, CreateUserPayload, UpdateUserPayload } from '../../services/userService';
 import { useTranslation } from 'react-i18next';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const ROLES = ['Admin', 'Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
 
@@ -58,6 +60,8 @@ const Users: React.FC = () => {
     const matchesStatus = !statusFilter || (statusFilter === 'active' ? u.isActive : !u.isActive);
     return matchesSearch && matchesStatus;
   });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   // ── Add user ──
   const handleAdd = async (e: React.FormEvent) => {
@@ -240,7 +244,7 @@ const Users: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((user, idx) => (
+                    paginatedData.map((user, idx) => (
                       <tr key={user.id}>
                         <td>{idx + 1}</td>
                         <td>
@@ -457,6 +461,7 @@ const Users: React.FC = () => {
 
       {/* ══════ Delete Confirmation Modal ══════ */}
       <AdminDeleteModal show={showDelete} onClose={() => setShowDelete(false)} onConfirm={handleDelete} />
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

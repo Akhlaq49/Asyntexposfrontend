@@ -5,6 +5,8 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getCustomerReport, CustomerReportItemDto } from '../../services/reportService';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 const CustomerReport: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +28,8 @@ const CustomerReport: React.FC = () => {
   const filtered = items.filter(i =>
     !search || i.customer.toLowerCase().includes(search.toLowerCase()) || i.code.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   const cols = [t('common.reference'), t('common.code'), t('common.customer'), t('reports.total_orders'), t('common.amount'), t('common.payment_method'), t('common.status')];
   const rows = filtered.map(i => [i.reference, i.code, i.customer, i.totalOrders, i.amount.toFixed(2), i.paymentMethod, i.status]);
@@ -59,8 +63,8 @@ const CustomerReport: React.FC = () => {
             <div className="table-responsive"><table className="table table-hover">
               <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {filtered.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
-                  : filtered.map((item, idx) => (
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                  : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.reference}</td><td>{item.code}</td><td>{item.customer}</td><td>{item.totalOrders}</td>
                       <td>{item.amount.toFixed(2)}</td><td>{item.paymentMethod}</td>
@@ -72,6 +76,7 @@ const CustomerReport: React.FC = () => {
           )}
         </div>
       </div>
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
     </>
   );
 };

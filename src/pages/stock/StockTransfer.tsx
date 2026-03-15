@@ -2,6 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import Pagination from '../../components/common/Pagination';
+import { usePagination } from '../../utils/usePagination';
 
 /* ---------- Types ---------- */
 interface DropdownOption { value: string; label: string; }
@@ -127,6 +129,8 @@ const StockTransfer: React.FC = () => {
       if (sortBy === 'desc') return b.warehouseFrom.localeCompare(a.warehouseFrom);
       return 0; // recent — already sorted from API
     });
+
+  const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => {
@@ -418,7 +422,7 @@ const StockTransfer: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t) => (
+                  {paginatedData.map((t) => (
                     <tr key={t.id}>
                       <td>
                         <label className="checkboxs">
@@ -572,6 +576,7 @@ const StockTransfer: React.FC = () => {
       )}
 
       {/* ====== Delete Modal ====== */}
+      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={handleDelete} />
     </>
   );
