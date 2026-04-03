@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "search": "بحث",
     "add_new": "إضافة جديد",
@@ -870,7 +870,11 @@
     "guarantors_for": "ضامنو {{name}}",
     "no_guarantors": "لم يتم العثور على ضامنين لهذا العميل.",
     "total_guarantors": "{{count}} ضامن(ون) تم العثور عليهم",
-    "plan": "الخطة"
+    "plan": "الخطة",
+    "invalid_email_title": "بريد إلكتروني غير صالح",
+    "invalid_email_message": "أدخل بريدًا صالحًا مثل name@example.com أو اترك الحقل فارغًا. لا تستخدم مسافات في البداية أو النهاية أو داخل العنوان.",
+    "save_failed_title": "تعذر حفظ العميل",
+    "save_failed_message": "حدث خطأ. تحقق من البيانات وحاول مرة أخرى."
   },
 
   "suppliers": {
@@ -1364,6 +1368,8 @@
     "daily_cash_flow_report": "تقرير التدفق النقدي اليومي",
     "annual_report": "التقرير السنوي",
     "customer_ledger": "دفتر أستاذ العميل",
+    "search_customer": "بحث عن عميل",
+    "search_by_name_phone_cnic": "البحث بالاسم أو الهاتف أو الهوية أو العنوان...",
     "failed_to_load_data": "فشل تحميل البيانات"
   }
 }

@@ -542,6 +542,8 @@ export interface DpdCustomerItem {
   customerId: number;
   customerName: string;
   phone?: string;
+  /** Present when API includes it; otherwise UI may resolve from customer master. */
+  address?: string;
   totalAmount: number;
   paidAmount: number;
   dueAmount: number;

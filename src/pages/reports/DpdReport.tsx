@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getDpdReport, DpdReport, DpdCustomerItem } from '../../services/reportService';
+import { getCustomers, Customer } from '../../services/customerService';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
@@ -27,27 +28,64 @@ const dpdLabel = (dpd: number) => {
 
 const DpdReportPage: React.FC = () => {
   const [report, setReport] = useState<DpdReport | null>(null);
+  const [customerById, setCustomerById] = useState<Map<number, Customer>>(new Map());
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedCustomer, setExpandedCustomer] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setReport(await getDpdReport()); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    const [repRes, custRes] = await Promise.allSettled([getDpdReport(), getCustomers()]);
+    if (repRes.status === 'fulfilled') setReport(repRes.value);
+    else {
+      console.error(repRes.reason);
+      setReport(null);
+    }
+    if (custRes.status === 'fulfilled') {
+      const m = new Map<number, Customer>();
+      for (const cu of custRes.value) {
+        const id = Number(cu.id);
+        if (!Number.isNaN(id)) m.set(id, cu);
+      }
+      setCustomerById(m);
+    } else {
+      console.error(custRes.reason);
+      setCustomerById(new Map());
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, []);
 
-  const customers = (report?.customers ?? []).filter(c =>
-    !search || c.customerName.toLowerCase().includes(search.toLowerCase()) || (c.phone ?? '').includes(search)
-  );
+  const customers = useMemo(() => {
+    const list = report?.customers ?? [];
+    const q = search.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((c) => {
+      const master = customerById.get(c.customerId);
+      const address = (c.address ?? master?.address ?? '').toLowerCase();
+      return (
+        c.customerName.toLowerCase().includes(q) ||
+        (c.phone ?? '').toLowerCase().includes(q) ||
+        address.includes(q)
+      );
+    });
+  }, [report, search, customerById]);
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(customers);
 
   const cols = ['Customer', 'Phone', 'Total Amount', 'Paid', 'Due', 'Orders', 'Overdue', 'Max DPD'];
   const rows = customers.map(c => [c.customerName, c.phone ?? '', fmt(c.totalAmount), fmt(c.paidAmount), fmt(c.dueAmount), String(c.totalOrders), String(c.overdueOrders), String(c.maxDpd)]);
+
+  const summary = useMemo(() => {
+    const totalCustomers = customers.length;
+    const totalDueAmount = customers.reduce((sum, c) => sum + (c.dueAmount ?? 0), 0);
+    const totalOverdueOrders = customers.reduce((sum, c) => sum + (c.overdueOrders ?? 0), 0);
+    const totalOverdueAmount = customers
+      .filter(c => (c.maxDpd ?? 0) > 0)
+      .reduce((sum, c) => sum + (c.dueAmount ?? 0), 0);
+    return { totalCustomers, totalDueAmount, totalOverdueOrders, totalOverdueAmount };
+  }, [customers]);
 
   return (
     <>
@@ -67,7 +105,7 @@ const DpdReportPage: React.FC = () => {
               <div className="card-body">
                 <div className="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle"
                   style={{ width: 80, height: 80, background: '#e8f5e9', color: '#28a745', fontSize: 20, fontWeight: 700 }}>
-                  {report.totalCustomers}
+                  {summary.totalCustomers}
                 </div>
                 <h6 className="mb-0">Total Customers</h6>
               </div>
@@ -78,7 +116,7 @@ const DpdReportPage: React.FC = () => {
               <div className="card-body">
                 <div className="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle"
                   style={{ width: 80, height: 80, background: '#fff3e0', color: '#fd7e14', fontSize: 16, fontWeight: 700 }}>
-                  Rs {fmt(report.totalDueAmount)}
+                  Rs {fmt(summary.totalDueAmount)}
                 </div>
                 <h6 className="mb-0">Total Due Amount</h6>
               </div>
@@ -89,7 +127,7 @@ const DpdReportPage: React.FC = () => {
               <div className="card-body">
                 <div className="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle"
                   style={{ width: 80, height: 80, background: '#fce4ec', color: '#dc3545', fontSize: 20, fontWeight: 700 }}>
-                  {report.totalOverdueOrders}
+                  {summary.totalOverdueOrders}
                 </div>
                 <h6 className="mb-0">Overdue Orders</h6>
               </div>
@@ -100,7 +138,7 @@ const DpdReportPage: React.FC = () => {
               <div className="card-body">
                 <div className="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle"
                   style={{ width: 80, height: 80, background: '#fce4ec', color: '#dc3545', fontSize: 16, fontWeight: 700 }}>
-                  Rs {fmt(report.totalOverdueAmount)}
+                  Rs {fmt(summary.totalOverdueAmount)}
                 </div>
                 <h6 className="mb-0">Overdue Amount</h6>
               </div>
@@ -113,26 +151,52 @@ const DpdReportPage: React.FC = () => {
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
           <h5 className="mb-0">Customer DPD Overview</h5>
           <div className="d-flex align-items-center gap-2">
-            <input type="text" className="form-control form-control-sm" placeholder="Search customer..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
-            <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'dpd-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'dpd-report', 'DPD Report')} />
+            <input type="text" className="form-control form-control-sm" placeholder="Search by name, phone, address..." value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 220, maxWidth: 280 }} />
+            <ExportButtons onExportExcel={() => exportToExcel(
+              cols,
+              rows,
+              'dpd-report',
+              'Report',
+              [{ label: 'Total Due Amount', value: fmt(summary.totalDueAmount) }]
+            )}
+              onExportPDF={() => exportToPDF(
+                cols,
+                rows,
+                'dpd-report',
+                'DPD Report',
+                [{ label: 'Total Due Amount', value: fmt(summary.totalDueAmount) }]
+              )} />
           </div>
         </div>
         <div className="card-body p-0">
+          <div className="px-3 pt-3">
+            <small className="text-muted">
+              Total Due Amount: <span className="fw-bold">Rs {fmt(summary.totalDueAmount)}</span>
+            </small>
+          </div>
           {loading ? <div className="text-center py-5"><div className="spinner-border text-primary"></div></div> : (
             <>
               {/* Customer Cards with Circle Amounts */}
               <div className="p-3">
                 {customers.length === 0 ? (
                   <div className="text-center py-5 text-muted">No pending orders with expected dates found</div>
-                ) : paginatedData.map((c: DpdCustomerItem) => (
+                ) : paginatedData.map((c: DpdCustomerItem) => {
+                  const master = customerById.get(c.customerId);
+                  const displayAddress = c.address || master?.address;
+                  return (
                   <div key={c.customerId} className="card border mb-3">
                     <div className="card-body">
                       <div className="row align-items-center">
                         {/* Customer Info */}
                         <div className="col-lg-3">
                           <h6 className="fw-bold mb-1">{c.customerName}</h6>
-                          {c.phone && <small className="text-muted"><i className="ti ti-phone me-1"></i>{c.phone}</small>}
+                          {c.phone && <small className="text-muted d-block"><i className="ti ti-phone me-1"></i>{c.phone}</small>}
+                          {displayAddress && (
+                            <small className="text-muted d-block mt-1">
+                              <i className="ti ti-map-pin me-1"></i>
+                              {displayAddress}
+                            </small>
+                          )}
                           <div className="mt-1">
                             <small className="text-muted">{c.totalOrders} order(s) &middot; {c.overdueOrders} overdue</small>
                           </div>
@@ -229,7 +293,8 @@ const DpdReportPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

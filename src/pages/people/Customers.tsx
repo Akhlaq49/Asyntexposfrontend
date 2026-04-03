@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
 import { MEDIA_BASE_URL } from '../../services/api';
 import {
   Customer,
@@ -18,6 +19,36 @@ import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
 const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; status: 'active' | 'inactive' } = { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', status: 'active' };
+
+/** Empty is allowed; non-empty: no whitespace, must contain @ and a dot in the domain (pragmatic check before API). */
+const EMAIL_FORMAT_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const INVISIBLE_AND_NBSP = /[\u200B-\u200D\uFEFF\u00A0]/g;
+
+/** Strips invisible chars and trims; use before validate and before API. */
+const normalizeCustomerEmail = (raw: string) =>
+  raw.replace(INVISIBLE_AND_NBSP, '').trim();
+
+const isOptionalValidEmailNormalized = (norm: string) => {
+  if (!norm) return true;
+  if (/\s/.test(norm)) return false;
+  return EMAIL_FORMAT_RE.test(norm);
+};
+
+function apiErrorText(err: unknown): string | undefined {
+  const ax = err as {
+    response?: { data?: unknown; status?: number };
+    message?: string;
+  };
+  const data = ax.response?.data;
+  if (typeof data === 'string' && data.trim()) return data.trim();
+  if (data && typeof data === 'object' && 'message' in data) {
+    const m = (data as { message: unknown }).message;
+    if (Array.isArray(m)) return m.map(String).filter(Boolean).join(', ');
+    if (typeof m === 'string' && m.trim()) return m.trim();
+  }
+  return undefined;
+}
 
 const Customers: React.FC = () => {
   const { t } = useTranslation();
@@ -137,16 +168,30 @@ const Customers: React.FC = () => {
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
+    const emailNorm = normalizeCustomerEmail(form.email);
+    if (!isOptionalValidEmailNormalized(emailNorm)) {
+      Swal.fire({
+        icon: 'warning',
+        title: t('customers.invalid_email_title'),
+        text: t('customers.invalid_email_message'),
+      });
+      return;
+    }
     setSaving(true);
     try {
-      let created = await createCustomer(form as Omit<Customer, 'id'>);
+      const payload = { ...form, email: emailNorm };
+      let created = await createCustomer(payload as Omit<Customer, 'id'>);
       if (pictureFile) {
         created = await uploadCustomerPicture(created.id, pictureFile);
       }
       setCustomers((prev) => [created, ...prev]);
       setShowAddModal(false);
-    } catch {
-      /* ignore */
+    } catch (err: unknown) {
+      Swal.fire({
+        icon: 'error',
+        title: t('customers.save_failed_title'),
+        text: apiErrorText(err) || t('customers.save_failed_message'),
+      });
     } finally {
       setSaving(false);
     }
@@ -154,16 +199,30 @@ const Customers: React.FC = () => {
 
   const handleUpdate = async () => {
     if (!form.name.trim()) return;
+    const emailNorm = normalizeCustomerEmail(form.email);
+    if (!isOptionalValidEmailNormalized(emailNorm)) {
+      Swal.fire({
+        icon: 'warning',
+        title: t('customers.invalid_email_title'),
+        text: t('customers.invalid_email_message'),
+      });
+      return;
+    }
     setSaving(true);
     try {
-      let updated = await updateCustomer(editId, form);
+      const payload = { ...form, email: emailNorm };
+      let updated = await updateCustomer(editId, payload);
       if (pictureFile) {
         updated = await uploadCustomerPicture(editId, pictureFile);
       }
       setCustomers((prev) => prev.map((c) => (c.id === editId ? updated : c)));
       setShowEditModal(false);
-    } catch {
-      /* ignore */
+    } catch (err: unknown) {
+      Swal.fire({
+        icon: 'error',
+        title: t('customers.save_failed_title'),
+        text: apiErrorText(err) || t('customers.save_failed_message'),
+      });
     } finally {
       setSaving(false);
     }
@@ -251,7 +310,23 @@ const Customers: React.FC = () => {
       {isVisible('email') && (
       <div className="col-lg-6 mb-3">
         <label className="form-label">{t('customers.email')}</label>
-        <input type="email" className="form-control" placeholder={t('customers.email_placeholder')} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <input
+          type="text"
+          className="form-control"
+          placeholder={t('customers.email_placeholder')}
+          autoComplete="email"
+          spellCheck={false}
+          value={form.email}
+          onChange={(e) => {
+            let v = e.target.value;
+            v = v.replace(INVISIBLE_AND_NBSP, '');
+            v = v.replace(/^\s+/, '');
+            setForm({ ...form, email: v });
+          }}
+          onBlur={() =>
+            setForm((f) => ({ ...f, email: normalizeCustomerEmail(f.email) }))
+          }
+        />
       </div>
       )}
       {isVisible('city') && (

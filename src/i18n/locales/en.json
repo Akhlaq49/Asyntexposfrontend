@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "search": "Search",
     "add_new": "Add New",
@@ -935,7 +935,11 @@
     "guarantors_for": "Guarantors for {{name}}",
     "no_guarantors": "No guarantors found for this customer.",
     "total_guarantors": "{{count}} guarantor(s) found",
-    "plan": "Plan"
+    "plan": "Plan",
+    "invalid_email_title": "Invalid email",
+    "invalid_email_message": "Enter a valid address like name@example.com, or leave the field empty. Do not use spaces before, after, or inside the email.",
+    "save_failed_title": "Could not save customer",
+    "save_failed_message": "Something went wrong. Please check your details and try again."
   },
 
   "suppliers": {
@@ -1559,7 +1563,7 @@
     "customer_id": "Customer ID",
     "enter_customer_id": "Enter Customer ID",
     "search_customer": "Search Customer",
-    "search_by_name_phone_cnic": "Search by name, phone, CNIC...",
+    "search_by_name_phone_cnic": "Search by name, phone, CNIC, address...",
     "please_enter_valid_customer_id": "Please select a customer",
     "load_ledger": "Load Ledger",
     "customer_not_found": "Customer not found or no data available.",

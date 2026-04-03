@@ -20,9 +20,19 @@ export function exportToExcel(
   columns: string[],
   rows: (string | number)[][],
   filename: string,
-  sheetName = 'Report'
+  sheetName = 'Report',
+  summaryRows?: { label: string; value: string | number }[]
 ) {
-  const data = [columns, ...rows];
+  const data: (string | number | undefined | null)[][] = [];
+
+  // Optional key-value summary at the top (used by some reports)
+  if (summaryRows && summaryRows.length > 0) {
+    data.push(['Metric', 'Value']);
+    data.push(...summaryRows.map(r => [r.label, r.value]));
+    data.push([]);
+  }
+
+  data.push(columns, ...rows);
   const ws = XLSX.utils.aoa_to_sheet(data);
 
   // Auto-size columns

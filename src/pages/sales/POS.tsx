@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import { getCustomers, Customer } from '../../services/customerService';
@@ -29,6 +29,14 @@ interface CartLine {
 const fmt = (n: number) =>
   n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
+const localTodayYMD = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 const POS: React.FC = () => {
   /* state */
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -39,9 +47,17 @@ const POS: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('');
   const [cart, setCart] = useState<CartLine[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card'>('Cash');
+  /** Cash/Card = immediate net sale; Credit = pending for today (selecting Credit requires a registered customer) */
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | 'Credit'>('Cash');
   const [submitting, setSubmitting] = useState(false);
-  const [expectedDate, setExpectedDate] = useState('');
+
+  const hasRegisteredCustomer = Boolean(selectedCustomer);
+
+  useEffect(() => {
+    if (!hasRegisteredCustomer) {
+      setPaymentMethod((pm) => (pm === 'Credit' ? 'Cash' : pm));
+    }
+  }, [hasRegisteredCustomer]);
 
   /* clock */
   const [clock, setClock] = useState('');
@@ -153,9 +169,19 @@ const POS: React.FC = () => {
   /* ── submit sale ── */
   const handlePay = useCallback(async () => {
     if (cart.length === 0 || submitting) return;
+    if (paymentMethod === 'Credit' && !selectedCustomer) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Credit not available',
+        text: 'This option is not available for walk-in customers. First choose any registered customer to proceed with this option.',
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const customer = customers.find(c => String(c.id) === selectedCustomer);
+      const isNet = paymentMethod !== 'Credit';
+      const expectedDateForOrder = isNet ? null : localTodayYMD();
       const payload = {
         customerId: customer ? Number(customer.id) : null,
         customerName: customer ? customer.name : 'Walk in Customer',
@@ -164,10 +190,10 @@ const POS: React.FC = () => {
         orderTax: taxAmount,
         discount: 0,
         shipping: 0,
-        status: expectedDate ? 'Pending' : 'Completed',
+        status: isNet ? 'Completed' : 'Pending',
         notes: '',
         source: 'pos',
-        expectedDate: expectedDate || null,
+        expectedDate: expectedDateForOrder,
         items: cart.map(line => ({
           productId: Number(line.product.id),
           productName: line.product.productName,
@@ -184,14 +210,15 @@ const POS: React.FC = () => {
       const saleId = (res.data as any).id;
       const saleRef = (res.data as any).reference;
 
-      // Only auto-create payment when there's no expected date (immediate sale)
-      if (!expectedDate) {
+      // Only auto-create payment for net (immediate) sales
+      if (isNet) {
+        const payType = paymentMethod as 'Cash' | 'Card';
         await api.post(`/sales/${saleId}/payments`, {
           reference: `PAY-${saleRef}`,
           receivedAmount: payload.grandTotal,
           payingAmount: payload.grandTotal,
-          paymentType: paymentMethod,
-          description: `POS ${paymentMethod} Payment`,
+          paymentType: payType,
+          description: `POS ${payType} Payment`,
         });
 
         // Record in finance income so it appears in financial reports
@@ -200,7 +227,7 @@ const POS: React.FC = () => {
           date: new Date().toISOString().slice(0, 10),
           reference: saleRef,
           description: `POS Sale - ${customer ? customer.name : 'Walk in Customer'}`,
-          paymentType: paymentMethod,
+          paymentType: payType,
         });
       }
 
@@ -213,14 +240,20 @@ const POS: React.FC = () => {
       );
       setCart([]);
       setSelectedCustomer('');
-      setExpectedDate('');
-      Swal.fire({ icon: 'success', title: expectedDate ? 'Order Created!' : 'Sale Completed!', text: `Reference: ${saleRef}`, timer: 2000, showConfirmButton: false });
+      setPaymentMethod('Cash');
+      Swal.fire({
+        icon: 'success',
+        title: isNet ? 'Sale Completed!' : 'Credit order placed!',
+        text: `Reference: ${saleRef}`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (err: any) {
       Swal.fire({ icon: 'error', title: 'Error', text: err?.response?.data?.message || 'Failed to process sale' });
     } finally {
       setSubmitting(false);
     }
-  }, [cart, submitting, customers, selectedCustomer, userName, subTotal, paymentMethod, expectedDate]);
+  }, [cart, submitting, customers, selectedCustomer, userName, paymentMethod, grandTotal, taxAmount]);
 
   /* ───── render ───── */
   if (loading)
@@ -384,15 +417,6 @@ const POS: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <div className="mt-2">
-                  <label className="form-label mb-1 fs-12">Expected Date (leave empty for immediate payment)</label>
-                  <input
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={expectedDate}
-                    onChange={(e) => setExpectedDate(e.target.value)}
-                  />
-                </div>
               </div>
 
               {/* Order items */}
@@ -437,7 +461,14 @@ const POS: React.FC = () => {
                                   </span>
                                 </td>
                                 <td>
-                                  <div className="qty-item m-0 d-flex align-items-center">
+                                  <div className="qty-item m-0">
+                                    <input
+                                      type="text"
+                                      className="form-control text-center"
+                                      readOnly
+                                      value={line.qty}
+                                      aria-label={`Quantity for ${line.product.productName}`}
+                                    />
                                     <a
                                       href="#!"
                                       onClick={(e) => {
@@ -445,16 +476,10 @@ const POS: React.FC = () => {
                                         updateQty(line.product.id, -1);
                                       }}
                                       className="dec d-flex justify-content-center align-items-center"
+                                      aria-label="Decrease quantity"
                                     >
                                       <i className="ti ti-minus fs-14" />
                                     </a>
-                                    <input
-                                      type="text"
-                                      className="form-control text-center"
-                                      readOnly
-                                      value={line.qty}
-                                      style={{ width: 40 }}
-                                    />
                                     <a
                                       href="#!"
                                       onClick={(e) => {
@@ -462,6 +487,7 @@ const POS: React.FC = () => {
                                         updateQty(line.product.id, 1);
                                       }}
                                       className="inc d-flex justify-content-center align-items-center"
+                                      aria-label="Increase quantity"
                                     >
                                       <i className="ti ti-plus fs-14" />
                                     </a>
@@ -537,7 +563,7 @@ const POS: React.FC = () => {
               {/* Payment */}
               <div className="block-section payment-method">
                 <h5 className="mb-2">Select Payment</h5>
-                <div className="row align-items-center justify-content-center methods g-2 mb-4">
+                <div className="row align-items-center justify-content-center methods g-2 mb-2">
                   <div className="col d-flex">
                     <a
                       href="#!"
@@ -570,6 +596,27 @@ const POS: React.FC = () => {
                       <p className="fw-medium">Card</p>
                     </a>
                   </div>
+                  <div className="col d-flex">
+                    <a
+                      href="#!"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!hasRegisteredCustomer) {
+                          Swal.fire({
+                            icon: 'info',
+                            title: 'Credit not available',
+                            text: 'This option is not available for walk-in customers. First choose any registered customer to proceed with this option.',
+                          });
+                          return;
+                        }
+                        setPaymentMethod('Credit');
+                      }}
+                      className={`payment-item flex-fill${paymentMethod === 'Credit' ? ' active' : ''}`}
+                    >
+                      <i className="ti ti-file-invoice fs-28 text-teal d-block mb-1" aria-hidden />
+                      <p className="fw-medium">Credit</p>
+                    </a>
+                  </div>
                 </div>
                 <div className="btn-block m-0">
                   <button
@@ -580,7 +627,7 @@ const POS: React.FC = () => {
                     {submitting ? (
                       <span className="spinner-border spinner-border-sm me-2" />
                     ) : null}
-                    {expectedDate ? `Order : Rs ${fmt(grandTotal)}` : `Pay : Rs ${fmt(grandTotal)}`}
+                    {paymentMethod === 'Credit' ? `Place order : Rs ${fmt(grandTotal)}` : `Pay : Rs ${fmt(grandTotal)}`}
                   </button>
                 </div>
               </div>
