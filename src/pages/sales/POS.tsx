@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import { getCustomers, Customer } from '../../services/customerService';
@@ -37,6 +37,11 @@ const localTodayYMD = () => {
   return `${y}-${m}-${day}`;
 };
 
+/** Normalize API id (string | number) for Maps / data attributes */
+const productDomId = (id: string | number) => String(id);
+
+const productInStock = (p: ProductItem) => Number(p.quantity) > 0;
+
 const POS: React.FC = () => {
   /* state */
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -51,13 +56,65 @@ const POS: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | 'Credit'>('Cash');
   const [submitting, setSubmitting] = useState(false);
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const productCardRefById = useRef<Map<string, HTMLDivElement>>(new Map());
+  const posProductsRootRef = useRef<HTMLDivElement>(null);
+  const filteredRef = useRef<ProductItem[]>([]);
+  const qtyDecRefById = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const paymentCashRef = useRef<HTMLButtonElement>(null);
+  const paymentCardRef = useRef<HTMLButtonElement>(null);
+  const paymentCreditRef = useRef<HTMLButtonElement>(null);
+  const finalizeBtnRef = useRef<HTMLButtonElement>(null);
+  const customerSelectRef = useRef<HTMLSelectElement>(null);
+
   const hasRegisteredCustomer = Boolean(selectedCustomer);
+
+  const focusQtyDec = useCallback((productId: string) => {
+    window.setTimeout(() => {
+      qtyDecRefById.current.get(productDomId(productId))?.focus();
+    }, 0);
+  }, []);
 
   useEffect(() => {
     if (!hasRegisteredCustomer) {
       setPaymentMethod((pm) => (pm === 'Credit' ? 'Cash' : pm));
     }
   }, [hasRegisteredCustomer]);
+
+  /* Keep app Header + floating widgets out of Tab order so Tab flows Search → products → cart → pay */
+  useEffect(() => {
+    if (loading) return;
+
+    const collect = (): HTMLElement[] => {
+      const set = new Set<HTMLElement>();
+      document.querySelectorAll<HTMLElement>('.header a[href], .header button, .header input, .header select, .header textarea').forEach((el) => set.add(el));
+      const main = document.querySelector('.main-wrapper');
+      if (main) {
+        main.querySelectorAll<HTMLElement>(':scope > button').forEach((el) => set.add(el));
+      }
+      return [...set];
+    };
+
+    const els = collect();
+    const backup = new Map<HTMLElement, string | null>();
+    els.forEach((el) => {
+      backup.set(el, el.getAttribute('tabindex'));
+      el.tabIndex = -1;
+    });
+
+    const focusSearch = window.setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(focusSearch);
+      backup.forEach((prev, el) => {
+        if (!el.isConnected) return;
+        if (prev === null) el.removeAttribute('tabindex');
+        else el.setAttribute('tabindex', prev);
+      });
+    };
+  }, [loading]);
 
   /* clock */
   const [clock, setClock] = useState('');
@@ -115,12 +172,40 @@ const POS: React.FC = () => {
     return list;
   }, [products, activeCategory, searchTerm]);
 
+  filteredRef.current = filtered;
+
+  const focusFirstFilteredProduct = useCallback(() => {
+    const list = filteredRef.current;
+    const root = posProductsRootRef.current;
+    if (!root || list.length === 0) return;
+
+    const target = list.find(productInStock) ?? list[0];
+    const key = productDomId(target.id);
+
+    let el: HTMLElement | null = productCardRefById.current.get(key) ?? null;
+    if (!el || !root.contains(el)) {
+      const esc =
+        typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+          ? CSS.escape(key)
+          : key.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      el = root.querySelector<HTMLElement>(`[data-pos-product-id="${esc}"]`);
+    }
+    if (!el) {
+      el = root.querySelector<HTMLElement>('[data-pos-product-id]');
+    }
+    if (!el) return;
+
+    el.focus({ preventScroll: false });
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }, []);
+
   /* cart helpers */
-  const addToCart = useCallback((p: ProductItem) => {
+  const addToCart = useCallback((p: ProductItem, opts?: { focusQty?: boolean }) => {
     if (p.quantity <= 0) {
       Swal.fire({ icon: 'warning', title: 'Out of Stock', text: `${p.productName} is out of stock.`, timer: 2000, showConfirmButton: false });
       return;
     }
+    let changed = false;
     setCart((prev) => {
       const idx = prev.findIndex((c) => c.product.id === p.id);
       if (idx >= 0) {
@@ -130,11 +215,16 @@ const POS: React.FC = () => {
         }
         const next = [...prev];
         next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
+        changed = true;
         return next;
       }
+      changed = true;
       return [...prev, { product: p, qty: 1 }];
     });
-  }, []);
+    if (opts?.focusQty !== false && changed) {
+      focusQtyDec(p.id);
+    }
+  }, [focusQtyDec]);
 
   const removeFromCart = useCallback((productId: string) => {
     setCart((prev) => prev.filter((c) => c.product.id !== productId));
@@ -278,6 +368,7 @@ const POS: React.FC = () => {
           </span>
           <Link
             to="/dashboard"
+            tabIndex={-1}
             className="btn btn-sm btn-purple d-inline-flex align-items-center"
           >
             <i className="ti ti-world me-1" />
@@ -286,6 +377,8 @@ const POS: React.FC = () => {
         </div>
         <div className="d-flex align-items-center gap-2">
           <button
+            type="button"
+            tabIndex={-1}
             className="btn btn-sm btn-outline-secondary"
             onClick={() => {
               if (!document.fullscreenElement)
@@ -315,11 +408,22 @@ const POS: React.FC = () => {
                       <i className="ti ti-search" />
                     </span>
                     <input
+                      ref={searchInputRef}
                       type="text"
                       className="form-control"
                       placeholder="Search Product"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter' && e.key !== 'NumpadEnter') return;
+                        e.preventDefault();
+                        if (filteredRef.current.length === 0) return;
+                        /* Sync + deferred: ensures focus leaves search and lands on first grid card (not payment) */
+                        focusFirstFilteredProduct();
+                        requestAnimationFrame(() => {
+                          requestAnimationFrame(() => focusFirstFilteredProduct());
+                        });
+                      }}
                     />
                   </div>
                 </div>
@@ -328,6 +432,8 @@ const POS: React.FC = () => {
               {/* Category chips */}
               <div className="d-flex flex-wrap gap-2 mb-4">
                 <button
+                  type="button"
+                  tabIndex={-1}
                   className={`btn btn-sm ${!activeCategory ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setActiveCategory('')}
                 >
@@ -335,7 +441,9 @@ const POS: React.FC = () => {
                 </button>
                 {categories.map((cat) => (
                   <button
+                    type="button"
                     key={cat.id}
+                    tabIndex={-1}
                     className={`btn btn-sm ${activeCategory === cat.name ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setActiveCategory(cat.name)}
                   >
@@ -345,7 +453,7 @@ const POS: React.FC = () => {
               </div>
 
               {/* Product grid */}
-              <div className="pos-products">
+              <div className="pos-products" ref={posProductsRootRef}>
                 <div className="row row-cols-xxl-5 g-3">
                   {filtered.length === 0 && (
                     <div className="col-12 text-center py-5 text-muted">
@@ -360,17 +468,39 @@ const POS: React.FC = () => {
                         className="col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl"
                       >
                         <div
-                          className={`product-info card${inCart ? ' active' : ''}${p.quantity <= 0 ? ' opacity-50' : ''}`}
-                          style={{ cursor: p.quantity <= 0 ? 'not-allowed' : 'pointer', position: 'relative' }}
+                          ref={(el) => {
+                            const key = productDomId(p.id);
+                            if (el) productCardRefById.current.set(key, el);
+                            else productCardRefById.current.delete(key);
+                          }}
+                          data-pos-product-id={productDomId(p.id)}
+                          role="button"
+                          tabIndex={0}
+                          aria-disabled={!productInStock(p)}
+                          aria-label={
+                            productInStock(p)
+                              ? `Add ${p.productName} to cart`
+                              : `${p.productName} (out of stock)`
+                          }
+                          className={`product-info card${inCart ? ' active' : ''}${!productInStock(p) ? ' opacity-50' : ''}`}
+                          style={{ cursor: productInStock(p) ? 'pointer' : 'not-allowed', position: 'relative' }}
                           onClick={() => addToCart(p)}
+                          onKeyDown={(e) => {
+                            if (!productInStock(p)) return;
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              addToCart(p);
+                            }
+                          }}
                         >
-                          {p.quantity <= 0 && (
+                          {!productInStock(p) && (
                             <span className="badge bg-danger position-absolute top-0 end-0 m-1" style={{ zIndex: 1 }}>Out of Stock</span>
                           )}
                           <span className="product-image d-block">
                             <img
                               src={mediaUrl(p.images?.[0])}
-                              alt={p.productName}
+                              alt=""
+                              tabIndex={-1}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src =
                                   '/assets/img/products/stock-img-01.png';
@@ -385,7 +515,7 @@ const POS: React.FC = () => {
                               <h6 className="text-teal fs-14 fw-bold">
                                 Rs {fmt(p.price)}
                               </h6>
-                              <p className={`mb-0 ${p.quantity <= 0 ? 'text-danger fw-bold' : 'text-pink'}`}>{p.quantity} Pcs</p>
+                              <p className={`mb-0 ${!productInStock(p) ? 'text-danger fw-bold' : 'text-pink'}`}>{p.quantity} Pcs</p>
                             </div>
                           </div>
                         </div>
@@ -406,9 +536,17 @@ const POS: React.FC = () => {
                   <h4 className="mb-0">New Order</h4>
                 </div>
                 <select
+                  ref={customerSelectRef}
+                  tabIndex={-1}
                   className="form-select"
                   value={selectedCustomer}
-                  onChange={(e) => setSelectedCustomer(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setSelectedCustomer(v);
+                    if (paymentMethod === 'Credit' && v) {
+                      window.setTimeout(() => finalizeBtnRef.current?.focus(), 0);
+                    }
+                  }}
                 >
                   <option value="">Walk in Customer</option>
                   {customers.map((c) => (
@@ -466,31 +604,42 @@ const POS: React.FC = () => {
                                       type="text"
                                       className="form-control text-center"
                                       readOnly
+                                      tabIndex={-1}
                                       value={line.qty}
                                       aria-label={`Quantity for ${line.product.productName}`}
                                     />
-                                    <a
-                                      href="#!"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        updateQty(line.product.id, -1);
+                                    <button
+                                      type="button"
+                                      ref={(el) => {
+                                        if (el) qtyDecRefById.current.set(productDomId(line.product.id), el);
+                                        else qtyDecRefById.current.delete(productDomId(line.product.id));
                                       }}
-                                      className="dec d-flex justify-content-center align-items-center"
+                                      onClick={() => updateQty(line.product.id, -1)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          paymentCashRef.current?.focus();
+                                        }
+                                      }}
+                                      className="dec d-flex justify-content-center align-items-center border-0 bg-transparent p-0"
                                       aria-label="Decrease quantity"
                                     >
                                       <i className="ti ti-minus fs-14" />
-                                    </a>
-                                    <a
-                                      href="#!"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        updateQty(line.product.id, 1);
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateQty(line.product.id, 1)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          paymentCashRef.current?.focus();
+                                        }
                                       }}
-                                      className="inc d-flex justify-content-center align-items-center"
+                                      className="inc d-flex justify-content-center align-items-center border-0 bg-transparent p-0"
                                       aria-label="Increase quantity"
                                     >
                                       <i className="ti ti-plus fs-14" />
-                                    </a>
+                                    </button>
                                   </div>
                                 </td>
                                 <td className="fw-bold">
@@ -500,6 +649,7 @@ const POS: React.FC = () => {
                                   <a
                                     className="btn-icon delete-icon"
                                     href="#!"
+                                    tabIndex={-1}
                                     onClick={(e) => {
                                       e.preventDefault();
                                       removeFromCart(line.product.id);
@@ -540,6 +690,8 @@ const POS: React.FC = () => {
                 <div className="row gx-2 mt-3">
                   <div className="col-6">
                     <button
+                      type="button"
+                      tabIndex={-1}
                       className="btn btn-secondary d-flex align-items-center justify-content-center w-100 mb-2"
                       onClick={clearCart}
                       disabled={cart.length === 0}
@@ -550,6 +702,8 @@ const POS: React.FC = () => {
                   </div>
                   <div className="col-6">
                     <button
+                      type="button"
+                      tabIndex={-1}
                       className="btn btn-info d-flex align-items-center justify-content-center w-100 mb-2"
                       disabled={cart.length === 0}
                     >
@@ -565,41 +719,71 @@ const POS: React.FC = () => {
                 <h5 className="mb-2">Select Payment</h5>
                 <div className="row align-items-center justify-content-center methods g-2 mb-2">
                   <div className="col d-flex">
-                    <a
-                      href="#!"
-                      onClick={(e) => { e.preventDefault(); setPaymentMethod('Cash'); }}
+                    <button
+                      type="button"
+                      ref={paymentCashRef}
+                      onClick={() => setPaymentMethod('Cash')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          setPaymentMethod('Cash');
+                          window.setTimeout(() => finalizeBtnRef.current?.focus(), 0);
+                        }
+                      }}
                       className={`payment-item flex-fill${paymentMethod === 'Cash' ? ' active' : ''}`}
                     >
                       <img
                         src="/assets/img/icons/cash-icon.svg"
-                        alt="Cash"
+                        alt=""
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                       <p className="fw-medium">Cash</p>
-                    </a>
+                    </button>
                   </div>
                   <div className="col d-flex">
-                    <a
-                      href="#!"
-                      onClick={(e) => { e.preventDefault(); setPaymentMethod('Card'); }}
+                    <button
+                      type="button"
+                      ref={paymentCardRef}
+                      onClick={() => setPaymentMethod('Card')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          setPaymentMethod('Card');
+                          window.setTimeout(() => finalizeBtnRef.current?.focus(), 0);
+                        }
+                      }}
                       className={`payment-item flex-fill${paymentMethod === 'Card' ? ' active' : ''}`}
                     >
                       <img
                         src="/assets/img/icons/card.svg"
-                        alt="Card"
+                        alt=""
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                       <p className="fw-medium">Card</p>
-                    </a>
+                    </button>
                   </div>
                   <div className="col d-flex">
-                    <a
-                      href="#!"
-                      onClick={(e) => {
+                    <button
+                      type="button"
+                      ref={paymentCreditRef}
+                      onClick={() => {
+                        if (!hasRegisteredCustomer) {
+                          Swal.fire({
+                            icon: 'info',
+                            title: 'Credit not available',
+                            text: 'This option is not available for walk-in customers. First choose any registered customer to proceed with this option.',
+                          });
+                          return;
+                        }
+                        setPaymentMethod('Credit');
+                        window.setTimeout(() => customerSelectRef.current?.focus(), 0);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
                         e.preventDefault();
                         if (!hasRegisteredCustomer) {
                           Swal.fire({
@@ -610,19 +794,22 @@ const POS: React.FC = () => {
                           return;
                         }
                         setPaymentMethod('Credit');
+                        window.setTimeout(() => customerSelectRef.current?.focus(), 0);
                       }}
                       className={`payment-item flex-fill${paymentMethod === 'Credit' ? ' active' : ''}`}
                     >
                       <i className="ti ti-file-invoice fs-28 text-teal d-block mb-1" aria-hidden />
                       <p className="fw-medium">Credit</p>
-                    </a>
+                    </button>
                   </div>
                 </div>
                 <div className="btn-block m-0">
                   <button
+                    type="button"
+                    ref={finalizeBtnRef}
                     className="btn btn-teal w-100 py-2 fs-16 fw-bold"
                     disabled={cart.length === 0 || submitting}
-                    onClick={handlePay}
+                    onClick={() => void handlePay()}
                   >
                     {submitting ? (
                       <span className="spinner-border spinner-border-sm me-2" />

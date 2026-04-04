@@ -131,6 +131,7 @@
     "shipping": "الشحن",
     "subtotal": "المجموع الفرعي",
     "payment_status": "حالة الدفع",
+    "order_status": "حالة الطلب",
     "order_tax": "ضريبة الطلب",
     "created": "تاريخ الإنشاء",
     "type": "النوع",

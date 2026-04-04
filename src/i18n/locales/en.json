@@ -135,6 +135,7 @@
     "shipping": "Shipping",
     "subtotal": "Subtotal",
     "payment_status": "Payment Status",
+    "order_status": "Order status",
     "order_tax": "Order Tax",
     "created": "Created",
     "type": "Type",
@@ -699,7 +700,19 @@
     "payment_type": "Payment Type",
     "edit_payment": "Edit Payment",
     "back_to_sales": "Back to Sales",
-    "back_to_orders": "Back to Orders"
+    "back_to_orders": "Back to Orders",
+    "group_by_customer": "By customer",
+    "list_view": "List view",
+    "collective_due": "Total due",
+    "orders_count": "orders",
+    "add_bulk_payment": "Add payment",
+    "bulk_payment_title": "Apply payment (oldest bills first)",
+    "bulk_payment_subtitle": "Payment is applied to the oldest order first until the amount is used or all dues are cleared.",
+    "bulk_payment_max": "Maximum for this customer",
+    "bulk_payment_success": "Payment applied",
+    "bulk_payment_none_due": "This customer has no outstanding balance.",
+    "bulk_payment_invalid_amount": "Enter a valid amount greater than zero.",
+    "bulk_payment_exceeds": "Amount cannot exceed total due."
   },
 
   "invoices": {

@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
@@ -58,6 +59,33 @@ const calcItem = (item: LocalItem): LocalItem => {
 
 const fmt = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const roundMoney = (n: number) => Math.round(n * 100) / 100;
+
+const parseSaleDateMs = (saleDate: string): number => {
+  const t = Date.parse(saleDate);
+  return Number.isNaN(t) ? 0 : t;
+};
+
+interface CustomerOrderGroup {
+  key: string;
+  customerId: number | null;
+  customerName: string;
+  customerImage: string | null;
+  orders: SaleDto[];
+  totalDue: number;
+}
+
+/** Matches API camelCase JSON from POST /sales/customer-fifo-payment */
+interface CustomerFifoPaymentApiResponse {
+  totalApplied: number;
+  allocations: Array<{
+    saleId: number;
+    saleReference: string;
+    amountApplied: number;
+    paymentReference: string;
+  }>;
+}
+
 /* ======================== Component ======================== */
 const POSOrders: React.FC = () => {
   const { t } = useTranslation();
@@ -109,6 +137,19 @@ const POSOrders: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  /* grouped-by-customer view + FIFO bulk payment */
+  const [viewMode, setViewMode] = useState<'table' | 'byCustomer'>('table');
+  const [showBulkPaymentModal, setShowBulkPaymentModal] = useState(false);
+  const [bulkPaymentGroup, setBulkPaymentGroup] = useState<CustomerOrderGroup | null>(null);
+  const [bulkPaymentForm, setBulkPaymentForm] = useState({
+    reference: '',
+    payingAmount: 0,
+    receivedAmount: 0,
+    paymentType: 'Cash',
+    description: '',
+  });
+  const [bulkPaySubmitting, setBulkPaySubmitting] = useState(false);
+
   /* ---- Fetch ---- */
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -138,22 +179,62 @@ const POSOrders: React.FC = () => {
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
-  /* ---- Filters ---- */
-  const filtered = sales
-    .filter((s) => {
-      const q = searchTerm.toLowerCase();
+  /* ---- Filters ----
+   * List view uses `filtered` (includes payment-status filter + sort).
+   * By-customer cards use `groupingCandidates` only (search + order status) so paid rows stay visible
+   * with up-to-date Paid/Due/Payment status; payment filter still narrows the table only. */
+  const groupingCandidates = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    return sales.filter((s) => {
       const matchSearch = !searchTerm || s.reference.toLowerCase().includes(q) || s.customerName.toLowerCase().includes(q);
       const matchStatus = !filterStatus || s.status === filterStatus;
-      const matchPayment = !filterPaymentStatus || s.paymentStatus === filterPaymentStatus;
-      return matchSearch && matchStatus && matchPayment;
-    })
-    .sort((a, b) => {
+      return matchSearch && matchStatus;
+    });
+  }, [sales, searchTerm, filterStatus]);
+
+  const filtered = useMemo(() => {
+    const rows = groupingCandidates.filter((s) => !filterPaymentStatus || s.paymentStatus === filterPaymentStatus);
+    const copy = [...rows];
+    copy.sort((a, b) => {
       if (sortBy === 'asc') return a.grandTotal - b.grandTotal;
       if (sortBy === 'desc') return b.grandTotal - a.grandTotal;
       return 0;
     });
+    return copy;
+  }, [groupingCandidates, filterPaymentStatus, sortBy]);
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
+  const customerGroups = useMemo((): CustomerOrderGroup[] => {
+    const map = new Map<string, SaleDto[]>();
+    for (const s of groupingCandidates) {
+      const key =
+        s.customerId != null
+          ? `cid:${s.customerId}`
+          : `name:${s.customerName.trim().toLowerCase() || 'walk-in'}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(s);
+    }
+    const groups: CustomerOrderGroup[] = [];
+    map.forEach((orders, key) => {
+      const sorted = [...orders].sort((a, b) => {
+        const dt = parseSaleDateMs(a.saleDate) - parseSaleDateMs(b.saleDate);
+        if (dt !== 0) return dt;
+        return a.id - b.id;
+      });
+      const first = sorted[0];
+      groups.push({
+        key,
+        customerId: first.customerId,
+        customerName: first.customerName,
+        customerImage: first.customerImage,
+        orders: sorted,
+        totalDue: roundMoney(sorted.reduce((sum, o) => sum + (Number(o.due) || 0), 0)),
+      });
+    });
+    groups.sort((a, b) => a.customerName.localeCompare(b.customerName, undefined, { sensitivity: 'base' }));
+    return groups;
+  }, [groupingCandidates]);
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => { setSelectAll(checked); setSelectedIds(checked ? new Set(filtered.map((s) => s.id)) : new Set()); };
@@ -299,16 +380,104 @@ const POSOrders: React.FC = () => {
     } catch { /* ignore */ }
   };
 
+  const openBulkPayment = (g: CustomerOrderGroup) => {
+    if (g.totalDue <= 0) {
+      void Swal.fire({ icon: 'info', title: t('sales.bulk_payment_none_due') });
+      return;
+    }
+    setBulkPaymentGroup(g);
+    const max = roundMoney(g.totalDue);
+    setBulkPaymentForm({
+      reference: '',
+      payingAmount: max,
+      receivedAmount: max,
+      paymentType: 'Cash',
+      description: '',
+    });
+    setShowBulkPaymentModal(true);
+  };
+
+  const submitBulkPayment = async () => {
+    if (!bulkPaymentGroup) return;
+    const amt = roundMoney(bulkPaymentForm.payingAmount);
+    if (amt <= 0) {
+      void Swal.fire({ icon: 'warning', title: t('sales.bulk_payment_invalid_amount') });
+      return;
+    }
+    if (amt > roundMoney(bulkPaymentGroup.totalDue) + 0.001) {
+      void Swal.fire({ icon: 'warning', title: t('sales.bulk_payment_exceeds') });
+      return;
+    }
+    setBulkPaySubmitting(true);
+    try {
+      const { data } = await api.post<CustomerFifoPaymentApiResponse>('/sales/customer-fifo-payment', {
+        customerId: bulkPaymentGroup.customerId,
+        customerName: bulkPaymentGroup.customerName,
+        amount: amt,
+        paymentType: bulkPaymentForm.paymentType,
+        reference: bulkPaymentForm.reference.trim(),
+        description:
+          bulkPaymentForm.description?.trim() ||
+          `Bulk payment (FIFO) — ${bulkPaymentGroup.customerName}`,
+        source: 'pos',
+      });
+
+      for (const a of data.allocations) {
+        await recordSaleIncome({
+          amount: a.amountApplied,
+          date: new Date().toISOString().slice(0, 10),
+          reference: a.paymentReference,
+          description: `POS Order Payment (FIFO) - ${bulkPaymentGroup.customerName} - ${a.saleReference}`,
+          paymentType: bulkPaymentForm.paymentType,
+        });
+      }
+
+      setShowBulkPaymentModal(false);
+      setBulkPaymentGroup(null);
+      await fetchData();
+      void Swal.fire({
+        icon: 'success',
+        title: t('sales.bulk_payment_success'),
+        text: `${fmt(data.totalApplied)} applied (oldest bills first).`,
+        timer: 2400,
+        showConfirmButton: false,
+      });
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } };
+      void Swal.fire({
+        icon: 'error',
+        title: t('common.error'),
+        text: err?.response?.data?.message || 'Payment failed',
+      });
+    } finally {
+      setBulkPaySubmitting(false);
+    }
+  };
+
   /* ====================== RENDER ====================== */
   return (
     <>
       {/* ---- Page Header ---- */}
       <div className="page-header">
-        <div className="add-item d-flex">
+        <div className="add-item d-flex align-items-center flex-wrap gap-2">
           <div className="page-title">
             <h4>{t('sales.pos_orders_title')}</h4>
             <h6>{t('sales.pos_orders_subtitle')}</h6>
           </div>
+          <button
+            type="button"
+            className={`btn btn-sm ${viewMode === 'byCustomer' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => {
+              setViewMode((v) => {
+                const next = v === 'table' ? 'byCustomer' : 'table';
+                if (next === 'byCustomer') void fetchData();
+                return next;
+              });
+            }}
+          >
+            <i className={`ti ${viewMode === 'table' ? 'ti-layout-grid' : 'ti-list'} me-1`} />
+            {viewMode === 'table' ? t('sales.group_by_customer') : t('sales.list_view')}
+          </button>
         </div>
         <div className="page-btn">
           <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); openAddModal(); }}>
@@ -365,7 +534,7 @@ const POSOrders: React.FC = () => {
         <div className="card-body p-0">
           {loading ? (
             <div className="text-center py-5"><div className="spinner-border text-primary" role="status"></div></div>
-          ) : (
+          ) : viewMode === 'table' ? (
             <div className="table-responsive">
               <table className="table datanew">
                 <thead>
@@ -431,6 +600,105 @@ const POSOrders: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            <div className="p-3">
+              {customerGroups.length === 0 ? (
+                <div className="text-center py-5 text-muted">{t('sales.no_orders')}</div>
+              ) : (
+                <div className="row g-3">
+                  {customerGroups.map((g) => (
+                    <div key={g.key} className="col-12 col-xl-6">
+                      <div className="card border shadow-none h-100 mb-0">
+                        <div className="card-header bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 py-3">
+                          <div className="d-flex align-items-center min-w-0">
+                            <span className="avatar avatar-md me-2 flex-shrink-0">
+                              <img
+                                src={g.customerImage ? mediaUrl(g.customerImage) : '/assets/img/users/user-01.jpg'}
+                                alt=""
+                              />
+                            </span>
+                            <div className="min-w-0">
+                              <h6 className="mb-0 text-truncate">{g.customerName}</h6>
+                              <small className="text-muted">
+                                {g.orders.length} {t('sales.orders_count')} · {t('sales.collective_due')}{' '}
+                                <span
+                                  className={
+                                    g.totalDue > 0
+                                      ? 'd-inline-flex align-items-center ms-1 px-2 py-1 rounded-2 border border-2 border-primary fw-bold text-primary bg-white shadow-sm'
+                                      : 'd-inline-flex align-items-center ms-1 px-2 py-1 rounded-2 border fw-semibold text-muted bg-light'
+                                  }
+                                >
+                                  {fmt(g.totalDue)}
+                                </span>
+                              </small>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-primary btn-sm flex-shrink-0"
+                            disabled={g.totalDue <= 0}
+                            onClick={() => openBulkPayment(g)}
+                          >
+                            <i className="ti ti-cash me-1" />
+                            {t('sales.add_bulk_payment')}
+                          </button>
+                        </div>
+                        <div className="card-body p-0">
+                          <div className="table-responsive">
+                            <table className="table table-hover mb-0">
+                              <thead className="table-light">
+                                <tr>
+                                  <th>{t('common.reference')}</th>
+                                  <th>{t('common.date')}</th>
+                                  <th>Expected</th>
+                                  <th>{t('common.payment_status')}</th>
+                                  <th className="text-end">{t('common.paid')}</th>
+                                  <th className="text-end">{t('common.due')}</th>
+                                  <th className="text-end">{t('common.grand_total')}</th>
+                                  <th>{t('common.order_status')}</th>
+                                  <th className="text-center">{t('common.actions')}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {g.orders.map((s) => (
+                                  <tr key={s.id}>
+                                    <td className="fw-medium">{s.reference}</td>
+                                    <td>{s.saleDate}</td>
+                                    <td>{s.expectedDate || '—'}</td>
+                                    <td>
+                                      <span className={`badge ${paymentStatusBadge(s.paymentStatus)} shadow-none badge-xs`}>
+                                        <i className="ti ti-point-filled me-1" />
+                                        {s.paymentStatus}
+                                      </span>
+                                    </td>
+                                    <td className="text-end">{fmt(Number(s.paid) || 0)}</td>
+                                    <td className="text-end">{fmt(Number(s.due) || 0)}</td>
+                                    <td className="text-end">{fmt(Number(s.grandTotal) || 0)}</td>
+                                    <td><span className={`badge ${statusBadge(s.status)}`}>{s.status}</span></td>
+                                    <td className="text-center">
+                                      <div className="dropdown">
+                                        <a className="action-set" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                          <i className="fa fa-ellipsis-v" aria-hidden="true" />
+                                        </a>
+                                        <ul className="dropdown-menu dropdown-menu-end">
+                                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}>{t('sales.sale_detail')}</a></li>
+                                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}>{t('sales.show_payments')}</a></li>
+                                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}>{t('sales.create_payment')}</a></li>
+                                        </ul>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -812,8 +1080,118 @@ const POSOrders: React.FC = () => {
         </div>
       )}
 
+      {/* ===================== Bulk payment (FIFO) modal ===================== */}
+      {showBulkPaymentModal && bulkPaymentGroup && (
+        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <div>
+                  <h4 className="modal-title mb-0">{t('sales.bulk_payment_title')}</h4>
+                  <small className="text-muted">{bulkPaymentGroup.customerName}</small>
+                </div>
+                <button type="button" className="close" onClick={() => { setShowBulkPaymentModal(false); setBulkPaymentGroup(null); }}><span>&times;</span></button>
+              </div>
+              <div className="modal-body">
+                <p className="text-muted small mb-3">{t('sales.bulk_payment_subtitle')}</p>
+                <p className="mb-3">
+                  {t('sales.bulk_payment_max')}: <strong>{fmt(bulkPaymentGroup.totalDue)}</strong>
+                </p>
+                <div className="row">
+                  <div className="col-lg-6">
+                    <div className="mb-3">
+                      <label className="form-label">{t('common.reference')}</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={bulkPaymentForm.reference}
+                        onChange={(e) => setBulkPaymentForm({ ...bulkPaymentForm, reference: e.target.value })}
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6">
+                    <div className="mb-3">
+                      <label className="form-label">{t('sales.payment_type')}<span className="text-danger ms-1">*</span></label>
+                      <select
+                        className="form-select"
+                        value={bulkPaymentForm.paymentType}
+                        onChange={(e) => setBulkPaymentForm({ ...bulkPaymentForm, paymentType: e.target.value })}
+                      >
+                        {PAYMENT_TYPES.map((pt) => (
+                          <option key={pt} value={pt}>{pt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="col-lg-6">
+                    <div className="mb-3">
+                      <label className="form-label">{t('sales.paying_amount')}<span className="text-danger ms-1">*</span></label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        max={bulkPaymentGroup.totalDue}
+                        className="form-control"
+                        value={bulkPaymentForm.payingAmount || ''}
+                        onChange={(e) => {
+                          const v = parseFloat(e.target.value) || 0;
+                          setBulkPaymentForm({ ...bulkPaymentForm, payingAmount: v, receivedAmount: v });
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6">
+                    <div className="mb-3">
+                      <label className="form-label">{t('sales.received_amount')}<span className="text-danger ms-1">*</span></label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        className="form-control"
+                        value={bulkPaymentForm.receivedAmount || ''}
+                        onChange={(e) =>
+                          setBulkPaymentForm({ ...bulkPaymentForm, receivedAmount: parseFloat(e.target.value) || 0 })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="col-12">
+                    <div className="mb-0">
+                      <label className="form-label">{t('common.description')}</label>
+                      <textarea
+                        className="form-control"
+                        rows={2}
+                        value={bulkPaymentForm.description}
+                        onChange={(e) => setBulkPaymentForm({ ...bulkPaymentForm, description: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary me-2"
+                  disabled={bulkPaySubmitting}
+                  onClick={() => { setShowBulkPaymentModal(false); setBulkPaymentGroup(null); }}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button type="button" className="btn btn-primary" disabled={bulkPaySubmitting} onClick={() => void submitBulkPayment()}>
+                  {bulkPaySubmitting ? <span className="spinner-border spinner-border-sm me-1" /> : null}
+                  {t('common.submit')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ===================== Delete Modal ===================== */}
-      <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+      {viewMode === 'table' && (
+        <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+      )}
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );
