@@ -29513,14 +29513,19 @@ th.fixed-width {
 .pos-products .product-info .price p {
   color: #FE9F43;
 }
-.pos-products .product-info:hover, .pos-products .product-info.active {
+.pos-products .product-info:hover, .pos-products .product-info.active, .pos-products .product-info:focus-visible {
   border-color: #FE9F43;
 }
-.pos-products .product-info:hover .img-bg img, .pos-products .product-info.active .img-bg img {
+.pos-products .product-info:hover .img-bg img, .pos-products .product-info.active .img-bg img, .pos-products .product-info:focus-visible .img-bg img {
   transform: scale(1.2);
 }
-.pos-products .product-info:hover .img-bg span, .pos-products .product-info.active .img-bg span {
+.pos-products .product-info:hover .img-bg span, .pos-products .product-info.active .img-bg span, .pos-products .product-info:focus-visible .img-bg span {
   display: block;
+}
+.pos-products .product-info:focus-visible {
+  outline: 2px solid #FE9F43;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(254, 159, 67, 0.25);
 }
 
 .product-wrap {

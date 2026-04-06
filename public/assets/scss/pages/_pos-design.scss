@@ -290,7 +290,7 @@
             }
 
         }
-        &:hover, &.active {
+        &:hover, &.active, &:focus-visible {
             border-color: variables.$success;
             .pro-img {
                 img {
@@ -300,6 +300,11 @@
                     display: block;
                 }
             }
+        }
+        &:focus-visible {
+            outline: 2px solid variables.$success;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(variables.$success, 0.25);
         }
     }
 }

@@ -61,11 +61,15 @@ const POS: React.FC = () => {
   const posProductsRootRef = useRef<HTMLDivElement>(null);
   const filteredRef = useRef<ProductItem[]>([]);
   const qtyDecRefById = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const posWrapperRef = useRef<HTMLDivElement>(null);
   const paymentCashRef = useRef<HTMLButtonElement>(null);
   const paymentCardRef = useRef<HTMLButtonElement>(null);
   const paymentCreditRef = useRef<HTMLButtonElement>(null);
   const finalizeBtnRef = useRef<HTMLButtonElement>(null);
   const customerSelectRef = useRef<HTMLSelectElement>(null);
+
+  /** Tracks the product just added to cart so the next Tab jumps to its qty controls */
+  const justAddedProductRef = useRef<string | null>(null);
 
   const hasRegisteredCustomer = Boolean(selectedCustomer);
 
@@ -113,6 +117,146 @@ const POS: React.FC = () => {
         if (prev === null) el.removeAttribute('tabindex');
         else el.setAttribute('tabindex', prev);
       });
+    };
+  }, [loading]);
+
+  /* ── Focus trap: keep Tab cycling inside the POS page ── */
+  useEffect(() => {
+    if (loading) return;
+    const wrapper = posWrapperRef.current;
+    if (!wrapper) return;
+
+    const getFocusable = (): HTMLElement[] =>
+      Array.from(
+        wrapper.querySelectorAll<HTMLElement>(
+          'input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"]), [tabindex="0"]:not([disabled])'
+        )
+      ).filter((el) => el.offsetParent !== null);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isTab = e.key === 'Tab';
+      const isArrow = e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp';
+      if (!isTab && !isArrow) return;
+
+      /* Let arrow keys work normally inside <select> and <input> */
+      const tag = (document.activeElement as HTMLElement)?.tagName;
+      if (isArrow && (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA')) return;
+
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      const goBack = isTab ? e.shiftKey : (e.key === 'ArrowLeft' || e.key === 'ArrowUp');
+      const goForward = isTab ? !e.shiftKey : (e.key === 'ArrowRight' || e.key === 'ArrowDown');
+
+      if (isArrow) {
+        e.preventDefault();
+        const idx = focusable.indexOf(document.activeElement as HTMLElement);
+        if (goForward) {
+          const next = idx < 0 || idx >= focusable.length - 1 ? first : focusable[idx + 1];
+          next.focus();
+        } else {
+          const prev = idx <= 0 ? last : focusable[idx - 1];
+          prev.focus();
+        }
+        return;
+      }
+
+      /* Tab wrap */
+      if (goBack) {
+        if (document.activeElement === first || !wrapper.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (goForward) {
+        if (document.activeElement === last || !wrapper.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [loading]);
+
+  /* ── Keyboard focus highlight via inline styles (immune to CSS overrides) ── */
+  useEffect(() => {
+    if (loading) return;
+    const wrapper = posWrapperRef.current;
+    if (!wrapper) return;
+
+    let lastFocused: HTMLElement | null = null;
+    const savedStyles = new Map<string, string>();
+
+    const applyHighlight = (el: HTMLElement) => {
+      savedStyles.set('outline', el.style.outline);
+      savedStyles.set('outlineOffset', el.style.outlineOffset);
+      savedStyles.set('boxShadow', el.style.boxShadow);
+      savedStyles.set('transition', el.style.transition);
+
+      el.style.outline = '2px solid #3EB780';
+      el.style.outlineOffset = '2px';
+      el.style.boxShadow = '0 0 0 4px rgba(62, 183, 128, 0.3)';
+      el.style.transition = 'none';
+    };
+
+    const removeHighlight = (el: HTMLElement) => {
+      el.style.outline = savedStyles.get('outline') || '';
+      el.style.outlineOffset = savedStyles.get('outlineOffset') || '';
+      el.style.boxShadow = savedStyles.get('boxShadow') || '';
+      el.style.transition = savedStyles.get('transition') || '';
+      savedStyles.clear();
+    };
+
+    let usingKeyboard = false;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab' || e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        usingKeyboard = true;
+      }
+    };
+
+    const onMouseDown = () => {
+      usingKeyboard = false;
+      if (lastFocused) {
+        removeHighlight(lastFocused);
+        lastFocused = null;
+      }
+    };
+
+    const onFocusIn = (e: FocusEvent) => {
+      if (!usingKeyboard) return;
+      const target = e.target as HTMLElement;
+      if (!wrapper.contains(target)) return;
+
+      if (lastFocused && lastFocused !== target) {
+        removeHighlight(lastFocused);
+      }
+      applyHighlight(target);
+      lastFocused = target;
+    };
+
+    const onFocusOut = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (lastFocused === target) {
+        removeHighlight(target);
+        lastFocused = null;
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('mousedown', onMouseDown, true);
+    wrapper.addEventListener('focusin', onFocusIn);
+    wrapper.addEventListener('focusout', onFocusOut);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('mousedown', onMouseDown, true);
+      wrapper.removeEventListener('focusin', onFocusIn);
+      wrapper.removeEventListener('focusout', onFocusOut);
+      if (lastFocused) removeHighlight(lastFocused);
     };
   }, [loading]);
 
@@ -337,7 +481,7 @@ const POS: React.FC = () => {
         text: `Reference: ${saleRef}`,
         timer: 2000,
         showConfirmButton: false,
-      });
+      }).then(() => searchInputRef.current?.focus());
     } catch (err: any) {
       Swal.fire({ icon: 'error', title: 'Error', text: err?.response?.data?.message || 'Failed to process sale' });
     } finally {
@@ -358,7 +502,7 @@ const POS: React.FC = () => {
     );
 
   return (
-    <div className="page-wrapper pos-pg-wrapper ms-0">
+    <div className="page-wrapper pos-pg-wrapper ms-0" ref={posWrapperRef}>
       {/* Minimal POS header bar */}
       <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white">
         <div className="d-flex align-items-center gap-3">
@@ -486,10 +630,25 @@ const POS: React.FC = () => {
                           style={{ cursor: productInStock(p) ? 'pointer' : 'not-allowed', position: 'relative' }}
                           onClick={() => addToCart(p)}
                           onKeyDown={(e) => {
+                            /* After adding to cart, next Tab jumps to qty controls instead of next product */
+                            if (e.key === 'Tab') {
+                              if (!e.shiftKey && justAddedProductRef.current) {
+                                e.preventDefault();
+                                const targetId = justAddedProductRef.current;
+                                justAddedProductRef.current = null;
+                                const btn = qtyDecRefById.current.get(targetId);
+                                if (btn) btn.focus();
+                                else paymentCashRef.current?.focus();
+                                return;
+                              }
+                              justAddedProductRef.current = null;
+                              return;
+                            }
                             if (!productInStock(p)) return;
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              addToCart(p);
+                              addToCart(p, { focusQty: false });
+                              justAddedProductRef.current = productDomId(p.id);
                             }
                           }}
                         >
@@ -537,7 +696,6 @@ const POS: React.FC = () => {
                 </div>
                 <select
                   ref={customerSelectRef}
-                  tabIndex={-1}
                   className="form-select"
                   value={selectedCustomer}
                   onChange={(e) => {
@@ -615,12 +773,6 @@ const POS: React.FC = () => {
                                         else qtyDecRefById.current.delete(productDomId(line.product.id));
                                       }}
                                       onClick={() => updateQty(line.product.id, -1)}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          e.preventDefault();
-                                          paymentCashRef.current?.focus();
-                                        }
-                                      }}
                                       className="dec d-flex justify-content-center align-items-center border-0 bg-transparent p-0"
                                       aria-label="Decrease quantity"
                                     >
@@ -629,12 +781,6 @@ const POS: React.FC = () => {
                                     <button
                                       type="button"
                                       onClick={() => updateQty(line.product.id, 1)}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          e.preventDefault();
-                                          paymentCashRef.current?.focus();
-                                        }
-                                      }}
                                       className="inc d-flex justify-content-center align-items-center border-0 bg-transparent p-0"
                                       aria-label="Increase quantity"
                                     >
@@ -691,7 +837,6 @@ const POS: React.FC = () => {
                   <div className="col-6">
                     <button
                       type="button"
-                      tabIndex={-1}
                       className="btn btn-secondary d-flex align-items-center justify-content-center w-100 mb-2"
                       onClick={clearCart}
                       disabled={cart.length === 0}
@@ -703,7 +848,6 @@ const POS: React.FC = () => {
                   <div className="col-6">
                     <button
                       type="button"
-                      tabIndex={-1}
                       className="btn btn-info d-flex align-items-center justify-content-center w-100 mb-2"
                       disabled={cart.length === 0}
                     >
@@ -722,12 +866,11 @@ const POS: React.FC = () => {
                     <button
                       type="button"
                       ref={paymentCashRef}
-                      onClick={() => setPaymentMethod('Cash')}
+                      onMouseDown={() => setPaymentMethod('Cash')}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           setPaymentMethod('Cash');
-                          window.setTimeout(() => finalizeBtnRef.current?.focus(), 0);
                         }
                       }}
                       className={`payment-item flex-fill${paymentMethod === 'Cash' ? ' active' : ''}`}
@@ -746,12 +889,11 @@ const POS: React.FC = () => {
                     <button
                       type="button"
                       ref={paymentCardRef}
-                      onClick={() => setPaymentMethod('Card')}
+                      onMouseDown={() => setPaymentMethod('Card')}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           setPaymentMethod('Card');
-                          window.setTimeout(() => finalizeBtnRef.current?.focus(), 0);
                         }
                       }}
                       className={`payment-item flex-fill${paymentMethod === 'Card' ? ' active' : ''}`}
@@ -770,7 +912,7 @@ const POS: React.FC = () => {
                     <button
                       type="button"
                       ref={paymentCreditRef}
-                      onClick={() => {
+                      onMouseDown={() => {
                         if (!hasRegisteredCustomer) {
                           Swal.fire({
                             icon: 'info',
@@ -780,10 +922,9 @@ const POS: React.FC = () => {
                           return;
                         }
                         setPaymentMethod('Credit');
-                        window.setTimeout(() => customerSelectRef.current?.focus(), 0);
                       }}
                       onKeyDown={(e) => {
-                        if (e.key !== 'Enter') return;
+                        if (e.key !== 'Enter' && e.key !== ' ') return;
                         e.preventDefault();
                         if (!hasRegisteredCustomer) {
                           Swal.fire({
@@ -794,7 +935,6 @@ const POS: React.FC = () => {
                           return;
                         }
                         setPaymentMethod('Credit');
-                        window.setTimeout(() => customerSelectRef.current?.focus(), 0);
                       }}
                       className={`payment-item flex-fill${paymentMethod === 'Credit' ? ' active' : ''}`}
                     >
