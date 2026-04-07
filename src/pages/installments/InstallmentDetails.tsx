@@ -325,11 +325,11 @@ const totalRemaining = useMemo(() => {
                 <tbody>
                   <tr><td className="text-muted">{t('installment_details.finance_amount')}</td><td className="text-end text-info fw-bold">Rs {fmt(plan.financeAmount ?? plan.productPrice)}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.down_payment')}</td><td className="text-end">Rs {fmt(plan.downPayment)}</td></tr>
-                  <tr><td className="text-muted">{t('installment_details.financed_amount')}</td><td className="text-end">Rs {fmt(plan.financedAmount)}</td></tr>
-                  <tr><td className="text-muted">{t('installment_details.interest_rate')}</td><td className="text-end">{plan.interestRate}% {t('create_installment.pa_suffix')}</td></tr>
+                  {/* <tr><td className="text-muted">{t('installment_details.financed_amount')}</td><td className="text-end">Rs {fmt(plan.financedAmount)}</td></tr>
+                  <tr><td className="text-muted">{t('installment_details.interest_rate')}</td><td className="text-end">{plan.interestRate}% {t('create_installment.pa_suffix')}</td></tr> */}
                   <tr><td className="text-muted">{t('installment_details.tenure_months')}</td><td className="text-end">{plan.tenure} {t('create_installment.months_word')}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.monthly_emi')}</td><td className="text-end fw-bold text-primary">Rs {fmt(plan.emiAmount)}</td></tr>
-                  <tr className="border-top"><td className="text-muted">{t('installment_details.total_interest')}</td><td className="text-end text-danger">Rs {fmt(plan.totalInterest)}</td></tr>
+                  {/* <tr className="border-top"><td className="text-muted">{t('installment_details.total_interest')}</td><td className="text-end text-danger">Rs {fmt(plan.totalInterest)}</td></tr> */}
                   <tr><td className="fw-bold">{t('installment_details.total_payable')}</td><td className="text-end fw-bold">Rs {fmt(plan.totalPayable)}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.start_date')}</td><td className="text-end">{plan.startDate}</td></tr>
                   <tr><td className="text-muted">{t('installment_details.status')}</td><td className="text-end">
