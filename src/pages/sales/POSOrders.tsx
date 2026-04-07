@@ -6,6 +6,7 @@ import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 import { recordSaleIncome } from '../../services/financeService';
+import POSPaymentReceipt, { ReceiptSale, ReceiptPayment } from '../../components/POSPaymentReceipt';
 
 /* ---------- Types ---------- */
 interface SaleItemDto {
@@ -149,6 +150,11 @@ const POSOrders: React.FC = () => {
     description: '',
   });
   const [bulkPaySubmitting, setBulkPaySubmitting] = useState(false);
+
+  /* payment receipt */
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptSale, setReceiptSale] = useState<ReceiptSale | null>(null);
+  const [receiptPayment, setReceiptPayment] = useState<ReceiptPayment | null>(null);
 
   /* ---- Fetch ---- */
   const fetchData = useCallback(async () => {
@@ -368,6 +374,34 @@ const POSOrders: React.FC = () => {
       fetchData();
       const res = await api.get<SaleDto>(`/sales/${paymentSaleId}`);
       setPaymentsSale(res.data);
+
+      /* show receipt for new payments */
+      if (!editingPaymentId) {
+        const saleData = res.data;
+        const cust = customers.find((c) => c.id === saleData.customerId);
+        setReceiptSale({
+          reference: saleData.reference,
+          customerName: saleData.customerName,
+          customerPhone: cust?.phone,
+          grandTotal: saleData.grandTotal,
+          paid: saleData.paid - paymentForm.payingAmount,
+          due: saleData.due + paymentForm.payingAmount,
+          orderTax: saleData.orderTax,
+          discount: saleData.discount,
+          shipping: saleData.shipping,
+          saleDate: saleData.saleDate,
+          items: saleData.items.map((i) => ({ productName: i.productName, quantity: i.quantity, unitCost: i.unitCost, totalCost: i.totalCost })),
+        });
+        setReceiptPayment({
+          reference: paymentForm.reference,
+          payingAmount: paymentForm.payingAmount,
+          receivedAmount: paymentForm.receivedAmount,
+          paymentType: paymentForm.paymentType,
+          description: paymentForm.description || null,
+          paymentDate: new Date().toISOString(),
+        });
+        setShowReceipt(true);
+      }
     } catch { /* ignore */ }
   };
 
@@ -378,6 +412,32 @@ const POSOrders: React.FC = () => {
       const res = await api.get<SaleDto>(`/sales/${saleId}`);
       setPaymentsSale(res.data);
     } catch { /* ignore */ }
+  };
+
+  const openReceipt = (sale: SaleDto, payment: SalePaymentDto) => {
+    const cust = customers.find((c) => c.id === sale.customerId);
+    setReceiptSale({
+      reference: sale.reference,
+      customerName: sale.customerName,
+      customerPhone: cust?.phone,
+      grandTotal: sale.grandTotal,
+      paid: sale.paid,
+      due: sale.due,
+      orderTax: sale.orderTax,
+      discount: sale.discount,
+      shipping: sale.shipping,
+      saleDate: sale.saleDate,
+      items: sale.items.map((i) => ({ productName: i.productName, quantity: i.quantity, unitCost: i.unitCost, totalCost: i.totalCost })),
+    });
+    setReceiptPayment({
+      reference: payment.reference,
+      payingAmount: payment.payingAmount,
+      receivedAmount: payment.receivedAmount,
+      paymentType: payment.paymentType,
+      description: payment.description,
+      paymentDate: payment.paymentDate,
+    });
+    setShowReceipt(true);
   };
 
   const openBulkPayment = (g: CustomerOrderGroup) => {
@@ -998,6 +1058,9 @@ const POSOrders: React.FC = () => {
                           <td>{p.paymentType}</td>
                           <td>
                             <div className="edit-delete-action d-flex align-items-center">
+                              <a className="me-3 p-2 border rounded d-flex align-items-center" href="#" title={t('pos_receipt.title')} onClick={(e) => { e.preventDefault(); openReceipt(paymentsSale, p); }}>
+                                <i data-feather="printer"></i>
+                              </a>
                               <a className="me-3 p-2 border rounded d-flex align-items-center" href="#" onClick={(e) => { e.preventDefault(); openEditPayment(paymentsSale.id, p); }}>
                                 <i data-feather="edit"></i>
                               </a>
@@ -1193,6 +1256,11 @@ const POSOrders: React.FC = () => {
         <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       )}
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
+
+      {/* ===================== Payment Receipt ===================== */}
+      {showReceipt && receiptSale && receiptPayment && (
+        <POSPaymentReceipt sale={receiptSale} payment={receiptPayment} onClose={() => setShowReceipt(false)} />
+      )}
     </>
   );
 };

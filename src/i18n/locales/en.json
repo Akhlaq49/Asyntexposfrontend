@@ -266,6 +266,25 @@
     "pa": "p.a."
   },
 
+  "pos_receipt": {
+    "title": "Payment Receipt",
+    "payment_receipt": "PAYMENT RECEIPT",
+    "customer_info": "CUSTOMER INFORMATION",
+    "items": "ITEMS",
+    "item": "Item",
+    "qty": "Qty",
+    "price": "Price",
+    "total": "Total",
+    "order_summary": "ORDER SUMMARY",
+    "shipping": "Shipping",
+    "payment_details": "PAYMENT DETAILS",
+    "amount_paid": "Amount Paid",
+    "change": "Change",
+    "balance_summary": "BALANCE SUMMARY",
+    "balance_remaining": "Balance Remaining: Rs {{amount}}",
+    "fully_paid": "Fully Paid — Thank you!"
+  },
+
   "ai_bot": {
     "title": "AI Assistant",
     "welcome_message": "Hello! I'm your POS AI Assistant. I can help you with business stats, customer info, installment data, financial reports, and more.\n\nTry asking me questions like:\n• How many customers do we have?\n• Show me today's dues\n• What is the outstanding balance?\n• Who are the defaulters?\n• Show me profit and loss",
