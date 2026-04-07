@@ -328,16 +328,16 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                   <tbody>
                     <tr>
                       <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center' }}>Rs {fmt(sale.grandTotal)}</td>
-                      <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: '#28a745', fontWeight: 700 }}>Rs {fmt(sale.paid + payment.payingAmount)}</td>
-                      <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: sale.due - payment.payingAmount > 0 ? '#e0a800' : '#28a745', fontWeight: 600 }}>Rs {fmt(Math.max(sale.due - payment.payingAmount, 0))}</td>
+                      <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: '#28a745', fontWeight: 700 }}>Rs {fmt(sale.paid)}</td>
+                      <td style={{ border: '1px solid #ccc', padding: '6px 10px', textAlign: 'center', color: sale.due > 0 ? '#e0a800' : '#28a745', fontWeight: 600 }}>Rs {fmt(Math.max(sale.due, 0))}</td>
                     </tr>
                   </tbody>
                 </table>
 
                 {/* Footer */}
                 <div style={{ textAlign: 'center', background: '#333', color: '#fff', padding: 8, borderRadius: 4, fontSize: 11, marginTop: 12, fontWeight: 600 }}>
-                  {sale.due - payment.payingAmount > 0
-                    ? t('pos_receipt.balance_remaining', { amount: fmt(sale.due - payment.payingAmount) })
+                  {sale.due > 0
+                    ? t('pos_receipt.balance_remaining', { amount: fmt(sale.due) })
                     : t('pos_receipt.fully_paid')
                   }
                 </div>
