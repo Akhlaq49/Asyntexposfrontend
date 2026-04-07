@@ -1177,7 +1177,7 @@ const CreateInstallment: React.FC = () => {
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.product_price')}<span className="text-danger ms-1">*</span></label>
-                    <input type="number" className="form-control" placeholder="0.00" min={0} step="0.01" value={newProduct.price}
+                    <input type="number" className="form-control" placeholder="0.00" min={0} step="0.01" value={newProduct.price || ''}
                       onChange={e => setNewProduct(prev => ({ ...prev, price: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
@@ -1192,7 +1192,7 @@ const CreateInstallment: React.FC = () => {
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.quantity_label')}</label>
-                    <input type="number" className="form-control" placeholder="0" min={0} value={newProduct.quantity}
+                    <input type="number" className="form-control" placeholder="0" min={0} value={newProduct.quantity || ''}
                       onChange={e => setNewProduct(prev => ({ ...prev, quantity: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">

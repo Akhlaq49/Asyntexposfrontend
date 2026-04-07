@@ -160,7 +160,7 @@ const Warranty: React.FC = () => {
         <div className="col-lg-6">
           <div className="mb-3">
             <label className="form-label">Duration<span className="text-danger ms-1">*</span></label>
-            <input type="number" className="form-control" min={1} value={form.duration} onChange={(e) => setField('duration', parseInt(e.target.value) || 1)} />
+            <input type="number" className="form-control" min={1} value={form.duration || ''} onChange={(e) => setField('duration', parseInt(e.target.value) || 1)} />
           </div>
         </div>
         <div className="col-lg-6">

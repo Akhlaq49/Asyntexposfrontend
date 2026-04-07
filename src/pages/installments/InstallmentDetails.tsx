@@ -594,7 +594,7 @@ const totalRemaining = useMemo(() => {
                       type="number" 
                       className="form-control" 
                       placeholder={t('create_installment.enter_payment')}
-                      value={paymentForm.amount}
+                      value={paymentForm.amount || ''}
                       onChange={(e) => setPaymentForm({...paymentForm, amount: parseFloat(e.target.value) || 0})}
                       min="0"
                       step="0.01"

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   getPurchases, 
@@ -681,7 +681,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.qty')}
-                      value={newItem.quantity}
+                      value={newItem.quantity || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })
                       }
@@ -692,7 +692,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.price_col')}
-                      value={newItem.purchasePrice}
+                      value={newItem.purchasePrice || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, purchasePrice: parseFloat(e.target.value) || 0 })
                       }
@@ -703,7 +703,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.discount_col')}
-                      value={newItem.discount}
+                      value={newItem.discount || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, discount: parseFloat(e.target.value) || 0 })
                       }
@@ -714,7 +714,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.tax_col')}
-                      value={newItem.taxPercentage}
+                      value={newItem.taxPercentage || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, taxPercentage: parseFloat(e.target.value) || 0 })
                       }
@@ -775,7 +775,7 @@ const PurchaseList: React.FC = () => {
                       <input
                         type="number"
                         className="form-control"
-                        value={formData.orderTax}
+                        value={formData.orderTax || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, orderTax: parseFloat(e.target.value) || 0 })
                         }
@@ -788,7 +788,7 @@ const PurchaseList: React.FC = () => {
                       <input
                         type="number"
                         className="form-control"
-                        value={formData.discount}
+                        value={formData.discount || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })
                         }
@@ -801,7 +801,7 @@ const PurchaseList: React.FC = () => {
                       <input
                         type="number"
                         className="form-control"
-                        value={formData.shipping}
+                        value={formData.shipping || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, shipping: parseFloat(e.target.value) || 0 })
                         }
@@ -989,7 +989,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.qty')}
-                      value={newItem.quantity}
+                      value={newItem.quantity || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })
                       }
@@ -1000,7 +1000,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.price_col')}
-                      value={newItem.purchasePrice}
+                      value={newItem.purchasePrice || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, purchasePrice: parseFloat(e.target.value) || 0 })
                       }
@@ -1011,7 +1011,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.discount_col')}
-                      value={newItem.discount}
+                      value={newItem.discount || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, discount: parseFloat(e.target.value) || 0 })
                       }
@@ -1022,7 +1022,7 @@ const PurchaseList: React.FC = () => {
                       type="number"
                       className="form-control"
                       placeholder={t('purchases.tax_col')}
-                      value={newItem.taxPercentage}
+                      value={newItem.taxPercentage || ''}
                       onChange={(e) =>
                         setNewItem({ ...newItem, taxPercentage: parseFloat(e.target.value) || 0 })
                       }
@@ -1083,7 +1083,7 @@ const PurchaseList: React.FC = () => {
                       <input
                         type="number"
                         className="form-control"
-                        value={formData.orderTax}
+                        value={formData.orderTax || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, orderTax: parseFloat(e.target.value) || 0 })
                         }
@@ -1096,7 +1096,7 @@ const PurchaseList: React.FC = () => {
                       <input
                         type="number"
                         className="form-control"
-                        value={formData.discount}
+                        value={formData.discount || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })
                         }
@@ -1109,7 +1109,7 @@ const PurchaseList: React.FC = () => {
                       <input
                         type="number"
                         className="form-control"
-                        value={formData.shipping}
+                        value={formData.shipping || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, shipping: parseFloat(e.target.value) || 0 })
                         }

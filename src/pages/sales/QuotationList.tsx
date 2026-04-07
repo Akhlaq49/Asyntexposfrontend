@@ -483,14 +483,14 @@ const QuotationList: React.FC = () => {
                               <td>
                                 <div className="product-quantity d-flex align-items-center">
                                   <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', Math.max(1, item.quantity - 1))}><i data-feather="minus-circle"></i></span>
-                                  <input type="number" className="form-control text-center mx-1" style={{ width: 60 }} value={item.quantity}
+                                  <input type="number" className="form-control text-center mx-1" style={{ width: 60 }} value={item.quantity || ''}
                                     onChange={e => updateItemField(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} />
                                   <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', item.quantity + 1)}><i data-feather="plus-circle"></i></span>
                                 </div>
                               </td>
-                              <td><input type="number" className="form-control" style={{ width: 100 }} value={item.purchasePrice} onChange={e => updateItemField(idx, 'purchasePrice', parseFloat(e.target.value) || 0)} /></td>
-                              <td><input type="number" className="form-control" style={{ width: 80 }} value={item.discount} onChange={e => updateItemField(idx, 'discount', parseFloat(e.target.value) || 0)} /></td>
-                              <td><input type="number" className="form-control" style={{ width: 70 }} value={item.taxPercent} onChange={e => updateItemField(idx, 'taxPercent', parseFloat(e.target.value) || 0)} /></td>
+                              <td><input type="number" className="form-control" style={{ width: 100 }} value={item.purchasePrice || ''} onChange={e => updateItemField(idx, 'purchasePrice', parseFloat(e.target.value) || 0)} /></td>
+                              <td><input type="number" className="form-control" style={{ width: 80 }} value={item.discount || ''} onChange={e => updateItemField(idx, 'discount', parseFloat(e.target.value) || 0)} /></td>
+                              <td><input type="number" className="form-control" style={{ width: 70 }} value={item.taxPercent || ''} onChange={e => updateItemField(idx, 'taxPercent', parseFloat(e.target.value) || 0)} /></td>
                               <td>{item.taxAmount.toFixed(2)}</td>
                               <td>{item.unitCost.toFixed(2)}</td>
                               <td>{item.totalCost.toFixed(2)}</td>
@@ -507,19 +507,19 @@ const QuotationList: React.FC = () => {
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
                         <label className="form-label">{t('quotations.order_tax')}</label>
-                        <input type="number" className="form-control" value={form.orderTax} onChange={e => setForm({ ...form, orderTax: parseFloat(e.target.value) || 0 })} />
+                        <input type="number" className="form-control" value={form.orderTax || ''} onChange={e => setForm({ ...form, orderTax: parseFloat(e.target.value) || 0 })} />
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
                         <label className="form-label">{t('quotations.discount')}</label>
-                        <input type="number" className="form-control" value={form.discount} onChange={e => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })} />
+                        <input type="number" className="form-control" value={form.discount || ''} onChange={e => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })} />
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
                         <label className="form-label">{t('quotations.shipping')}</label>
-                        <input type="number" className="form-control" value={form.shipping} onChange={e => setForm({ ...form, shipping: parseFloat(e.target.value) || 0 })} />
+                        <input type="number" className="form-control" value={form.shipping || ''} onChange={e => setForm({ ...form, shipping: parseFloat(e.target.value) || 0 })} />
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">

@@ -323,14 +323,14 @@ const Coupons: React.FC = () => {
                   <div className="col-lg-6">
                     <div className="mb-3">
                       <label className="form-label">Discount<span className="text-danger ms-1">*</span></label>
-                      <input type="number" className="form-control" value={form.discount} onChange={e => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })} />
+                      <input type="number" className="form-control" value={form.discount || ''} onChange={e => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })} />
                     </div>
                   </div>
                   {/* Limit */}
                   <div className="col-lg-12">
                     <div className="mb-3">
                       <label className="form-label">Limit<span className="text-danger ms-1">*</span></label>
-                      <input type="number" className="form-control" value={form.limit} onChange={e => setForm({ ...form, limit: parseInt(e.target.value) || 0 })} />
+                      <input type="number" className="form-control" value={form.limit || ''} onChange={e => setForm({ ...form, limit: parseInt(e.target.value) || 0 })} />
                       <span className="unlimited-text fs-12">Enter 0 for Unlimited</span>
                     </div>
                   </div>

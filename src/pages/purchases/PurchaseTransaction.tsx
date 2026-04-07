@@ -387,19 +387,19 @@ const PurchaseTransaction: React.FC = () => {
   const renderLineItemInputs = () => (
     <div className="row mb-3">
       <div className="col-lg-2">
-        <input type="number" className="form-control" placeholder="Qty" value={newItem.quantity}
+        <input type="number" className="form-control" placeholder="Qty" value={newItem.quantity || ''}
           onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-2">
-        <input type="number" className="form-control" placeholder="Price($)" value={newItem.purchasePrice}
+        <input type="number" className="form-control" placeholder="Price($)" value={newItem.purchasePrice || ''}
           onChange={(e) => setNewItem({ ...newItem, purchasePrice: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-2">
-        <input type="number" className="form-control" placeholder="Discount($)" value={newItem.discount}
+        <input type="number" className="form-control" placeholder="Discount($)" value={newItem.discount || ''}
           onChange={(e) => setNewItem({ ...newItem, discount: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-2">
-        <input type="number" className="form-control" placeholder="Tax(%)" value={newItem.taxPercentage}
+        <input type="number" className="form-control" placeholder="Tax(%)" value={newItem.taxPercentage || ''}
           onChange={(e) => setNewItem({ ...newItem, taxPercentage: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-4">
@@ -465,21 +465,21 @@ const PurchaseTransaction: React.FC = () => {
         <div className="col-lg-3">
           <div className="mb-3">
             <label className="form-label">Order Tax</label>
-            <input type="number" className="form-control" value={formData.orderTax}
+            <input type="number" className="form-control" value={formData.orderTax || ''}
               onChange={(e) => setFormData({ ...formData, orderTax: parseFloat(e.target.value) || 0 })} />
           </div>
         </div>
         <div className="col-lg-3">
           <div className="mb-3">
             <label className="form-label">Discount</label>
-            <input type="number" className="form-control" value={formData.discount}
+            <input type="number" className="form-control" value={formData.discount || ''}
               onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })} />
           </div>
         </div>
         <div className="col-lg-3">
           <div className="mb-3">
             <label className="form-label">Shipping</label>
-            <input type="number" className="form-control" value={formData.shipping}
+            <input type="number" className="form-control" value={formData.shipping || ''}
               onChange={(e) => setFormData({ ...formData, shipping: parseFloat(e.target.value) || 0 })} />
           </div>
         </div>

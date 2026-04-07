@@ -627,7 +627,7 @@ const EditProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Quantity</label>
-                              <input type="number" className="form-control" name="quantity" value={form.quantity} onChange={handleChange} />
+                              <input type="number" className="form-control" name="quantity" value={form.quantity || ''} onChange={handleChange} />
                             </div>
                           </div>
                           )}
@@ -635,7 +635,7 @@ const EditProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Price</label>
-                              <input type="number" step="0.01" className="form-control" name="price" value={form.price} onChange={handleChange} />
+                              <input type="number" step="0.01" className="form-control" name="price" value={form.price || ''} onChange={handleChange} />
                             </div>
                           </div>
                           )}
@@ -682,7 +682,7 @@ const EditProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Discount Value</label>
-                              <input className="form-control" type="number" step="0.01" name="discountValue" value={form.discountValue} onChange={handleChange} />
+                              <input className="form-control" type="number" step="0.01" name="discountValue" value={form.discountValue || ''} onChange={handleChange} />
                             </div>
                           </div>
                           )}
@@ -690,7 +690,7 @@ const EditProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Quantity Alert</label>
-                              <input type="number" className="form-control" name="quantityAlert" value={form.quantityAlert} onChange={handleChange} />
+                              <input type="number" className="form-control" name="quantityAlert" value={form.quantityAlert || ''} onChange={handleChange} />
                             </div>
                           </div>
                           )}

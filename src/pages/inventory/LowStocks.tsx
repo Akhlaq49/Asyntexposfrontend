@@ -471,7 +471,7 @@ const LowStocks: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      value={editForm.qty}
+                      value={editForm.qty || ''}
                       onChange={(e) => setEditForm((prev) => ({ ...prev, qty: parseInt(e.target.value) || 0 }))}
                     />
                   </div>
@@ -480,7 +480,7 @@ const LowStocks: React.FC = () => {
                     <input
                       type="number"
                       className="form-control"
-                      value={editForm.qtyAlert}
+                      value={editForm.qtyAlert || ''}
                       onChange={(e) => setEditForm((prev) => ({ ...prev, qtyAlert: parseInt(e.target.value) || 0 }))}
                     />
                   </div>
