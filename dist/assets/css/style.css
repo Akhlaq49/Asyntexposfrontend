@@ -41823,14 +41823,20 @@ th.fixed-width {
   color: #0E9384;
   font-weight: 700;
 }
-.pos-products .product-info:hover, .pos-products .product-info.active {
+.pos-products .product-info:hover, .pos-products .product-info.active, .pos-products .product-info:focus-visible {
   border-color: #3EB780;
 }
-.pos-products .product-info:hover .pro-img img, .pos-products .product-info.active .pro-img img {
+.pos-products .product-info:hover .pro-img img, .pos-products .product-info.active .pro-img img, .pos-products .product-info:focus-visible .pro-img img {
   transform: scale(1.2);
 }
-.pos-products .product-info:hover .pro-img span, .pos-products .product-info.active .pro-img span {
+.pos-products .product-info:hover .pro-img span, .pos-products .product-info.active .pro-img span, .pos-products .product-info:focus-visible .pro-img span {
   display: block;
+}
+.pos-products .product-info:focus-visible {
+  outline: 2px solid #3EB780 !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(62, 183, 128, 0.25) !important;
+  transition: none !important;
 }
 
 .qty-item {
@@ -42123,13 +42129,19 @@ aside.product-order-list .payment-method .methods .payment-item span {
   overflow: hidden;
   display: block;
 }
-aside.product-order-list .payment-method .methods .payment-item:hover, aside.product-order-list .payment-method .methods .payment-item.active {
+aside.product-order-list .payment-method .methods .payment-item:hover, aside.product-order-list .payment-method .methods .payment-item.active, aside.product-order-list .payment-method .methods .payment-item:focus-visible {
   background-color: #FFF6EE;
   border-color: #FE9F43;
   color: #FE9F43;
 }
-aside.product-order-list .payment-method .methods .payment-item:hover i, aside.product-order-list .payment-method .methods .payment-item.active i {
+aside.product-order-list .payment-method .methods .payment-item:hover i, aside.product-order-list .payment-method .methods .payment-item.active i, aside.product-order-list .payment-method .methods .payment-item:focus-visible i {
   color: #FE9F43;
+}
+aside.product-order-list .payment-method .methods .payment-item:focus-visible {
+  outline: 2px solid #FE9F43 !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(254, 159, 67, 0.25) !important;
+  transition: none !important;
 }
 aside.product-order-list .btn-block {
   margin-bottom: 20px;
@@ -42138,6 +42150,26 @@ aside.product-order-list .btn-block .btn {
   font-size: 14px;
   font-weight: 700;
   padding: 13px 10px;
+}
+aside.product-order-list .btn-block .btn:focus-visible {
+  outline: 2px solid #0E9384 !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(14, 147, 132, 0.3) !important;
+  transition: none !important;
+}
+.pos-design .order-method .btn:focus-visible {
+  outline: 2px solid currentColor !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15) !important;
+  transition: none !important;
+}
+.pos-design .qty-item .dec:focus-visible,
+.pos-design .qty-item .inc:focus-visible {
+  outline: 2px solid #3EB780 !important;
+  outline-offset: 1px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px rgba(62, 183, 128, 0.25) !important;
+  transition: none !important;
 }
 aside.product-order-list .btn-row {
   padding: 0;

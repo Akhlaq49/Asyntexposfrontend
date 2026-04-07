@@ -77,6 +77,7 @@ export interface RepaymentEntry {
   paidDate?: string;
   actualPaidAmount?: number;
   miscAdjustedAmount?: number;
+  notes?: string;
 }
 
 export interface CreateInstallmentPayload {

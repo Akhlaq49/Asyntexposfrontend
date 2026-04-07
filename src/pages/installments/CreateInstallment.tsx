@@ -967,17 +967,7 @@ const CreateInstallment: React.FC = () => {
                     <label className="form-label">{t('create_installment.product_name')}<span className="text-danger ms-1">*</span></label>
                     <input type="text" className="form-control" value={selectedProduct?.productName ?? ''} readOnly placeholder={t('create_installment.select_from_search')} />
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">{t('create_installment.product_price')}<span className="text-danger ms-1">*</span></label>
-                    <input type="number" className="form-control" value={productPrice || ''} readOnly placeholder={t('create_installment.auto_filled_product')} />
-                  </div>
-                  {isVisible('financeAmount') && (
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">{t('create_installment.finance_amount')}</label>
-                    <input type="number" className="form-control" min={0} step="0.01" value={form.financeAmount ?? ''} onChange={(e) => set('financeAmount', parseFloat(e.target.value) || 0)} placeholder={t('create_installment.leave_blank_price')} />
-                    <small className="text-muted">{t('create_installment.custom_finance')}</small>
-                  </div>
-                  )}
+
                   </div>
                   <div className="d-flex justify-content-between mt-3">
                     <button type="button" className="btn btn-secondary" onClick={goBack}>
@@ -1014,13 +1004,13 @@ const CreateInstallment: React.FC = () => {
                     {productPrice > 0 && <small className="text-muted">{t('create_installment.down_payment_pct', { pct: ((form.downPayment / baseAmount) * 100).toFixed(1), type: form.financeAmount && form.financeAmount > 0 ? t('create_installment.finance_type') : t('create_installment.product_type') })}</small>}
                   </div>
                   )}
-                  {isVisible('interestRate') && (
+                  {/* {isVisible('interestRate') && (
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.interest_rate')}</label>
                     <input type="number" className="form-control" min={0} max={100} step="0.1" value={form.interestRate || ''} onChange={(e) => set('interestRate', parseFloat(e.target.value) || 0)} placeholder="0" />
                     <small className="text-muted">{t('create_installment.interest_free')}</small>
                   </div>
-                  )}
+                  )} */}
                   {isVisible('tenure') && (
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.tenure_months')}<span className="text-danger ms-1">*</span></label>
@@ -1070,12 +1060,12 @@ const CreateInstallment: React.FC = () => {
                     <div className="col-lg-5 mb-3 mb-lg-0">
                       <table className="table table-borderless mb-0">
                         <tbody>
-                          <tr><td className="text-muted">{t('create_installment.product_price_label')}</td><td className="text-end fw-medium">Rs {fmt(productPrice)}</td></tr>
+                          {/* <tr><td className="text-muted">{t('create_installment.product_price_label')}</td><td className="text-end fw-medium">Rs {fmt(productPrice)}</td></tr> */}
                           {form.financeAmount && form.financeAmount > 0 && form.financeAmount !== productPrice && (
                             <tr><td className="text-muted">{t('create_installment.finance_amount_label')}</td><td className="text-end fw-medium text-info">Rs {fmt(form.financeAmount)}</td></tr>
                           )}
                           <tr><td className="text-muted">{t('create_installment.down_payment_label')}</td><td className="text-end fw-medium text-success">- Rs {fmt(form.downPayment)}</td></tr>
-                          <tr className="border-top"><td className="text-muted">{t('create_installment.financed_amount')}</td><td className="text-end fw-bold">Rs {fmt(financedAmount)}</td></tr>
+                          {/* <tr className="border-top"><td className="text-muted">{t('create_installment.financed_amount')}</td><td className="text-end fw-bold">Rs {fmt(financedAmount)}</td></tr> */}
                           <tr><td className="text-muted">{t('create_installment.interest_rate_label')}</td><td className="text-end">{form.interestRate}% {t('create_installment.pa_suffix')}</td></tr>
                           <tr><td className="text-muted">{t('create_installment.tenure_label')}</td><td className="text-end">{form.tenure} {t('create_installment.months_word')}</td></tr>
                           <tr className="border-top"><td className="text-muted">{t('create_installment.monthly_emi')}</td><td className="text-end fw-bold fs-16 text-primary">Rs {fmt(Math.round(emi * 100) / 100)}</td></tr>
@@ -1186,9 +1176,14 @@ const CreateInstallment: React.FC = () => {
                       onChange={e => setNewProduct(prev => ({ ...prev, productName: e.target.value }))} />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">{t('create_installment.price_label')} (Rs)<span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">{t('create_installment.product_price')}<span className="text-danger ms-1">*</span></label>
                     <input type="number" className="form-control" placeholder="0.00" min={0} step="0.01" value={newProduct.price}
                       onChange={e => setNewProduct(prev => ({ ...prev, price: e.target.value }))} />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">{t('create_installment.finance_amount')}</label>
+                    <input type="number" className="form-control" min={0} step="0.01" value={form.financeAmount ?? ''} onChange={(e) => set('financeAmount', parseFloat(e.target.value) || 0)} placeholder={t('create_installment.leave_blank_price')} />
+                    <small className="text-muted">{t('create_installment.custom_finance')}</small>
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.sku_placeholder')}</label>

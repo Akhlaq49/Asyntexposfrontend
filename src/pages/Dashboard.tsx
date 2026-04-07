@@ -285,10 +285,10 @@ const Dashboard: React.FC = () => {
                   <span className="text-muted">{t('dashboard.last_month_collections')}</span>
                   <span className="fw-medium">{t('common.rs')} {fmt(data.collectionsLastMonth)}</span>
                 </div>
-                <div className="d-flex justify-content-between">
+                {/* <div className="d-flex justify-content-between">
                   <span className="text-muted">{t('dashboard.interest_expected')}</span>
                   <span className="fw-medium">{t('common.rs')} {fmt(data.totalInterestExpected)}</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

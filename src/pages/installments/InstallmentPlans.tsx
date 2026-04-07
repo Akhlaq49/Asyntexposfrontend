@@ -177,7 +177,7 @@ const InstallmentPlans: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="col-xl-3 col-sm-6">
+        {/* <div className="col-xl-3 col-sm-6">
           <div className="card">
             <div className="card-body d-flex align-items-center justify-content-between">
               <div>
@@ -187,7 +187,7 @@ const InstallmentPlans: React.FC = () => {
               <span className="rounded-circle d-inline-flex p-2 bg-info-transparent"><i className="ti ti-percentage fs-24 text-info"></i></span>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Table Card */}
@@ -233,7 +233,7 @@ const InstallmentPlans: React.FC = () => {
                     <th>{t('installment_plans.down_payment')}</th>
                     <th>{t('installment_plans.emi')}</th>
                     <th>{t('installment_plans.tenure')}</th>
-                    <th>{t('installment_plans.interest')}</th>
+                    {/* <th>{t('installment_plans.interest')}</th> */}
                     <th>{t('installment_plans.total_payable')}</th>
                     <th>{t('installment_plans.paid')}</th>
                     <th>{t('installment_plans.status')}</th>
@@ -271,7 +271,7 @@ const InstallmentPlans: React.FC = () => {
                       <td>{fmt(plan.downPayment)}</td>
                       <td className="fw-medium">{fmt(plan.emiAmount)}</td>
                       <td>{plan.tenure} {t('common.mo')}</td>
-                      <td>{plan.interestRate}%</td>
+                      {/* <td>{plan.interestRate}%</td> */}
                       <td className="fw-medium">{fmt(plan.totalPayable)}</td>
                       <td>{plan.paidInstallments}/{plan.tenure}</td>
                       <td>{statusBadge(plan.status)}</td>

@@ -30,6 +30,7 @@ const InstallmentDetails: React.FC = () => {
   const [paymentForm, setPaymentForm] = useState({ amount: 0, useMiscBalance: false, paymentMethod: 'Cash', notes: '' });
   const [customerMiscBalance, setCustomerMiscBalance] = useState(0);
   const [slipEntry, setSlipEntry] = useState<RepaymentEntry | null>(null);
+  const [slipNotes, setSlipNotes] = useState<string>('');
   const [showPlanPrint, setShowPlanPrint] = useState(false);
   const [dueSlipEntry, setDueSlipEntry] = useState<RepaymentEntry | null>(null);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
@@ -141,6 +142,7 @@ const totalRemaining = useMemo(() => {
       // Auto-show deposit slip for the paid entry
       const paidEntry = updatedPlan.schedule.find(e => e.installmentNo === payInstNo);
       if (paidEntry && (paidEntry.status === 'paid' || paidEntry.status === 'partial')) {
+        setSlipNotes(paymentForm.notes || '');
         setSlipEntry(paidEntry);
       }
       
@@ -455,7 +457,26 @@ const totalRemaining = useMemo(() => {
                       <td>Rs {fmt(plan.financedAmount)}</td>
                       <td><span className="badge bg-success fw-medium fs-10">{t('installment_details.status_down_payment')}</span></td>
                       <td>{plan.startDate}</td>
-                      <td></td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-outline-info ms-1"
+                          title={t('installment_details.slip')}
+                          onClick={() => setSlipEntry({
+                            installmentNo: 0,
+                            dueDate: plan.startDate,
+                            emiAmount: plan.downPayment,
+                            principal: plan.downPayment,
+                            interest: 0,
+                            balance: plan.financedAmount,
+                            status: 'paid',
+                            paidDate: plan.startDate,
+                            actualPaidAmount: plan.downPayment,
+                            miscAdjustedAmount: 0,
+                          })}
+                        >
+                          <i className="ti ti-receipt me-1"></i>{t('installment_details.slip')}
+                        </button>
+                      </td>
                     </tr>
                     {plan.schedule.map((entry) => (
                       <tr key={entry.installmentNo} className={entry.status === 'overdue' ? 'table-danger' : entry.status === 'due' ? 'table-warning' : entry.status === 'partial' ? 'table-info' : ''}>
@@ -681,7 +702,7 @@ const totalRemaining = useMemo(() => {
 
       {/* Deposit Slip Modal */}
       {slipEntry && plan && (
-        <DepositSlip plan={plan} entry={slipEntry} onClose={() => setSlipEntry(null)} />
+        <DepositSlip plan={plan} entry={slipEntry} notes={slipNotes || slipEntry.notes} onClose={() => { setSlipEntry(null); setSlipNotes(''); }} />
       )}
 
       {/* Full Plan Print View */}

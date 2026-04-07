@@ -7,10 +7,11 @@ import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloud
 interface DepositSlipProps {
   plan: InstallmentPlan;
   entry: RepaymentEntry;
+  notes?: string;
   onClose: () => void;
 }
 
-const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
+const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }) => {
   const { t } = useTranslation();
   const slipRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
@@ -109,7 +110,9 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
     printWindow.document.close();
   };
 
-  const pdfFilename = `Deposit-Slip-${plan.customerName.replace(/\s+/g, '-')}-Inst${entry.installmentNo}`;
+  const isDownPayment = entry.installmentNo === 0;
+
+  const pdfFilename = `Deposit-Slip-${plan.customerName.replace(/\s+/g, '-')}-${isDownPayment ? 'DownPayment' : `Inst${entry.installmentNo}`}`;
 
   const handleDownloadPdf = async () => {
     const content = slipRef.current;
@@ -125,7 +128,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
   };
 
   const buildMessage = () => {
-    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt(entry.status === 'paid' ? (entry.emiAmount || 0) : (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}${entry.status === 'paid' && entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount ? ` (Paid: Rs ${fmt(entry.actualPaidAmount)} — Distributed in future rentals)` : ''}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}`;
+    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${isDownPayment ? t('pdf.down_payment') : `${t('pdf.installment_no')}: ${entry.installmentNo}`}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt(entry.status === 'paid' ? (entry.emiAmount || 0) : (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}${entry.status === 'paid' && entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount ? ` (Paid: Rs ${fmt(entry.actualPaidAmount)} — Distributed in future rentals)` : ''}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}`;
   };
 
   const handleShareWhatsApp = async () => {
@@ -253,7 +256,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.installment_no')}:</span>
-                  <span style={{ fontWeight: 700 }}>{entry.installmentNo}</span>
+                  <span style={{ fontWeight: 700 }}>{isDownPayment ? t('pdf.down_payment') : entry.installmentNo}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.deposit_date')}:</span>
@@ -271,6 +274,14 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, onClose }) => {
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.deposit_amount')}:</span>
                   <span style={{ fontSize: 22, fontWeight: 800 }}>Rs {fmt(depositAmount)}</span>
                 </div>
+
+                {/* Notes */}
+                {(notes || entry.notes) && (
+                  <div style={{ padding: '6px 0', fontSize: 13, borderTop: '1px solid #eee', marginTop: 4 }}>
+                    <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.notes')}:</span>
+                    <div style={{ fontWeight: 500, marginTop: 2, fontStyle: 'italic', color: '#333' }}>{notes || entry.notes}</div>
+                  </div>
+                )}
 
                 {/* Financial Summary */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
