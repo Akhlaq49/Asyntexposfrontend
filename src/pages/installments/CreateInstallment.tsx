@@ -591,8 +591,8 @@ const CreateInstallment: React.FC = () => {
                             {selectedCustomer.so && <small><strong>{t('create_installment.so_label')}</strong> {selectedCustomer.so}</small>}
                             {selectedCustomer.cnic && <small><strong>{t('create_installment.cnic_label')}</strong> {selectedCustomer.cnic}</small>}
                             <small><strong>{t('create_installment.phone_label')}</strong> <a href={`tel:${selectedCustomer.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{selectedCustomer.phone}</small>
-                            <small><strong>{t('create_installment.email_label')}</strong> {selectedCustomer.email || '-'}</small>
-                            <small><strong>{t('create_installment.city_label')}</strong> {selectedCustomer.city || '-'}</small>
+                            {/* <small><strong>{t('create_installment.email_label')}</strong> {selectedCustomer.email || '-'}</small>
+                            <small><strong>{t('create_installment.city_label')}</strong> {selectedCustomer.city || '-'}</small> */}
                           </div>
                         </div>
                       </div>
@@ -954,9 +954,9 @@ const CreateInstallment: React.FC = () => {
                         <div className="flex-grow-1">
                           <h6 className="mb-1 fw-bold">{selectedProduct.productName}</h6>
                           <div className="d-flex gap-3 flex-wrap">
-                            <small><strong>{t('create_installment.sku_label')}</strong> {selectedProduct.sku || '-'}</small>
+                            {/* <small><strong>{t('create_installment.sku_label')}</strong> {selectedProduct.sku || '-'}</small> */}
                             <small><strong>{t('create_installment.brand_label')}</strong> {selectedProduct.brand || '-'}</small>
-                            <small><strong>{t('create_installment.price_label')}</strong> Rs {fmt(selectedProduct.price)}</small>
+                            {/* <small><strong>{t('create_installment.price_label')}</strong> Rs {fmt(selectedProduct.salePrice)}</small> */}
                           </div>
                         </div>
                       </div>
