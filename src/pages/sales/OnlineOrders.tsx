@@ -115,7 +115,7 @@ const OnlineOrders: React.FC = () => {
       const [sRes, cRes, pRes] = await Promise.all([
         api.get<SaleDto[]>('/sales?source=online'),
         api.get<CustomerResult[]>('/customers'),
-        api.get<ProductResult[]>('/products'),
+        api.get<ProductResult[]>('/products?excludeRaw=true'),
       ]);
       setSales(sRes.data);
       setCustomers(cRes.data);

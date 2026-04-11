@@ -28,6 +28,9 @@ export interface ProductPayload {
   manufacturer: string;
   manufacturedDate: string;
   expiryDate: string;
+  isRawMaterial?: boolean;
+  supplierId?: number;
+  supplierName?: string;
   // Images
   images: File[];
 }
@@ -59,6 +62,9 @@ export interface ProductResponse {
   manufacturer: string;
   manufacturedDate: string;
   expiryDate: string;
+  isRawMaterial: boolean;
+  supplierId?: number;
+  supplierName?: string;
   images: string[];
   createdAt: string;
   updatedAt: string;
@@ -95,6 +101,16 @@ export const createProduct = async (data: ProductPayload): Promise<ProductRespon
 
 export const getProducts = async (): Promise<ProductResponse[]> => {
   const response = await api.get<ProductResponse[]>('/products');
+  return response.data;
+};
+
+export const getRawMaterials = async (): Promise<ProductResponse[]> => {
+  const response = await api.get<ProductResponse[]>('/products?rawOnly=true');
+  return response.data;
+};
+
+export const getFinishedProducts = async (): Promise<ProductResponse[]> => {
+  const response = await api.get<ProductResponse[]>('/products?excludeRaw=true');
   return response.data;
 };
 

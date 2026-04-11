@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import { getCustomers, Customer } from '../../services/customerService';
@@ -29,19 +29,6 @@ interface CartLine {
 const fmt = (n: number) =>
   n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-const localTodayYMD = () => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-};
-
-/** Normalize API id (string | number) for Maps / data attributes */
-const productDomId = (id: string | number) => String(id);
-
-const productInStock = (p: ProductItem) => Number(p.quantity) > 0;
-
 const POS: React.FC = () => {
   /* state */
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -52,213 +39,9 @@ const POS: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('');
   const [cart, setCart] = useState<CartLine[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState('');
-  /** Cash/Card = immediate net sale; Credit = pending for today (selecting Credit requires a registered customer) */
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | 'Credit'>('Cash');
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card'>('Cash');
   const [submitting, setSubmitting] = useState(false);
-
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const productCardRefById = useRef<Map<string, HTMLDivElement>>(new Map());
-  const posProductsRootRef = useRef<HTMLDivElement>(null);
-  const filteredRef = useRef<ProductItem[]>([]);
-  const qtyDecRefById = useRef<Map<string, HTMLButtonElement>>(new Map());
-  const posWrapperRef = useRef<HTMLDivElement>(null);
-  const paymentCashRef = useRef<HTMLButtonElement>(null);
-  const paymentCardRef = useRef<HTMLButtonElement>(null);
-  const paymentCreditRef = useRef<HTMLButtonElement>(null);
-  const finalizeBtnRef = useRef<HTMLButtonElement>(null);
-  const customerSelectRef = useRef<HTMLSelectElement>(null);
-
-  /** Tracks the product just added to cart so the next Tab jumps to its qty controls */
-  const justAddedProductRef = useRef<string | null>(null);
-
-  const hasRegisteredCustomer = Boolean(selectedCustomer);
-
-  const focusQtyDec = useCallback((productId: string) => {
-    window.setTimeout(() => {
-      qtyDecRefById.current.get(productDomId(productId))?.focus();
-    }, 0);
-  }, []);
-
-  useEffect(() => {
-    if (!hasRegisteredCustomer) {
-      setPaymentMethod((pm) => (pm === 'Credit' ? 'Cash' : pm));
-    }
-  }, [hasRegisteredCustomer]);
-
-  /* Keep app Header + floating widgets out of Tab order so Tab flows Search → products → cart → pay */
-  useEffect(() => {
-    if (loading) return;
-
-    const collect = (): HTMLElement[] => {
-      const set = new Set<HTMLElement>();
-      document.querySelectorAll<HTMLElement>('.header a[href], .header button, .header input, .header select, .header textarea').forEach((el) => set.add(el));
-      const main = document.querySelector('.main-wrapper');
-      if (main) {
-        main.querySelectorAll<HTMLElement>(':scope > button').forEach((el) => set.add(el));
-      }
-      return [...set];
-    };
-
-    const els = collect();
-    const backup = new Map<HTMLElement, string | null>();
-    els.forEach((el) => {
-      backup.set(el, el.getAttribute('tabindex'));
-      el.tabIndex = -1;
-    });
-
-    const focusSearch = window.setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(focusSearch);
-      backup.forEach((prev, el) => {
-        if (!el.isConnected) return;
-        if (prev === null) el.removeAttribute('tabindex');
-        else el.setAttribute('tabindex', prev);
-      });
-    };
-  }, [loading]);
-
-  /* ── Focus trap: keep Tab cycling inside the POS page ── */
-  useEffect(() => {
-    if (loading) return;
-    const wrapper = posWrapperRef.current;
-    if (!wrapper) return;
-
-    const getFocusable = (): HTMLElement[] =>
-      Array.from(
-        wrapper.querySelectorAll<HTMLElement>(
-          'input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"]), [tabindex="0"]:not([disabled])'
-        )
-      ).filter((el) => el.offsetParent !== null);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isTab = e.key === 'Tab';
-      const isArrow = e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp';
-      if (!isTab && !isArrow) return;
-
-      /* Let arrow keys work normally inside <select> and <input> */
-      const tag = (document.activeElement as HTMLElement)?.tagName;
-      if (isArrow && (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA')) return;
-
-      const focusable = getFocusable();
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      const goBack = isTab ? e.shiftKey : (e.key === 'ArrowLeft' || e.key === 'ArrowUp');
-      const goForward = isTab ? !e.shiftKey : (e.key === 'ArrowRight' || e.key === 'ArrowDown');
-
-      if (isArrow) {
-        e.preventDefault();
-        const idx = focusable.indexOf(document.activeElement as HTMLElement);
-        if (goForward) {
-          const next = idx < 0 || idx >= focusable.length - 1 ? first : focusable[idx + 1];
-          next.focus();
-        } else {
-          const prev = idx <= 0 ? last : focusable[idx - 1];
-          prev.focus();
-        }
-        return;
-      }
-
-      /* Tab wrap */
-      if (goBack) {
-        if (document.activeElement === first || !wrapper.contains(document.activeElement)) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else if (goForward) {
-        if (document.activeElement === last || !wrapper.contains(document.activeElement)) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [loading]);
-
-  /* ── Keyboard focus highlight via inline styles (immune to CSS overrides) ── */
-  useEffect(() => {
-    if (loading) return;
-    const wrapper = posWrapperRef.current;
-    if (!wrapper) return;
-
-    let lastFocused: HTMLElement | null = null;
-    const savedStyles = new Map<string, string>();
-
-    const applyHighlight = (el: HTMLElement) => {
-      savedStyles.set('outline', el.style.outline);
-      savedStyles.set('outlineOffset', el.style.outlineOffset);
-      savedStyles.set('boxShadow', el.style.boxShadow);
-      savedStyles.set('transition', el.style.transition);
-
-      el.style.outline = '2px solid #3EB780';
-      el.style.outlineOffset = '2px';
-      el.style.boxShadow = '0 0 0 4px rgba(62, 183, 128, 0.3)';
-      el.style.transition = 'none';
-    };
-
-    const removeHighlight = (el: HTMLElement) => {
-      el.style.outline = savedStyles.get('outline') || '';
-      el.style.outlineOffset = savedStyles.get('outlineOffset') || '';
-      el.style.boxShadow = savedStyles.get('boxShadow') || '';
-      el.style.transition = savedStyles.get('transition') || '';
-      savedStyles.clear();
-    };
-
-    let usingKeyboard = false;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Tab' || e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        usingKeyboard = true;
-      }
-    };
-
-    const onMouseDown = () => {
-      usingKeyboard = false;
-      if (lastFocused) {
-        removeHighlight(lastFocused);
-        lastFocused = null;
-      }
-    };
-
-    const onFocusIn = (e: FocusEvent) => {
-      if (!usingKeyboard) return;
-      const target = e.target as HTMLElement;
-      if (!wrapper.contains(target)) return;
-
-      if (lastFocused && lastFocused !== target) {
-        removeHighlight(lastFocused);
-      }
-      applyHighlight(target);
-      lastFocused = target;
-    };
-
-    const onFocusOut = (e: FocusEvent) => {
-      const target = e.target as HTMLElement;
-      if (lastFocused === target) {
-        removeHighlight(target);
-        lastFocused = null;
-      }
-    };
-
-    document.addEventListener('keydown', onKeyDown, true);
-    document.addEventListener('mousedown', onMouseDown, true);
-    wrapper.addEventListener('focusin', onFocusIn);
-    wrapper.addEventListener('focusout', onFocusOut);
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown, true);
-      document.removeEventListener('mousedown', onMouseDown, true);
-      wrapper.removeEventListener('focusin', onFocusIn);
-      wrapper.removeEventListener('focusout', onFocusOut);
-      if (lastFocused) removeHighlight(lastFocused);
-    };
-  }, [loading]);
+  const [expectedDate, setExpectedDate] = useState('');
 
   /* clock */
   const [clock, setClock] = useState('');
@@ -289,7 +72,7 @@ const POS: React.FC = () => {
     (async () => {
       try {
         const [prodRes, catRes, custList] = await Promise.all([
-          api.get<ProductItem[]>('/products'),
+          api.get<ProductItem[]>('/products?excludeRaw=true'),
           api.get<CategoryItem[]>('/categories'),
           getCustomers(),
         ]);
@@ -316,40 +99,12 @@ const POS: React.FC = () => {
     return list;
   }, [products, activeCategory, searchTerm]);
 
-  filteredRef.current = filtered;
-
-  const focusFirstFilteredProduct = useCallback(() => {
-    const list = filteredRef.current;
-    const root = posProductsRootRef.current;
-    if (!root || list.length === 0) return;
-
-    const target = list.find(productInStock) ?? list[0];
-    const key = productDomId(target.id);
-
-    let el: HTMLElement | null = productCardRefById.current.get(key) ?? null;
-    if (!el || !root.contains(el)) {
-      const esc =
-        typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
-          ? CSS.escape(key)
-          : key.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      el = root.querySelector<HTMLElement>(`[data-pos-product-id="${esc}"]`);
-    }
-    if (!el) {
-      el = root.querySelector<HTMLElement>('[data-pos-product-id]');
-    }
-    if (!el) return;
-
-    el.focus({ preventScroll: false });
-    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-  }, []);
-
   /* cart helpers */
-  const addToCart = useCallback((p: ProductItem, opts?: { focusQty?: boolean }) => {
+  const addToCart = useCallback((p: ProductItem) => {
     if (p.quantity <= 0) {
       Swal.fire({ icon: 'warning', title: 'Out of Stock', text: `${p.productName} is out of stock.`, timer: 2000, showConfirmButton: false });
       return;
     }
-    let changed = false;
     setCart((prev) => {
       const idx = prev.findIndex((c) => c.product.id === p.id);
       if (idx >= 0) {
@@ -359,16 +114,11 @@ const POS: React.FC = () => {
         }
         const next = [...prev];
         next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
-        changed = true;
         return next;
       }
-      changed = true;
       return [...prev, { product: p, qty: 1 }];
     });
-    if (opts?.focusQty !== false && changed) {
-      focusQtyDec(p.id);
-    }
-  }, [focusQtyDec]);
+  }, []);
 
   const removeFromCart = useCallback((productId: string) => {
     setCart((prev) => prev.filter((c) => c.product.id !== productId));
@@ -403,19 +153,9 @@ const POS: React.FC = () => {
   /* ── submit sale ── */
   const handlePay = useCallback(async () => {
     if (cart.length === 0 || submitting) return;
-    if (paymentMethod === 'Credit' && !selectedCustomer) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Credit not available',
-        text: 'This option is not available for walk-in customers. First choose any registered customer to proceed with this option.',
-      });
-      return;
-    }
     setSubmitting(true);
     try {
       const customer = customers.find(c => String(c.id) === selectedCustomer);
-      const isNet = paymentMethod !== 'Credit';
-      const expectedDateForOrder = isNet ? null : localTodayYMD();
       const payload = {
         customerId: customer ? Number(customer.id) : null,
         customerName: customer ? customer.name : 'Walk in Customer',
@@ -424,10 +164,10 @@ const POS: React.FC = () => {
         orderTax: taxAmount,
         discount: 0,
         shipping: 0,
-        status: isNet ? 'Completed' : 'Pending',
+        status: expectedDate ? 'Pending' : 'Completed',
         notes: '',
         source: 'pos',
-        expectedDate: expectedDateForOrder,
+        expectedDate: expectedDate || null,
         items: cart.map(line => ({
           productId: Number(line.product.id),
           productName: line.product.productName,
@@ -444,15 +184,14 @@ const POS: React.FC = () => {
       const saleId = (res.data as any).id;
       const saleRef = (res.data as any).reference;
 
-      // Only auto-create payment for net (immediate) sales
-      if (isNet) {
-        const payType = paymentMethod as 'Cash' | 'Card';
+      // Only auto-create payment when there's no expected date (immediate sale)
+      if (!expectedDate) {
         await api.post(`/sales/${saleId}/payments`, {
           reference: `PAY-${saleRef}`,
           receivedAmount: payload.grandTotal,
           payingAmount: payload.grandTotal,
-          paymentType: payType,
-          description: `POS ${payType} Payment`,
+          paymentType: paymentMethod,
+          description: `POS ${paymentMethod} Payment`,
         });
 
         // Record in finance income so it appears in financial reports
@@ -461,7 +200,7 @@ const POS: React.FC = () => {
           date: new Date().toISOString().slice(0, 10),
           reference: saleRef,
           description: `POS Sale - ${customer ? customer.name : 'Walk in Customer'}`,
-          paymentType: payType,
+          paymentType: paymentMethod,
         });
       }
 
@@ -474,20 +213,14 @@ const POS: React.FC = () => {
       );
       setCart([]);
       setSelectedCustomer('');
-      setPaymentMethod('Cash');
-      Swal.fire({
-        icon: 'success',
-        title: isNet ? 'Sale Completed!' : 'Credit order placed!',
-        text: `Reference: ${saleRef}`,
-        timer: 2000,
-        showConfirmButton: false,
-      }).then(() => searchInputRef.current?.focus());
+      setExpectedDate('');
+      Swal.fire({ icon: 'success', title: expectedDate ? 'Order Created!' : 'Sale Completed!', text: `Reference: ${saleRef}`, timer: 2000, showConfirmButton: false });
     } catch (err: any) {
       Swal.fire({ icon: 'error', title: 'Error', text: err?.response?.data?.message || 'Failed to process sale' });
     } finally {
       setSubmitting(false);
     }
-  }, [cart, submitting, customers, selectedCustomer, userName, paymentMethod, grandTotal, taxAmount]);
+  }, [cart, submitting, customers, selectedCustomer, userName, subTotal, paymentMethod, expectedDate]);
 
   /* ───── render ───── */
   if (loading)
@@ -502,7 +235,7 @@ const POS: React.FC = () => {
     );
 
   return (
-    <div className="page-wrapper pos-pg-wrapper ms-0" ref={posWrapperRef}>
+    <div className="page-wrapper pos-pg-wrapper ms-0">
       {/* Minimal POS header bar */}
       <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white">
         <div className="d-flex align-items-center gap-3">
@@ -512,7 +245,6 @@ const POS: React.FC = () => {
           </span>
           <Link
             to="/dashboard"
-            tabIndex={-1}
             className="btn btn-sm btn-purple d-inline-flex align-items-center"
           >
             <i className="ti ti-world me-1" />
@@ -521,8 +253,6 @@ const POS: React.FC = () => {
         </div>
         <div className="d-flex align-items-center gap-2">
           <button
-            type="button"
-            tabIndex={-1}
             className="btn btn-sm btn-outline-secondary"
             onClick={() => {
               if (!document.fullscreenElement)
@@ -552,22 +282,11 @@ const POS: React.FC = () => {
                       <i className="ti ti-search" />
                     </span>
                     <input
-                      ref={searchInputRef}
                       type="text"
                       className="form-control"
                       placeholder="Search Product"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'Enter' && e.key !== 'NumpadEnter') return;
-                        e.preventDefault();
-                        if (filteredRef.current.length === 0) return;
-                        /* Sync + deferred: ensures focus leaves search and lands on first grid card (not payment) */
-                        focusFirstFilteredProduct();
-                        requestAnimationFrame(() => {
-                          requestAnimationFrame(() => focusFirstFilteredProduct());
-                        });
-                      }}
                     />
                   </div>
                 </div>
@@ -576,8 +295,6 @@ const POS: React.FC = () => {
               {/* Category chips */}
               <div className="d-flex flex-wrap gap-2 mb-4">
                 <button
-                  type="button"
-                  tabIndex={-1}
                   className={`btn btn-sm ${!activeCategory ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setActiveCategory('')}
                 >
@@ -585,9 +302,7 @@ const POS: React.FC = () => {
                 </button>
                 {categories.map((cat) => (
                   <button
-                    type="button"
                     key={cat.id}
-                    tabIndex={-1}
                     className={`btn btn-sm ${activeCategory === cat.name ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setActiveCategory(cat.name)}
                   >
@@ -597,7 +312,7 @@ const POS: React.FC = () => {
               </div>
 
               {/* Product grid */}
-              <div className="pos-products" ref={posProductsRootRef}>
+              <div className="pos-products">
                 <div className="row row-cols-xxl-5 g-3">
                   {filtered.length === 0 && (
                     <div className="col-12 text-center py-5 text-muted">
@@ -612,54 +327,17 @@ const POS: React.FC = () => {
                         className="col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl"
                       >
                         <div
-                          ref={(el) => {
-                            const key = productDomId(p.id);
-                            if (el) productCardRefById.current.set(key, el);
-                            else productCardRefById.current.delete(key);
-                          }}
-                          data-pos-product-id={productDomId(p.id)}
-                          role="button"
-                          tabIndex={0}
-                          aria-disabled={!productInStock(p)}
-                          aria-label={
-                            productInStock(p)
-                              ? `Add ${p.productName} to cart`
-                              : `${p.productName} (out of stock)`
-                          }
-                          className={`product-info card${inCart ? ' active' : ''}${!productInStock(p) ? ' opacity-50' : ''}`}
-                          style={{ cursor: productInStock(p) ? 'pointer' : 'not-allowed', position: 'relative' }}
+                          className={`product-info card${inCart ? ' active' : ''}${p.quantity <= 0 ? ' opacity-50' : ''}`}
+                          style={{ cursor: p.quantity <= 0 ? 'not-allowed' : 'pointer', position: 'relative' }}
                           onClick={() => addToCart(p)}
-                          onKeyDown={(e) => {
-                            /* After adding to cart, next Tab jumps to qty controls instead of next product */
-                            if (e.key === 'Tab') {
-                              if (!e.shiftKey && justAddedProductRef.current) {
-                                e.preventDefault();
-                                const targetId = justAddedProductRef.current;
-                                justAddedProductRef.current = null;
-                                const btn = qtyDecRefById.current.get(targetId);
-                                if (btn) btn.focus();
-                                else paymentCashRef.current?.focus();
-                                return;
-                              }
-                              justAddedProductRef.current = null;
-                              return;
-                            }
-                            if (!productInStock(p)) return;
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              addToCart(p, { focusQty: false });
-                              justAddedProductRef.current = productDomId(p.id);
-                            }
-                          }}
                         >
-                          {!productInStock(p) && (
+                          {p.quantity <= 0 && (
                             <span className="badge bg-danger position-absolute top-0 end-0 m-1" style={{ zIndex: 1 }}>Out of Stock</span>
                           )}
                           <span className="product-image d-block">
                             <img
                               src={mediaUrl(p.images?.[0])}
-                              alt=""
-                              tabIndex={-1}
+                              alt={p.productName}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src =
                                   '/assets/img/products/stock-img-01.png';
@@ -674,7 +352,7 @@ const POS: React.FC = () => {
                               <h6 className="text-teal fs-14 fw-bold">
                                 Rs {fmt(p.price)}
                               </h6>
-                              <p className={`mb-0 ${!productInStock(p) ? 'text-danger fw-bold' : 'text-pink'}`}>{p.quantity} Pcs</p>
+                              <p className={`mb-0 ${p.quantity <= 0 ? 'text-danger fw-bold' : 'text-pink'}`}>{p.quantity} Pcs</p>
                             </div>
                           </div>
                         </div>
@@ -695,16 +373,9 @@ const POS: React.FC = () => {
                   <h4 className="mb-0">New Order</h4>
                 </div>
                 <select
-                  ref={customerSelectRef}
                   className="form-select"
                   value={selectedCustomer}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setSelectedCustomer(v);
-                    if (paymentMethod === 'Credit' && v) {
-                      window.setTimeout(() => finalizeBtnRef.current?.focus(), 0);
-                    }
-                  }}
+                  onChange={(e) => setSelectedCustomer(e.target.value)}
                 >
                   <option value="">Walk in Customer</option>
                   {customers.map((c) => (
@@ -713,6 +384,15 @@ const POS: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <div className="mt-2">
+                  <label className="form-label mb-1 fs-12">Expected Date (leave empty for immediate payment)</label>
+                  <input
+                    type="date"
+                    className="form-control form-control-sm"
+                    value={expectedDate}
+                    onChange={(e) => setExpectedDate(e.target.value)}
+                  />
+                </div>
               </div>
 
               {/* Order items */}
@@ -757,35 +437,34 @@ const POS: React.FC = () => {
                                   </span>
                                 </td>
                                 <td>
-                                  <div className="qty-item m-0">
+                                  <div className="qty-item m-0 d-flex align-items-center">
+                                    <a
+                                      href="#!"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        updateQty(line.product.id, -1);
+                                      }}
+                                      className="dec d-flex justify-content-center align-items-center"
+                                    >
+                                      <i className="ti ti-minus fs-14" />
+                                    </a>
                                     <input
                                       type="text"
                                       className="form-control text-center"
                                       readOnly
-                                      tabIndex={-1}
                                       value={line.qty}
-                                      aria-label={`Quantity for ${line.product.productName}`}
+                                      style={{ width: 40 }}
                                     />
-                                    <button
-                                      type="button"
-                                      ref={(el) => {
-                                        if (el) qtyDecRefById.current.set(productDomId(line.product.id), el);
-                                        else qtyDecRefById.current.delete(productDomId(line.product.id));
+                                    <a
+                                      href="#!"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        updateQty(line.product.id, 1);
                                       }}
-                                      onClick={() => updateQty(line.product.id, -1)}
-                                      className="dec d-flex justify-content-center align-items-center border-0 bg-transparent p-0"
-                                      aria-label="Decrease quantity"
-                                    >
-                                      <i className="ti ti-minus fs-14" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateQty(line.product.id, 1)}
-                                      className="inc d-flex justify-content-center align-items-center border-0 bg-transparent p-0"
-                                      aria-label="Increase quantity"
+                                      className="inc d-flex justify-content-center align-items-center"
                                     >
                                       <i className="ti ti-plus fs-14" />
-                                    </button>
+                                    </a>
                                   </div>
                                 </td>
                                 <td className="fw-bold">
@@ -795,7 +474,6 @@ const POS: React.FC = () => {
                                   <a
                                     className="btn-icon delete-icon"
                                     href="#!"
-                                    tabIndex={-1}
                                     onClick={(e) => {
                                       e.preventDefault();
                                       removeFromCart(line.product.id);
@@ -836,7 +514,6 @@ const POS: React.FC = () => {
                 <div className="row gx-2 mt-3">
                   <div className="col-6">
                     <button
-                      type="button"
                       className="btn btn-secondary d-flex align-items-center justify-content-center w-100 mb-2"
                       onClick={clearCart}
                       disabled={cart.length === 0}
@@ -847,7 +524,6 @@ const POS: React.FC = () => {
                   </div>
                   <div className="col-6">
                     <button
-                      type="button"
                       className="btn btn-info d-flex align-items-center justify-content-center w-100 mb-2"
                       disabled={cart.length === 0}
                     >
@@ -861,100 +537,50 @@ const POS: React.FC = () => {
               {/* Payment */}
               <div className="block-section payment-method">
                 <h5 className="mb-2">Select Payment</h5>
-                <div className="row align-items-center justify-content-center methods g-2 mb-2">
+                <div className="row align-items-center justify-content-center methods g-2 mb-4">
                   <div className="col d-flex">
-                    <button
-                      type="button"
-                      ref={paymentCashRef}
-                      onMouseDown={() => setPaymentMethod('Cash')}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setPaymentMethod('Cash');
-                        }
-                      }}
+                    <a
+                      href="#!"
+                      onClick={(e) => { e.preventDefault(); setPaymentMethod('Cash'); }}
                       className={`payment-item flex-fill${paymentMethod === 'Cash' ? ' active' : ''}`}
                     >
                       <img
                         src="/assets/img/icons/cash-icon.svg"
-                        alt=""
+                        alt="Cash"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                       <p className="fw-medium">Cash</p>
-                    </button>
+                    </a>
                   </div>
                   <div className="col d-flex">
-                    <button
-                      type="button"
-                      ref={paymentCardRef}
-                      onMouseDown={() => setPaymentMethod('Card')}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setPaymentMethod('Card');
-                        }
-                      }}
+                    <a
+                      href="#!"
+                      onClick={(e) => { e.preventDefault(); setPaymentMethod('Card'); }}
                       className={`payment-item flex-fill${paymentMethod === 'Card' ? ' active' : ''}`}
                     >
                       <img
                         src="/assets/img/icons/card.svg"
-                        alt=""
+                        alt="Card"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                       <p className="fw-medium">Card</p>
-                    </button>
-                  </div>
-                  <div className="col d-flex">
-                    <button
-                      type="button"
-                      ref={paymentCreditRef}
-                      onMouseDown={() => {
-                        if (!hasRegisteredCustomer) {
-                          Swal.fire({
-                            icon: 'info',
-                            title: 'Credit not available',
-                            text: 'This option is not available for walk-in customers. First choose any registered customer to proceed with this option.',
-                          });
-                          return;
-                        }
-                        setPaymentMethod('Credit');
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'Enter' && e.key !== ' ') return;
-                        e.preventDefault();
-                        if (!hasRegisteredCustomer) {
-                          Swal.fire({
-                            icon: 'info',
-                            title: 'Credit not available',
-                            text: 'This option is not available for walk-in customers. First choose any registered customer to proceed with this option.',
-                          });
-                          return;
-                        }
-                        setPaymentMethod('Credit');
-                      }}
-                      className={`payment-item flex-fill${paymentMethod === 'Credit' ? ' active' : ''}`}
-                    >
-                      <i className="ti ti-file-invoice fs-28 text-teal d-block mb-1" aria-hidden />
-                      <p className="fw-medium">Credit</p>
-                    </button>
+                    </a>
                   </div>
                 </div>
                 <div className="btn-block m-0">
                   <button
-                    type="button"
-                    ref={finalizeBtnRef}
                     className="btn btn-teal w-100 py-2 fs-16 fw-bold"
                     disabled={cart.length === 0 || submitting}
-                    onClick={() => void handlePay()}
+                    onClick={handlePay}
                   >
                     {submitting ? (
                       <span className="spinner-border spinner-border-sm me-2" />
                     ) : null}
-                    {paymentMethod === 'Credit' ? `Place order : Rs ${fmt(grandTotal)}` : `Pay : Rs ${fmt(grandTotal)}`}
+                    {expectedDate ? `Order : Rs ${fmt(grandTotal)}` : `Pay : Rs ${fmt(grandTotal)}`}
                   </button>
                 </div>
               </div>

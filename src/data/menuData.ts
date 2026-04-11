@@ -244,6 +244,15 @@ const menuData: MenuSection[] = [
     ],
   },
   {
+    header: 'Manufacturing',
+    items: [
+      { title: 'Raw Materials', icon: 'ti-box', iconType: 'tabler', path: '/raw-materials' },
+      { title: 'Bill of Materials', icon: 'ti-notebook', iconType: 'tabler', path: '/bill-of-materials' },
+      { title: 'Manufacturing Orders', icon: 'ti-building-factory-2', iconType: 'tabler', path: '/manufacturing-orders' },
+      { title: 'Supplier Ledger', icon: 'ti-report-money', iconType: 'tabler', path: '/supplier-ledger' },
+    ],
+  },
+  {
     header: 'Finance & Accounts',
     items: [
       {

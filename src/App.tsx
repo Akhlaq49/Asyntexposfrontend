@@ -64,6 +64,12 @@ const PurchaseList = lazy(() => import('./pages/purchases/PurchaseList'))
 const PurchaseOrderReport = lazy(() => import('./pages/purchases/PurchaseOrderReport'))
 const PurchaseReturns = lazy(() => import('./pages/purchases/PurchaseReturns'))
 
+// Manufacturing
+const RawMaterialsPage = lazy(() => import('./pages/inventory/RawMaterials'))
+const BillOfMaterialsPage = lazy(() => import('./pages/manufacturing/BillOfMaterials'))
+const ManufacturingOrdersPage = lazy(() => import('./pages/manufacturing/ManufacturingOrders'))
+const SupplierLedgerPage = lazy(() => import('./pages/manufacturing/SupplierLedger'))
+
 // Finance
 const ExpenseList = lazy(() => import('./pages/finance/ExpenseList'))
 const ExpenseCategory = lazy(() => import('./pages/finance/ExpenseCategory'))
@@ -402,6 +408,12 @@ function App() {
           <Route path="/purchase-list" element={<PurchaseList />} />
           <Route path="/purchase-order-report" element={<PurchaseOrderReport />} />
           <Route path="/purchase-returns" element={<PurchaseReturns />} />
+
+          {/* Manufacturing */}
+          <Route path="/raw-materials" element={<RawMaterialsPage />} />
+          <Route path="/bill-of-materials" element={<BillOfMaterialsPage />} />
+          <Route path="/manufacturing-orders" element={<ManufacturingOrdersPage />} />
+          <Route path="/supplier-ledger" element={<SupplierLedgerPage />} />
 
           {/* Finance */}
           <Route path="/expense-list" element={<ExpenseList />} />
