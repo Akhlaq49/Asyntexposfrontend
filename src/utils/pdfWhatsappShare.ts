@@ -112,8 +112,9 @@ export async function shareViaWhatsApp(
   const file = new File([blob], pdfFilename, { type: 'application/pdf' });
   const normalized = phoneNumber ? normalizePhone(phoneNumber) : '';
 
-  // Try Web Share API with files (mobile + Chrome 93+ / Edge with file sharing support)
-  const canShareFiles = typeof navigator.share === 'function' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
+  // Try Web Share API with files — only when NO specific phone number is given
+  // (Web Share opens the OS contact picker, ignoring the customer's number)
+  const canShareFiles = !normalized && typeof navigator.share === 'function' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
   if (canShareFiles) {
     try {
       await navigator.share({

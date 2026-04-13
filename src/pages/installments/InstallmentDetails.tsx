@@ -514,11 +514,12 @@ const totalRemaining = useMemo(() => {
                           )}
                           {(entry.status === 'due' || entry.status === 'overdue' || entry.status === 'partial') && (
                             <button
-                              className="btn btn-sm btn-outline-warning ms-1"
+                              className="btn btn-sm ms-1"
+                              style={{ backgroundColor: '#007AFF', borderColor: '#007AFF', color: '#fff' }}
                               title={t('installment_details.share')}
                               onClick={() => setDueSlipEntry(entry)}
                             >
-                              <i className="ti ti-brand-whatsapp me-1"></i>{t('installment_details.share')}
+                              <i className="ti ti-share me-1"></i>{t('installment_details.share')}
                             </button>
                           )}
                           {(entry.status === 'paid' || entry.status === 'partial') && (

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { InstallmentPlan } from '../services/installmentService';
 import { MEDIA_BASE_URL } from '../services/api';
 
-import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
+import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 
 interface PlanPrintViewProps {
   plan: InstallmentPlan;
@@ -160,9 +160,9 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
-          <div className="modal-header bg-primary text-white py-2">
+          <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-file-text me-2"></i>{t('pdf.full_repayment_plan')}</h6>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-1 flex-wrap">
               <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
                 <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
@@ -175,6 +175,11 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
               {cloudConfigured && (
                 <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title={t('pdf.send')}>
                   {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>{t('pdf.send')}</>}
+                </button>
+              )}
+              {plan.customerPhone && normalizePhone(plan.customerPhone) && (
+                <button className="btn btn-sm" style={{ backgroundColor: '#007AFF', borderColor: '#007AFF', color: '#fff' }} onClick={() => { window.open(`sms:+${normalizePhone(plan.customerPhone)}?body=${encodeURIComponent(buildMessage())}`, '_self'); }} title="SMS">
+                  <i className="ti ti-message-circle me-1"></i>SMS
                 </button>
               )}
               <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>

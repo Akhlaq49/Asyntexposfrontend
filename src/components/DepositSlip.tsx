@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { MEDIA_BASE_URL } from '../services/api';
-import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
+import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 
 interface DepositSlipProps {
   plan: InstallmentPlan;
@@ -128,7 +128,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
   };
 
   const buildMessage = () => {
-    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${isDownPayment ? t('pdf.down_payment') : `${t('pdf.installment_no')}: ${entry.installmentNo}`}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt(entry.status === 'paid' ? (entry.emiAmount || 0) : (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}${entry.status === 'paid' && entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount ? ` (Paid: Rs ${fmt(entry.actualPaidAmount)} — Distributed in future rentals)` : ''}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}`;
+    return `📄 *${t('pdf.deposit_slip_title')}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n💰 ${isDownPayment ? t('pdf.down_payment') : `${t('pdf.installment_no')}: ${entry.installmentNo}`}\n💵 ${t('pdf.deposit_amount')}: Rs ${fmt(entry.status === 'paid' ? (entry.emiAmount || 0) : (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0))}${entry.status === 'paid' && entry.actualPaidAmount != null && entry.actualPaidAmount > entry.emiAmount ? ` (Paid: Rs ${fmt(entry.actualPaidAmount)} — Distributed in future rentals)` : ''}\n📅 ${t('pdf.date')}: ${entry.paidDate || '-'}\n💳 ${t('pdf.remaining')}: Rs ${fmt(remaining > 0 ? remaining : 0)}\n🔢 ${t('pdf.remaining')} ${t('pdf.total_inst')}: ${remainingCount}`;
   };
 
   const handleShareWhatsApp = async () => {
@@ -167,9 +167,9 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
-          <div className="modal-header bg-primary text-white py-2">
+          <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pdf.deposit_slip_title')}</h6>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-1 flex-wrap">
               <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
                 <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
@@ -182,6 +182,11 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
               {cloudConfigured && (
                 <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title={t('pdf.send')}>
                   {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>{t('pdf.send')}</>}
+                </button>
+              )}
+              {plan.customerPhone && normalizePhone(plan.customerPhone) && (
+                <button className="btn btn-sm" style={{ backgroundColor: '#007AFF', borderColor: '#007AFF', color: '#fff' }} onClick={() => { window.open(`sms:+${normalizePhone(plan.customerPhone)}?body=${encodeURIComponent(buildMessage())}`, '_self'); }} title="SMS">
+                  <i className="ti ti-message-circle me-1"></i>SMS
                 </button>
               )}
               <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>

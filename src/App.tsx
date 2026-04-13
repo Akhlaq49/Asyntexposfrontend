@@ -158,6 +158,7 @@ const RolesPermissions = lazy(() => import('./pages/users/RolesPermissions'))
 const Permissions = lazy(() => import('./pages/users/Permissions'))
 const DeleteAccount = lazy(() => import('./pages/users/DeleteAccount'))
 const TenantMenuConfig = lazy(() => import('./pages/settings/TenantMenuConfig'))
+const WebContentManager = lazy(() => import('./pages/settings/WebContentManager'))
 
 // Settings
 const GeneralSettings = lazy(() => import('./pages/settings/GeneralSettings'))
@@ -495,6 +496,7 @@ function App() {
           <Route path="/users" element={<Users />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/tenant-menu-config" element={<TenantMenuConfig />} />
+          <Route path="/web-content-manager" element={<WebContentManager />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/delete-account" element={<DeleteAccount />} />
 

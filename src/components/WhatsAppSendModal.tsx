@@ -100,8 +100,9 @@ const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
       const pdfFilename = `${recipientName.replace(/\s+/g, '-')}-plan.pdf`;
       const file = new File([blob], pdfFilename, { type: 'application/pdf' });
 
-      // Try Web Share API with files — only if browser actually supports file sharing
-      const canShareFiles = typeof navigator.share === 'function' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
+      // Try Web Share API with files — only when NO specific phone number is given
+      // (Web Share opens the OS contact picker, ignoring the customer's number)
+      const canShareFiles = !normalized && typeof navigator.share === 'function' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
       if (canShareFiles) {
         try {
           await navigator.share({
@@ -285,6 +286,23 @@ const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
                     <a href="/whatsapp-settings" className="ms-1">Configure</a>
                   </small>
                 </div>
+              )}
+
+              {/* Option 3: Send via SMS to customer's SIM number */}
+              {normalized && (
+                <button
+                  className="btn d-flex align-items-center justify-content-center gap-2"
+                  style={{ backgroundColor: '#007AFF', borderColor: '#007AFF', color: '#fff' }}
+                  onClick={() => {
+                    const smsBody = encodeURIComponent(message);
+                    window.open(`sms:+${normalized}?body=${smsBody}`, '_self');
+                  }}
+                  disabled={!message.trim()}
+                >
+                  <i className="ti ti-message-circle fs-18"></i>
+                  <span>Send via SMS</span>
+                  <small className="opacity-75">(to +{normalized})</small>
+                </button>
               )}
             </div>
           </div>

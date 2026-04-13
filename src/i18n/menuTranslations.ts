@@ -146,6 +146,7 @@ const menuTitleToKey: Record<string, string> = {
   // User Management
   'Users': 'menu.users',
   'Roles & Permissions': 'menu.roles_permissions',
+  'Web Content': 'menu.web_content',
   'Delete Account Request': 'menu.delete_account_request',
 };
 

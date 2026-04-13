@@ -422,6 +422,7 @@ const menuData: MenuSection[] = [
       { title: 'Users', icon: 'ti-shield-up', iconType: 'tabler', path: '/users' },
       { title: 'Roles & Permissions', icon: 'ti-jump-rope', iconType: 'tabler', path: '/roles-permissions' },
       { title: 'Menu Configuration', icon: 'ti-layout-list', iconType: 'tabler', path: '/tenant-menu-config' },
+      { title: 'Web Content', icon: 'ti-world', iconType: 'tabler', path: '/web-content-manager' },
       { title: 'Delete Account Request', icon: 'ti-trash-x', iconType: 'tabler', path: '/delete-account' },
     ],
   },

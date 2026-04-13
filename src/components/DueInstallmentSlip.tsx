@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { MEDIA_BASE_URL } from '../services/api';
-import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
+import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 
 interface DueInstallmentSlipProps {
   plan: InstallmentPlan;
@@ -86,7 +86,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
 
   const buildMessage = () => {
     const emoji = isOverdue ? '🔴' : '🟡';
-    return `${emoji} *${t('pdf.due_installment', { status: statusLabel })}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n📋 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💰 ${t('pdf.amount_due')}: Rs ${fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount)}\n📅 ${t('pdf.due_date')}: ${entry.dueDate}\n\n${t('pdf.pay_reminder', { amount: fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount), instNo: entry.installmentNo, date: entry.dueDate })}`;
+    return `${emoji} *${t('pdf.due_installment', { status: statusLabel })}*\n\n👤 ${t('pdf.name')}: ${plan.customerName}\n📦 ${t('pdf.product')}: ${plan.productName}\n📋 ${t('pdf.installment_no')}: ${entry.installmentNo}\n💰 ${t('pdf.amount_due')}: Rs ${fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount)}\n📅 ${t('pdf.due_date')}: ${entry.dueDate}\n💳 ${t('pdf.remaining')}: Rs ${fmt(totalRemaining > 0 ? totalRemaining : 0)}\n🔢 ${t('pdf.remaining')} ${t('pdf.total_inst')}: ${plan.remainingInstallments}\n\n${t('pdf.pay_reminder', { amount: fmt(remainingForEntry > 0 ? remainingForEntry : entry.emiAmount), instNo: entry.installmentNo, date: entry.dueDate })}`;
   };
 
   const handleShareWhatsApp = async () => {
@@ -125,9 +125,9 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
-          <div className="modal-header text-white py-2" style={{ background: statusColor }}>
+          <div className="modal-header text-white py-2 flex-wrap" style={{ background: statusColor }}>
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-alert-circle me-2"></i>{t('pdf.due_installment', { status: statusLabel })}</h6>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-1 flex-wrap">
               <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
                 <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
@@ -140,6 +140,11 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
               {cloudConfigured && (
                 <button className="btn btn-sm btn-outline-success" onClick={handleSendWhatsAppCloud} disabled={sendingCloud} title={t('pdf.send')}>
                   {sendingCloud ? <span className="spinner-border spinner-border-sm"></span> : <><i className="ti ti-send me-1"></i>{t('pdf.send')}</>}
+                </button>
+              )}
+              {plan.customerPhone && normalizePhone(plan.customerPhone) && (
+                <button className="btn btn-sm" style={{ backgroundColor: '#007AFF', borderColor: '#007AFF', color: '#fff' }} onClick={() => { window.open(`sms:+${normalizePhone(plan.customerPhone)}?body=${encodeURIComponent(buildMessage())}`, '_self'); }} title="SMS">
+                  <i className="ti ti-message-circle me-1"></i>SMS
                 </button>
               )}
               <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
