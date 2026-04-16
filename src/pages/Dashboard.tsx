@@ -49,6 +49,32 @@ const Dashboard: React.FC = () => {
     return <div className="alert alert-danger">{t('common.failed_load_dashboard')}</div>;
   }
 
+  // Always bucket dashboard lists using Pakistan local date (based on dueDate string),
+  // so UI stays correct even if backend "status" is stale or timezone-shifted.
+  const todayPakStr = (() => {
+    // en-CA returns `YYYY-MM-DD` which matches your stored dueDate format.
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' });
+    return fmt.format(new Date());
+  })();
+
+  const formatDueDate = (dueDate?: string) => {
+    if (!dueDate) return '';
+    const parts = dueDate.split('-'); // expected: yyyy-MM-dd
+    if (parts.length !== 3) return dueDate;
+    const [y, m, d] = parts;
+    return `${d}/${m}/${y}`;
+  };
+
+  const derivedStatusFromDueDate = (dueDate?: string): 'due' | 'upcoming' | 'overdue' => {
+    if (!dueDate) return 'upcoming';
+    if (dueDate === todayPakStr) return 'due';
+    if (dueDate > todayPakStr) return 'upcoming';
+    return 'overdue';
+  };
+
+  const dueTodayItems = [...(data.upcomingDues ?? []), ...(data.overdueList ?? [])].filter(d => d.dueDate === todayPakStr);
+  const overdueItems = (data.overdueList ?? []).filter(d => d.dueDate && d.dueDate < todayPakStr);
+
   // Chart data
   const maxExpected = Math.max(...data.monthlyCollections.map(m => Math.max(m.collected, m.expected)), 1);
   const totalStatus = data.statusDistribution.active + data.statusDistribution.completed + data.statusDistribution.defaulted + data.statusDistribution.cancelled;
@@ -301,17 +327,17 @@ const Dashboard: React.FC = () => {
         <div className="col-xxl-4 col-xl-6 d-flex">
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0"><i className="ti ti-calendar-due me-2 text-warning"></i>{t('dashboard.upcoming_dues')}</h5>
-              <span className="badge bg-warning">{data.dueCount} {t('dashboard.due')}</span>
+              <h5 className="card-title mb-0"><i className="ti ti-calendar-due me-2 text-warning"></i>{t('dashboard.due')}</h5>
+              <span className="badge bg-warning">{dueTodayItems.length}</span>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
                 <table className="table table-borderless mb-0">
                   <tbody>
-                    {data.upcomingDues.length === 0 ? (
+                    {dueTodayItems.length === 0 ? (
                       <tr><td className="text-center text-muted py-4">{t('dashboard.no_upcoming_dues')}</td></tr>
                     ) : (
-                      data.upcomingDues.map((d, i) => (
+                      dueTodayItems.map((d, i) => (
                         <tr key={i}>
                           <td className="ps-3">
                             <h6 className="fs-13 fw-medium mb-1">{d.customerName}</h6>
@@ -319,10 +345,10 @@ const Dashboard: React.FC = () => {
                           </td>
                           <td className="text-end pe-3">
                             <h6 className="fs-13 fw-bold mb-1">{t('common.rs')} {fmt(d.emiAmount)}</h6>
-                            <p className="fs-12 text-muted mb-0">{d.dueDate}</p>
+                            <p className="fs-12 text-muted mb-0">{formatDueDate(d.dueDate)}</p>
                           </td>
                           <td className="text-end pe-3">
-                            {statusBadge(d.status)}
+                            {statusBadge(derivedStatusFromDueDate(d.dueDate))}
                           </td>
                         </tr>
                       ))
@@ -339,16 +365,16 @@ const Dashboard: React.FC = () => {
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
               <h5 className="card-title mb-0"><i className="ti ti-alert-triangle me-2 text-danger"></i>{t('dashboard.overdue_installments')}</h5>
-              <span className="badge bg-danger">{data.overdueCount} {t('dashboard.overdue')}</span>
+              <span className="badge bg-danger">{overdueItems.length} {t('dashboard.overdue')}</span>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
                 <table className="table table-borderless mb-0">
                   <tbody>
-                    {data.overdueList.length === 0 ? (
+                    {overdueItems.length === 0 ? (
                       <tr><td className="text-center text-muted py-4">{t('dashboard.no_overdue')}</td></tr>
                     ) : (
-                      data.overdueList.map((d, i) => (
+                      overdueItems.map((d, i) => (
                         <tr key={i}>
                           <td className="ps-3">
                             <h6 className="fs-13 fw-medium mb-1">{d.customerName}</h6>
@@ -356,7 +382,7 @@ const Dashboard: React.FC = () => {
                           </td>
                           <td className="text-end pe-3">
                             <h6 className="fs-13 fw-bold mb-1 text-danger">{t('common.rs')} {fmt(d.remaining)}</h6>
-                            <p className="fs-12 text-muted mb-0">Due: {d.dueDate}</p>
+                            <p className="fs-12 text-muted mb-0">Due: {formatDueDate(d.dueDate)}</p>
                           </td>
                           <td className="text-end pe-3">
                             <Link to={`/installment-details/${d.planId}`} className="btn btn-sm btn-outline-primary">

@@ -1,7 +1,23 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL +'/api';
-export const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || 'https://web.asyntexconsultancy.com';
+const DEFAULT_BACKEND_ORIGIN = 'http://localhost:5193';
+
+const toOrigin = (url: string): string => url.replace(/\/+$/, '').replace(/\/api$/, '');
+
+const resolvedApiBaseUrl = (() => {
+  const configuredApiUrl = import.meta.env.VITE_API_URL as string | undefined;
+  const configuredMediaUrl = import.meta.env.VITE_MEDIA_BASE_URL as string | undefined;
+
+  if (configuredApiUrl) {
+    return configuredApiUrl.replace(/\/+$/, '');
+  }
+
+  const origin = configuredMediaUrl ? toOrigin(configuredMediaUrl) : DEFAULT_BACKEND_ORIGIN;
+  return `${origin}/api`;
+})();
+
+const API_BASE_URL = resolvedApiBaseUrl;
+export const MEDIA_BASE_URL = toOrigin(import.meta.env.VITE_MEDIA_BASE_URL || API_BASE_URL || DEFAULT_BACKEND_ORIGIN);
 
 /** Prefix a relative image path with the media base URL */
 export const mediaUrl = (path?: string | null): string => {

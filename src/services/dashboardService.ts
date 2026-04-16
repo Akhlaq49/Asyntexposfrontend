@@ -16,6 +16,7 @@ export interface DashboardData {
   overdueAmount: number;
   overdueCount: number;
   dueCount: number;
+  upcomingCount?: number;
 
   // Trends
   plansThisMonth: number;
