@@ -1,15 +1,21 @@
 import axios from 'axios';
 
-const DEFAULT_BACKEND_ORIGIN = 'http://localhost:5193';
+const DEFAULT_BACKEND_ORIGIN = 'https://apis.asyntexconsultancy.com';
 
 const toOrigin = (url: string): string => url.replace(/\/+$/, '').replace(/\/api$/, '');
 
 const resolvedApiBaseUrl = (() => {
   const configuredApiUrl = import.meta.env.VITE_API_URL as string | undefined;
   const configuredMediaUrl = import.meta.env.VITE_MEDIA_BASE_URL as string | undefined;
+  const isLocalHost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
   if (configuredApiUrl) {
     return configuredApiUrl.replace(/\/+$/, '');
+  }
+
+  // Ensure local development goes through Vite proxy to avoid CORS.
+  if (isLocalHost) {
+    return '/api';
   }
 
   const origin = configuredMediaUrl ? toOrigin(configuredMediaUrl) : DEFAULT_BACKEND_ORIGIN;

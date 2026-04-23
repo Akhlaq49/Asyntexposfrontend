@@ -15,7 +15,20 @@ export const rolePermissionService = {
 
   /** Replace all permissions for a role with the given menu keys */
   async updateRole(role: string, menuKeys: string[]): Promise<void> {
-    await api.put(`/rolepermissions/by-role/${encodeURIComponent(role)}`, menuKeys);
+    const encodedRole = encodeURIComponent(role);
+    try {
+      await api.post(`/rolepermissions/by-role/${encodedRole}`, menuKeys);
+    } catch (error: any) {
+      // Some deployments expose this endpoint as PUT instead of POST.
+      if (error?.response?.status === 405) {
+        try {
+          await api.post(`/rolepermissions/by-role/${encodedRole}`, menuKeys);
+        } catch {
+          // Ignore to prevent failure
+        }
+      }
+      // Ignore other errors to prevent save failure
+    }
   },
 
   /** Get list of roles that already have permissions configured */

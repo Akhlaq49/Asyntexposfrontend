@@ -73,7 +73,9 @@ const Dashboard: React.FC = () => {
   };
 
   const dueTodayItems = [...(data.upcomingDues ?? []), ...(data.overdueList ?? [])].filter(d => d.dueDate === todayPakStr);
-  const overdueItems = (data.overdueList ?? []).filter(d => d.dueDate && d.dueDate < todayPakStr);
+  // Backend already returns overdue-only items. Keep list as-is to avoid
+  // timezone/date-string re-filtering that can hide valid overdue rows.
+  const overdueItems = data.overdueList ?? [];
 
   // Chart data
   const maxExpected = Math.max(...data.monthlyCollections.map(m => Math.max(m.collected, m.expected)), 1);
@@ -365,10 +367,10 @@ const Dashboard: React.FC = () => {
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
               <h5 className="card-title mb-0"><i className="ti ti-alert-triangle me-2 text-danger"></i>{t('dashboard.overdue_installments')}</h5>
-              <span className="badge bg-danger">{overdueItems.length} {t('dashboard.overdue')}</span>
+              <span className="badge bg-danger">{fmtInt(data.overdueCount)} {t('dashboard.overdue')}</span>
             </div>
             <div className="card-body p-0">
-              <div className="table-responsive">
+              <div className="table-responsive" style={{ maxHeight: 420, overflowY: 'auto' }}>
                 <table className="table table-borderless mb-0">
                   <tbody>
                     {overdueItems.length === 0 ? (

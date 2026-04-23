@@ -20,7 +20,14 @@ export default defineConfig({
     server: {
         port: 3000,
         host: true,
-        open: true
+        open: true,
+        proxy: {
+            '/api': {
+                target: 'https://apis.asyntexconsultancy.com',
+                changeOrigin: true,
+                secure: true
+            }
+        }
     },
     build: {
         outDir: 'dist',

@@ -224,6 +224,17 @@ The production build is optimized for:
 - **Netlify**: Connect repository and set build command to `npm run build`
 - **Static Hosting**: Upload `/dist` folder contents after build
 
+### Plesk FTP deployment
+This repository now includes a GitHub Actions pipeline that builds the React app, packages `dist` plus the optional `public/assets` folder into `reactapp-deploy.zip`, and uploads the zip file to your Plesk target folder via FTP.
+
+Required repository secrets:
+- `FTP_HOST`
+- `FTP_USER`
+- `FTP_PASSWORD`
+- `FTP_PATH`
+
+The pipeline is defined in `.github/workflows/deploy.yml` and runs automatically on pushes to `main` or `master`, or manually via workflow dispatch.
+
 ## 📝 Development Guidelines
 
 ### Code Standards
