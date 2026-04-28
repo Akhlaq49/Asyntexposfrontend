@@ -5,41 +5,56 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../context/PermissionContext';
 import { filterMenuDataByKeys } from '../utils/menuKeys';
 
+// Recursively collect all leaf paths from a menu item tree
+function collectLeafLinks(
+  node: any,
+  parentIcon: string,
+  parentIconType: string,
+): { title: string; path: string; icon: string; iconType: string }[] {
+  const links: { title: string; path: string; icon: string; iconType: string }[] = [];
+  const icon = node.icon || parentIcon;
+  const iconType = node.iconType || parentIconType;
+
+  if (node.path && node.path !== '/user-dashboard') {
+    links.push({ title: node.title, path: node.path, icon, iconType });
+  }
+  if (node.children) {
+    for (const child of node.children) {
+      links.push(...collectLeafLinks(child, icon, iconType));
+    }
+  }
+  return links;
+}
+
 const UserDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { allowedKeys, tenantHiddenKeys } = usePermissions();
+  const { allowedKeys, tenantHiddenKeys, isLoading } = usePermissions();
 
   // Get the menus this user can actually see
   const visibleMenus = filterMenuDataByKeys(allowedKeys, tenantHiddenKeys);
 
-  // Collect all accessible leaf paths for quick-link cards
+  // Recursively collect all accessible leaf paths for quick-link cards
   const quickLinks: { title: string; path: string; icon: string; iconType: string }[] = [];
   for (const section of visibleMenus) {
     for (const item of section.items) {
-      if ('path' in item && item.path && item.path !== '/user-dashboard') {
-        quickLinks.push({
-          title: item.title,
-          path: item.path,
-          icon: ('icon' in item ? item.icon : 'ti-link') || 'ti-link',
-          iconType: ('iconType' in item ? item.iconType : 'tabler') || 'tabler',
-        });
-      } else if ('children' in item && item.children) {
-        for (const child of item.children) {
-          if ('path' in child && child.path && child.path !== '/user-dashboard') {
-            quickLinks.push({
-              title: child.title,
-              path: child.path,
-              icon: ('icon' in item ? item.icon : 'ti-link') || 'ti-link',
-              iconType: ('iconType' in item ? item.iconType : 'tabler') || 'tabler',
-            });
-          }
-        }
-      }
+      quickLinks.push(...collectLeafLinks(item, 'ti-link', 'tabler'));
     }
   }
 
   const colors = ['primary', 'success', 'warning', 'info', 'danger', 'secondary'];
+
+  // ProtectedRoute already guards with a spinner, but defensively show one here
+  // too in case permissions are still loading (e.g. after a token refresh).
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">{t('common.loading')}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

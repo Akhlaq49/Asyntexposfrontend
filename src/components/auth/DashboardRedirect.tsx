@@ -3,10 +3,11 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { usePermissions } from '../../context/PermissionContext';
 import { tenantMenuService } from '../../services/tenantMenuService';
+import { getAllMenuKeys } from '../../utils/menuKeys';
 
 const DashboardRedirect: React.FC = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { canAccessPath, isLoading: permLoading } = usePermissions();
+  const { canAccessPath, allowedKeys, tenantHiddenKeys, isLoading: permLoading } = usePermissions();
   const [defaultDashboard, setDefaultDashboard] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,12 +37,27 @@ const DashboardRedirect: React.FC = () => {
     return <Navigate to="/signin" replace />;
   }
 
-  // If user can access the tenant's default dashboard, go there;
-  // otherwise fall back to the user dashboard
+  // Try the tenant's configured default dashboard first
   const target = defaultDashboard || '/admin-dashboard';
   if (canAccessPath(target)) {
     return <Navigate to={target} replace />;
   }
+
+  // Default dashboard not accessible — find the first page the user CAN access
+  // so they land on a real page rather than a generic hub.
+  const allKeys = getAllMenuKeys();
+  for (const mk of allKeys) {
+    const key = mk.key;
+    if (tenantHiddenKeys.has(key)) continue;
+    if (!allowedKeys.has('*') && !allowedKeys.has(key)) continue;
+    // Find the first real path inside this menu item
+    const firstPath = mk.paths.find((p) => p !== '/user-dashboard');
+    if (firstPath && canAccessPath(firstPath)) {
+      return <Navigate to={firstPath} replace />;
+    }
+  }
+
+  // Nothing accessible at all — fall back to user dashboard hub
   return <Navigate to="/user-dashboard" replace />;
 };
 
