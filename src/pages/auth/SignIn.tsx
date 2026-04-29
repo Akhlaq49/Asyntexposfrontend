@@ -41,10 +41,10 @@ const SignIn: React.FC = () => {
               <form onSubmit={handleSubmit}>
                 <div className="login-userset">
                   <div className="login-logo logo-normal">
-                    <img src="/assets/img/logo.png" alt="img" />
+                    <img src="/assets/img/newlogo.png" alt="img" />
                   </div>
                   <Link to="/" className="login-logo logo-white">
-                    <img src="/assets/img/logo-white.png" alt="Img" />
+                    <img src="/assets/img/newlogo.png" alt="Img" />
                   </Link>
                   <div className="login-userheading">
                     <h3>{t('auth.sign_in')}</h3>
