@@ -22,12 +22,18 @@ import { buildPathToKeyMap } from '../utils/menuKeys';
 const pathToKeyMap = buildPathToKeyMap();
 
 export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
+  // Pull isLoading so we wait for token verification before fetching permissions.
+  // This prevents a stale-localStorage fetch followed immediately by a second
+  // fetch once getCurrentUser() resolves (double-fetch / spinner flicker).
+  const { user, isAuthenticated, isLoading: authIsLoading } = useAuth();
   const [allowedKeys, setAllowedKeys] = useState<Set<string>>(new Set());
   const [tenantHiddenKeys, setTenantHiddenKeys] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   const loadPermissions = useCallback(async () => {
+    // Wait until AuthContext has verified the token before we trust the user object.
+    if (authIsLoading) return;
+
     if (!isAuthenticated || !user) {
       setAllowedKeys(new Set());
       setTenantHiddenKeys(new Set());
@@ -37,7 +43,7 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     try {
       setIsLoading(true);
-      // Load permissions and tenant hidden keys independently — 
+      // Load permissions and tenant hidden keys independently —
       // if one fails, the other still works
       const [keys, hidden] = await Promise.all([
         rolePermissionService.getMyPermissions().catch((err) => {
@@ -58,7 +64,11 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, user]);
+  // Use stable primitives (id + role) instead of the whole user object so the
+  // callback is NOT re-created just because getCurrentUser() returned a new
+  // object reference for the same user.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id, user?.role, authIsLoading]);
 
   useEffect(() => {
     loadPermissions();
