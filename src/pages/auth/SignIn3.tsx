@@ -11,10 +11,10 @@ const SignIn3: React.FC = () => {
           <div className="login-content">
             <div className="login-userset">
               <div className="login-logo logo-normal">
-                <img src="/assets/img/logo.png" alt="Logo" />
+                <img src="/assets/img/newlogo.png" alt="Logo" />
               </div>
               <Link to="/" className="login-logo logo-white">
-                <img src="/assets/img/logo-white.png" alt="Logo" />
+                <img src="/assets/img/newlogo.png" alt="Logo" />
               </Link>
               <div className="login-userheading">
                 <h3>{t('auth.sign_in')}</h3>

@@ -225,16 +225,16 @@ const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className="sidebar-logo">
         <Link to="/" className="logo logo-normal">
-          <img src="/assets/img/logo.png" alt="Logo" />
+          <img src="/assets/img/newlogo.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo logo-white">
-          <img src="/assets/img/logo-white.png" alt="Logo" />
+          <img src="/assets/img/newlogo.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo-small">
-          <img src="/assets/img/logo-small.png" alt="Logo" />
+          <img src="/assets/img/newlogo.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo-small-white">
-          <img src="/assets/img/logo-small-white.png" alt="Logo" />
+          <img src="/assets/img/newlogo.png" alt="Logo" />
         </Link>
         <a id="toggle_btn" href="#" onClick={(e) => {
           e.preventDefault();

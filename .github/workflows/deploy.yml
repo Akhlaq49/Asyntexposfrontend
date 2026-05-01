@@ -1,0 +1,203 @@
+name: Deploy to Plesk
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published, created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+        
+      # Step 4: Build project
+      - name: Build project
+        run: npm run build
+      
+      # Step 5: Verify build output
+      - name: Verify build output
+        run: |
+          if [ -d "dist/assets" ]; then
+            echo "✓ dist/assets folder found"
+            ls -la dist/assets | head -10
+          else
+            echo "✗ dist/assets folder NOT found"
+            ls -la dist/
+            exit 1
+          fi
+          
+          if [ -f "dist/index.html" ]; then
+            echo "✓ dist/index.html found"
+          else
+            echo "✗ dist/index.html NOT found"
+            exit 1
+          fi
+      
+      # Step 7a: Create assets zip
+      - name: Create assets.zip
+        uses: vimtor/action-zip@v1
+        with:
+          files: dist/assets
+          dest: assets.zip
+      
+      - name: Verify zip creation
+        run: |
+          if [ -f "assets.zip" ]; then
+            ls -lh assets.zip
+            echo "✓ assets.zip created successfully"
+          else
+            echo "✗ Failed to create assets.zip"
+            exit 1
+          fi
+      
+      # Step 7b-c: Upload to FTP with backup and unzip
+      - name: Deploy to Plesk FTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_TARGET_PATH: ${{ secrets.FTP_TARGET_PATH }}
+        run: |
+          # Install lftp for robust FTP operations
+          sudo apt-get update -qq && sudo apt-get install -y lftp
+          
+          # Create timestamp for backups
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          
+          # Create FTP script for backup and deployment
+          cat > /tmp/deploy.ftp << 'FTPSCRIPT'
+          set ftp:ssl-allow no
+          set ftp:passive-mode on
+          
+          open $FTP_HOST
+          user $FTP_USERNAME $FTP_PASSWORD
+          
+          cd $FTP_TARGET_PATH
+          
+          # List current files
+          echo "=== Current files on server ==="
+          ls
+          echo ""
+          
+          # Backup existing assets folder
+          echo "=== Backing up existing files ==="
+          if [ -d "assets" ]; then
+            mv assets assets.backup.$TIMESTAMP
+            echo "✓ Backed up assets/ → assets.backup.$TIMESTAMP/"
+          fi
+          
+          # Backup existing index.html
+          if [ -f "index.html" ]; then
+            mv index.html index.html.backup.$TIMESTAMP
+            echo "✓ Backed up index.html → index.html.backup.$TIMESTAMP"
+          fi
+          
+          # Upload new files
+          echo "=== Uploading new files ==="
+          put assets.zip
+          echo "✓ Uploaded assets.zip"
+          
+          put dist/index.html index.html
+          echo "✓ Uploaded index.html"
+          
+          # Unzip assets
+          echo "=== Unzipping assets ==="
+          exec unzip -o assets.zip
+          echo "✓ Unzipped assets.zip"
+          
+          # Clean up zip file
+          exec rm assets.zip
+          echo "✓ Removed assets.zip"
+          
+          # List final files
+          echo "=== Files on server after deployment ==="
+          ls
+          
+          quit
+          FTPSCRIPT
+          
+          # Replace variables in the script
+          sed -i "s|\$FTP_HOST|$FTP_HOST|g" /tmp/deploy.ftp
+          sed -i "s|\$FTP_USERNAME|$FTP_USERNAME|g" /tmp/deploy.ftp
+          sed -i "s|\$FTP_PASSWORD|$FTP_PASSWORD|g" /tmp/deploy.ftp
+          sed -i "s|\$FTP_TARGET_PATH|$FTP_TARGET_PATH|g" /tmp/deploy.ftp
+          sed -i "s|\$TIMESTAMP|$TIMESTAMP|g" /tmp/deploy.ftp
+          
+          # Execute FTP deployment
+          echo "🚀 Connecting to FTP server..."
+          lftp < /tmp/deploy.ftp
+          
+          if [ $? -eq 0 ]; then
+            echo "✓ Deployment completed successfully"
+          else
+            echo "✗ Deployment failed"
+            exit 1
+          fi
+      
+      # Cleanup
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f assets.zip
+          rm -f /tmp/deploy.ftp
+          echo "✓ Cleaned up temporary files"
+      
+      # Notification on success
+      - name: Send Slack Success Notification
+        if: success()
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "✅ Deployment to Plesk Successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*✅ Deployment Successful*\n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Deployed to:* ${{ secrets.FTP_TARGET_PATH }}\n*Time:* ${{ github.event.head_commit.timestamp }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      
+      # Notification on failure
+      - name: Send Slack Failure Notification
+        if: failure()
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "❌ Deployment to Plesk Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ Deployment Failed*\n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Target:* ${{ secrets.FTP_TARGET_PATH }}\n*View Logs:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

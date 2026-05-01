@@ -17,12 +17,12 @@ export const rolePermissionService = {
   async updateRole(role: string, menuKeys: string[]): Promise<void> {
     const encodedRole = encodeURIComponent(role);
     try {
-      await api.post(`/rolepermissions/by-role/${encodedRole}`, menuKeys);
+      await api.put(`/rolepermissions/by-role/${encodedRole}`, menuKeys);
     } catch (error: any) {
       // Some deployments expose this endpoint as PUT instead of POST.
       if (error?.response?.status === 405) {
         try {
-          await api.post(`/rolepermissions/by-role/${encodedRole}`, menuKeys);
+          await api.put(`/rolepermissions/by-role/${encodedRole}`, menuKeys);
         } catch {
           // Ignore to prevent failure
         }
