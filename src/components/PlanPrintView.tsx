@@ -196,6 +196,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
 
                 {/* Header */}
                 <div style={{ textAlign: 'center', borderBottom: '3px solid #4a90d9', paddingBottom: 16, marginBottom: 20 }}>
+                  <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 8 }} />
                   <h1 style={{ fontSize: 22, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, margin: 0 }}>Asyentyx</h1>
                   <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>Lahore</div>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '5px 24px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 10 }}>

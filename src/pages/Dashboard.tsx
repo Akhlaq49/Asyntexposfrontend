@@ -436,6 +436,45 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Upcoming Installments Row */}
+      <div className="row">
+        <div className="col-12 d-flex">
+          <div className="card flex-fill">
+            <div className="card-header d-flex align-items-center justify-content-between">
+              <h5 className="card-title mb-0"><i className="ti ti-calendar-event me-2 text-primary"></i>{t('Upcoming_installments') || 'Upcoming Installments'}</h5>
+              <span className="badge bg-primary">{data.upcomingList?.length || 0}</span>
+            </div>
+            <div className="card-body p-0">
+              <div className="table-responsive">
+                <table className="table table-borderless mb-0">
+                  <tbody>
+                    {!data.upcomingList || data.upcomingList.length === 0 ? (
+                      <tr><td className="text-center text-muted py-4">{t('dashboard.no_upcoming_installments') || 'No upcoming installments'}</td></tr>
+                    ) : (
+                      data.upcomingList.map((u, i) => (
+                        <tr key={i}>
+                          <td className="ps-3">
+                            <h6 className="fs-13 fw-medium mb-1">{u.customerName}</h6>
+                            <p className="fs-12 text-muted mb-0">{u.productName} &bull; #{u.installmentNo}</p>
+                          </td>
+                          <td className="text-end pe-3">
+                            <h6 className="fs-13 fw-bold mb-1">{t('common.rs')} {fmt(u.emiAmount)}</h6>
+                            <p className="fs-12 text-muted mb-0">Due: {formatDueDate(u.dueDate)}</p>
+                          </td>
+                          <td className="text-end pe-3">
+                            {statusBadge('upcoming')}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Recent Plans */}
       <div className="row">
         <div className="col-12">

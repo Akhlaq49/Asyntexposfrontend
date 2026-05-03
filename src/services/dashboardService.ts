@@ -64,6 +64,17 @@ export interface DashboardData {
     productName: string;
   }[];
 
+  upcomingList: {
+    planId: number;
+    installmentNo: number;
+    dueDate: string;
+    emiAmount: number;
+    customerName: string;
+    customerPhone: string;
+    productName: string;
+    status: string;
+  }[];
+
   recentPayments: {
     planId: number;
     installmentNo: number;

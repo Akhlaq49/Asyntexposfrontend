@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
-import { MEDIA_BASE_URL } from '../services/api';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 
 interface DueInstallmentSlipProps {
@@ -161,17 +160,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                 {/* Header */}
                 <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    {plan.customerImage ? (
-                      <img
-                        src={`${MEDIA_BASE_URL}${plan.customerImage}`}
-                        alt=""
-                        style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${statusColor}` }}
-                      />
-                    ) : (
-                      <div style={{ width: 50, height: 50, borderRadius: '50%', background: statusColor, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 'bold' }}>
-                        {plan.customerName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid ' + statusColor }} />
                     <div>
                       <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
                         Asyentyx
