@@ -352,6 +352,11 @@ const Dashboard: React.FC = () => {
                           <td className="text-end pe-3">
                             {statusBadge(derivedStatusFromDueDate(d.dueDate))}
                           </td>
+                          <td className="text-end pe-3">
+                            <Link to={`/installment-details/${d.planId}`} className="btn btn-sm btn-outline-primary">
+                              <i className="ti ti-eye"></i>
+                            </Link>
+                          </td>
                         </tr>
                       ))
                     )}
@@ -463,6 +468,11 @@ const Dashboard: React.FC = () => {
                           </td>
                           <td className="text-end pe-3">
                             {statusBadge('upcoming')}
+                          </td>
+                          <td className="text-end pe-3">
+                            <Link to={`/installment-details/${u.planId}`} className="btn btn-sm btn-outline-primary">
+                              <i className="ti ti-eye"></i>
+                            </Link>
                           </td>
                         </tr>
                       ))

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import { mediaUrl } from '../services/api';
 
 interface DepositSlipProps {
   plan: InstallmentPlan;
@@ -48,6 +49,12 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
       : entry.miscAdjustedAmount && entry.miscAdjustedAmount > 0
         ? t('pdf.cash_misc')
         : t('pdf.cash');
+
+  const customerImageSrc = plan.customerImage
+    ? mediaUrl(plan.customerImage)
+    : plan.customerPictures && plan.customerPictures.length > 0
+      ? mediaUrl(plan.customerPictures[0].filePath)
+      : '/assets/img/users/user-01.jpg';
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
@@ -202,13 +209,8 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
                 {/* Header */}
                 <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
-                        Asyentyx 
-                      </h2>
-                      <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-                    </div>
+                    <img src={customerImageSrc} alt={plan.customerName} style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9' }} />
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 50, height: 50, objectFit: 'contain' }} />
                   </div>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
                     {t('pdf.deposit_slip')}

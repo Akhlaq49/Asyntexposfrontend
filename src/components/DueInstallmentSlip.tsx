@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import { mediaUrl } from '../services/api';
 
 interface DueInstallmentSlipProps {
   plan: InstallmentPlan;
@@ -160,13 +161,8 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                 {/* Header */}
                 <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid ' + statusColor }} />
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
-                        Asyentyx
-                      </h2>
-                      <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-                    </div>
+                    <img src={customerImageSrc} alt={plan.customerName} style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor }} />
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 50, height: 50, objectFit: 'contain' }} />
                   </div>
                   <div style={{ display: 'inline-block', background: statusColor, color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
                     {t('pdf.due_installment', { status: statusLabel })}
