@@ -16,16 +16,16 @@
 /* Constrain logo images so they don't overflow the sidebar-logo container */
 .sidebar .sidebar-logo .logo img {
   width: auto;
-  max-width: 160px;
-  height: 42px;
+  max-width: 200px;
+  height: 54px;
   object-fit: contain;
   object-position: center;
   display: block;
 }
 .sidebar .sidebar-logo .logo-white img {
   width: auto;
-  max-width: 160px;
-  height: 42px;
+  max-width: 200px;
+  height: 54px;
   object-fit: contain;
   object-position: center;
   display: block;

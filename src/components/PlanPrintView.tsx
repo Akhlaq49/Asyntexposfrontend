@@ -142,12 +142,12 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   const progressPct = plan.tenure > 0 ? Math.round((plan.paidInstallments / plan.tenure) * 100) : 0;
 
   // Inline style helpers (for printable HTML in ref)
-  const sTitle: React.CSSProperties = { fontWeight: 800, fontSize: 14, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, marginBottom: 10, letterSpacing: 0.5 };
-  const sRow: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: 13 };
+  const sTitle: React.CSSProperties = { fontWeight: 800, fontSize: 15, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 5, marginBottom: 12, letterSpacing: 0.5 };
+  const sRow: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: 14, lineHeight: 1.6 };
   const sLabel: React.CSSProperties = { color: '#555', fontWeight: 600 };
   const sValue: React.CSSProperties = { fontWeight: 500 };
-  const sTh: React.CSSProperties = { background: '#4a90d9', color: '#fff', padding: '7px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', border: '1px solid #3a7bc8', whiteSpace: 'nowrap' };
-  const sTd: React.CSSProperties = { border: '1px solid #ddd', padding: '6px 8px', textAlign: 'center', fontSize: 12 };
+  const sTh: React.CSSProperties = { background: '#4a90d9', color: '#fff', padding: '9px 10px', textAlign: 'center', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', border: '1px solid #3a7bc8', whiteSpace: 'nowrap' };
+  const sTd: React.CSSProperties = { border: '1px solid #ddd', padding: '8px 10px', textAlign: 'center', fontSize: 13 };
 
   // Collect all customer images (profile + additional)
   const customerImages: string[] = [];
@@ -194,15 +194,21 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
           )}
           <div className="modal-body p-0" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
             <div ref={printRef}>
-              <div style={{ width: '100%', padding: '20px 28px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333' }}>
+              <div style={{ width: '100%', padding: '24px 32px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', lineHeight: 1.6 }}>
 
                 {/* Header */}
-                <div style={{ textAlign: 'center', borderBottom: '3px solid #4a90d9', paddingBottom: 16, marginBottom: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
-                    <img src={headerCustomerImage} alt={plan.customerName} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 60, height: 60, objectFit: 'contain' }} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, borderBottom: '3px solid #4a90d9', paddingBottom: 18, marginBottom: 24 }}>
+                  <div>
+                    <img src={headerCustomerImage} alt={plan.customerName} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '5px 24px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 10 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, objectFit: 'contain' }} />
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
+                  </div>
+                  <div style={{ width: 100, minWidth: 100 }} />
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
                     {t('pdf.installment_plan_details')}
                   </div>
                 </div>

@@ -81,20 +81,20 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
         <title>Payment Receipt - ${sale.customerName}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; }
-          .slip { width: 100%; max-width: 400px; margin: 0 auto; padding: 20px; }
-          .slip-header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; }
-          .slip-header h2 { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
-          .slip-header .address { font-size: 11px; color: #666; margin-top: 2px; }
-          .slip-header .slip-title { display: inline-block; background: #4a90d9; color: white; padding: 4px 20px; border-radius: 4px; font-weight: 700; font-size: 14px; margin-top: 8px; }
-          .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 4px; margin: 15px 0 10px; }
-          .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; color: #333; }
+          .slip { width: 100%; max-width: 460px; margin: 0 auto; padding: 24px; }
+          .slip-header { text-align: center; padding-bottom: 18px; border-bottom: 2px solid #e0e0e0; margin-bottom: 18px; }
+          .slip-header h2 { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+          .slip-header .address { font-size: 12px; color: #666; margin-top: 3px; }
+          .slip-header .slip-title { display: inline-block; background: #4a90d9; color: white; padding: 6px 24px; border-radius: 4px; font-weight: 700; font-size: 15px; margin-top: 10px; }
+          .section-title { font-weight: 800; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 5px; margin: 16px 0 12px; }
+          .info-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; line-height: 1.6; }
           .info-row .label { color: #555; font-weight: 600; }
           .info-row .value { font-weight: 500; text-align: right; }
-          .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
-          .items-table th, .items-table td { border: 1px solid #ccc; padding: 6px 8px; }
-          .items-table th { background: #f5f5f5; font-weight: 700; font-size: 11px; text-transform: uppercase; }
-          .footer-bar { text-align: center; background: #333; color: #fff; padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 12px; font-weight: 600; }
+          .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+          .items-table th, .items-table td { border: 1px solid #ccc; padding: 8px 10px; }
+          .items-table th { background: #f5f5f5; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+          .footer-bar { text-align: center; background: #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 14px; font-weight: 600; }
           @media print { body { padding: 0; } .slip { max-width: 100%; } }
         </style>
       </head>
@@ -188,19 +188,20 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
           )}
           <div className="modal-body p-0">
             <div ref={slipRef}>
-              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 400, margin: '0 auto', padding: 20 }}>
+              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
-                        Asyentyx
-                      </h2>
-                      <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-                    </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
+                  <div>
+                    <img src={customerImageSrc} alt={sale.customerName} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 130, height: 130, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
+                  </div>
+                  <div style={{ width: 100, minWidth: 100 }} />
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
                     {t('pos_receipt.payment_receipt')}
                   </div>
                 </div>

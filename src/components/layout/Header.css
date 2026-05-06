@@ -7,8 +7,8 @@
 .header .header-left .logo img,
 .header .header-left .logo-white img {
   width: auto;
-  max-width: 160px;
-  height: 42px;
+  max-width: 200px;
+  height: 54px;
   object-fit: contain;
   object-position: center;
   display: block;
@@ -49,8 +49,8 @@
   .header .header-left .logo img,
   .header .header-left .logo-white img {
     width: auto;
-    max-width: 120px;
-    height: 34px;
+    max-width: 150px;
+    height: 42px;
   }
   .header .header-left .logo-small img,
   .header .header-left .logo-small-white img {
