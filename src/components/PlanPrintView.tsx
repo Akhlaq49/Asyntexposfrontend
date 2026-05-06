@@ -148,8 +148,6 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   const sValue: React.CSSProperties = { fontWeight: 500 };
   const sTh: React.CSSProperties = { background: '#4a90d9', color: '#fff', padding: '7px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', border: '1px solid #3a7bc8', whiteSpace: 'nowrap' };
   const sTd: React.CSSProperties = { border: '1px solid #ddd', padding: '6px 8px', textAlign: 'center', fontSize: 12 };
-  const sImgBox: React.CSSProperties = { width: 120, height: 120, objectFit: 'cover', borderRadius: 6, border: '2px solid #ddd' };
-  const sImgSection: React.CSSProperties = { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, marginBottom: 12 };
 
   // Collect all customer images (profile + additional)
   const customerImages: string[] = [];

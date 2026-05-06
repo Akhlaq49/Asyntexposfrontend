@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
-import { mediaUrl } from '../services/api';
+import { MEDIA_BASE_URL } from '../services/api';
 
 interface DueInstallmentSlipProps {
   plan: InstallmentPlan;
@@ -24,6 +24,14 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
   }, []);
 
   const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  const customerImages: string[] = [];
+  if (plan.customerImage) customerImages.push(plan.customerImage);
+  if (plan.customerPictures) plan.customerPictures.forEach((p) => customerImages.push(p.filePath));
+
+  const customerImageSrc = customerImages.length > 0
+    ? `${MEDIA_BASE_URL}${customerImages[0].startsWith('/') ? '' : '/'}${customerImages[0]}`
+    : '/assets/img/users/user-01.jpg';
 
   const previouslyPaid = (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0);
   const remainingForEntry = entry.emiAmount - previouslyPaid;
