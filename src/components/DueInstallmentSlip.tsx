@@ -173,7 +173,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, objectFit: 'contain' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
+                    <span style={{ display: 'block', fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03007194095</span>
                   </div>
                   <div style={{ width: 100, minWidth: 100 }} />
                 </div>

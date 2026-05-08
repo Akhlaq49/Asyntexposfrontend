@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan } from '../services/installmentService';
-import { MEDIA_BASE_URL } from '../services/api';
+import { mediaUrl } from '../services/api';
 
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 
@@ -152,10 +152,10 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   // Collect all customer images (profile + additional)
   const customerImages: string[] = [];
   if (plan.customerImage) customerImages.push(plan.customerImage);
-  if (plan.customerPictures) plan.customerPictures.forEach(p => customerImages.push(p.filePath));
+  if (plan.customerPictures) plan.customerPictures.forEach((p) => customerImages.push(p.filePath));
 
   const headerCustomerImage = customerImages.length > 0
-    ? `${MEDIA_BASE_URL}${customerImages[0].startsWith('/') ? '' : '/'}${customerImages[0]}`
+    ? mediaUrl(customerImages[0])
     : '/assets/img/users/user-01.jpg';
 
   return (
@@ -197,13 +197,15 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
               <div style={{ width: '100%', padding: '24px 32px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', lineHeight: 1.6 }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, borderBottom: '3px solid #4a90d9', paddingBottom: 18, marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 18, borderBottom: '3px solid #4a90d9', paddingBottom: 18, marginBottom: 24 }}>
                   <div>
-                    <img src={headerCustomerImage} alt={plan.customerName} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
+                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/img/users/user-01.jpg'; }} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, objectFit: 'contain' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
+                  <div style={{ textAlign: 'center', flex: '1 1 400px', minWidth: 220, maxWidth: 520 }}>
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, maxWidth: '100%', objectFit: 'contain' }} />
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 8, maxWidth: '100%', margin: '0 auto', whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'unset' }}>
+                      Near Adda Agency Danwran (Lodhran) | 03007194095
+                    </div>
                   </div>
                   <div style={{ width: 100, minWidth: 100 }} />
                 </div>
