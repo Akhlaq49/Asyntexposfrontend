@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
+import { mediaUrl } from '../services/api';
 
 /* ---- types expected from POSOrders ---- */
 export interface ReceiptSaleItem {
@@ -23,6 +24,7 @@ export interface ReceiptSale {
   reference: string;
   customerName: string;
   customerPhone?: string;
+  customerImage: string | null;
   grandTotal: number;
   paid: number;
   due: number;
@@ -55,6 +57,8 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
   const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const change = payment.receivedAmount - payment.payingAmount;
+
+  const customerImageSrc = sale.customerImage ? mediaUrl(sale.customerImage) : '/assets/img/users/user-01.jpg';
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';

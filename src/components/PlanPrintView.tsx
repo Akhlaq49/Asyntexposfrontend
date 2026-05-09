@@ -197,17 +197,17 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
               <div style={{ width: '100%', padding: '24px 32px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', lineHeight: 1.6 }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 18, borderBottom: '3px solid #4a90d9', paddingBottom: 18, marginBottom: 24 }}>
-                  <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
+                  <div style={{ flex: '0 0 auto' }}>
                     <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/img/users/user-01.jpg'; }} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ textAlign: 'center', flex: '1 1 400px', minWidth: 220, maxWidth: 520 }}>
+                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, maxWidth: '100%', objectFit: 'contain' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8, maxWidth: '100%', margin: '0 auto', whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'unset' }}>
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
                       Near Adda Agency Danwran (Lodhran) | 03007194095
                     </div>
                   </div>
-                  <div style={{ width: 100, minWidth: 100 }} />
+                  <div style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>

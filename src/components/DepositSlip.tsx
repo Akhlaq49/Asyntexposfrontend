@@ -208,14 +208,14 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
               <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
-                  <div>
+                  <div style={{ flex: '0 0 auto' }}>
                     <img src={customerImageSrc} alt={plan.customerName} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ textAlign: 'center' }}>
+                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, objectFit: 'contain' }} />
                     <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03007194095</div>
                   </div>
-                  <div style={{ width: 100, minWidth: 100 }} />
+                  <div style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 15 }}>
