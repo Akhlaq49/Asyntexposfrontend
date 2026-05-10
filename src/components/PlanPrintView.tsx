@@ -1,7 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan } from '../services/installmentService';
-import { mediaUrl } from '../services/api';
+import { MEDIA_BASE_URL } from '../services/api';
+
+const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f4f8"/><circle cx="60" cy="46" r="22" fill="%23b6c4d4"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36" fill="%23b6c4d4"/></svg>'
+);
+
+const buildCustomerImageUrl = (path?: string | null): string => {
+  if (!path) return USER_PLACEHOLDER;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  return `${MEDIA_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 
@@ -155,8 +165,8 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   if (plan.customerPictures) plan.customerPictures.forEach((p) => customerImages.push(p.filePath));
 
   const headerCustomerImage = customerImages.length > 0
-    ? mediaUrl(customerImages[0])
-    : '/assets/img/users/user-01.jpg';
+    ? buildCustomerImageUrl(customerImages[0])
+    : USER_PLACEHOLDER;
 
   return (
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
@@ -199,7 +209,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/img/users/user-01.jpg'; }} style={{ width: 120, height: 125, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
+                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 120, height: 125, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
                   </div>
                   <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
                     <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />

@@ -2,7 +2,18 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
-import { mediaUrl } from '../services/api';
+import { MEDIA_BASE_URL } from '../services/api';
+
+// Inline SVG fallback — clean person icon, always renders
+const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f4f8"/><circle cx="60" cy="46" r="22" fill="%23b6c4d4"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36" fill="%23b6c4d4"/></svg>'
+);
+
+const buildCustomerImageUrl = (path?: string | null): string => {
+  if (!path) return USER_PLACEHOLDER;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  return `${MEDIA_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 interface DepositSlipProps {
   plan: InstallmentPlan;
@@ -51,10 +62,10 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
         : t('pdf.cash');
 
   const customerImageSrc = plan.customerImage
-    ? mediaUrl(plan.customerImage)
+    ? buildCustomerImageUrl(plan.customerImage)
     : plan.customerPictures && plan.customerPictures.length > 0
-      ? mediaUrl(plan.customerPictures[0].filePath)
-      : '/assets/img/users/user-01.jpg';
+      ? buildCustomerImageUrl(plan.customerPictures[0].filePath)
+      : USER_PLACEHOLDER;
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
@@ -209,7 +220,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={customerImageSrc} alt={plan.customerName} style={{ width: 120, height: 125, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9' }} />
+                    <img src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 120, height: 125, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
                   </div>
                   <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
                     <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />

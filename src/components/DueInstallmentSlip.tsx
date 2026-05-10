@@ -4,6 +4,10 @@ import { InstallmentPlan, RepaymentEntry } from '../services/installmentService'
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
 import { MEDIA_BASE_URL } from '../services/api';
 
+const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f4f8"/><circle cx="60" cy="46" r="22" fill="%23b6c4d4"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36" fill="%23b6c4d4"/></svg>'
+);
+
 interface DueInstallmentSlipProps {
   plan: InstallmentPlan;
   entry: RepaymentEntry;
@@ -31,7 +35,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
 
   const customerImageSrc = customerImages.length > 0
     ? `${MEDIA_BASE_URL}${customerImages[0].startsWith('/') ? '' : '/'}${customerImages[0]}`
-    : '/assets/img/users/user-01.jpg';
+    : USER_PLACEHOLDER;
 
   const previouslyPaid = (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0);
   const remainingForEntry = entry.emiAmount - previouslyPaid;
@@ -169,7 +173,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={customerImageSrc} alt={plan.customerName} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor }} />
+                    <img src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor, background: '#f0f4f8' }} />
                   </div>
                   <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 170, height: 170, objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />

@@ -23,11 +23,22 @@ export default defineConfig({
     host: true,
     open: true,
     proxy: {
-      '/api': {
-        target: 'https://apis.asyntexconsultancy.com',
-        changeOrigin: true,
-        secure: true
-      }
+      '/api': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/media': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/uploads': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/storage': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/files': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true }
+    }
+  },
+  preview: {
+    port: 4173,
+    host: true,
+    proxy: {
+      '/api': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/media': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/uploads': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/storage': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
+      '/files': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true }
     }
   },
   build: {
