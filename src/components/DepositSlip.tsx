@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import './Receipts.css';
 import { MEDIA_BASE_URL } from '../services/api';
 
 // Inline SVG fallback — clean person icon, always renders
@@ -215,18 +216,18 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
             </div>
           )}
           <div className="modal-body p-0">
-            <div ref={slipRef}>
+            <div ref={slipRef} className="receipt-print-area">
               <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 660, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
+                <div className="receipt-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 120, height: 125, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                    <img className="customer-photo" src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 120, height: 125, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
                   </div>
-                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                  <div className="receipt-header-center" style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
+                    <img className="company-logo" src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
                     <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092</div>
                   </div>
-                  <div style={{ flex: '0 0 auto', width: 100 }} />
+                  <div className="receipt-header-spacer" style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 15 }}>

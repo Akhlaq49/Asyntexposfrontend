@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import './Receipts.css';
 import { MEDIA_BASE_URL } from '../services/api';
 
 const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -168,18 +169,18 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
             </div>
           )}
           <div className="modal-body p-0">
-            <div ref={slipRef}>
+            <div ref={slipRef} className="receipt-print-area">
               <div style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
+                <div className="receipt-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor, background: '#f0f4f8' }} />
+                    <img className="customer-photo" src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor, background: '#f0f4f8' }} />
                   </div>
-                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 170, height: 170, objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                  <div className="receipt-header-center" style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <img className="company-logo" src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 170, height: 170, objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
                     <span style={{ display: 'block', fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03007194095</span>
                   </div>
-                  <div style={{ flex: '0 0 auto', width: 100 }} />
+                  <div className="receipt-header-spacer" style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: statusColor, color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
