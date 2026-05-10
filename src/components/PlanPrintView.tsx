@@ -199,12 +199,12 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/img/users/user-01.jpg'; }} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
+                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/img/users/user-01.jpg'; }} style={{ width: 120, height: 125, objectFit: 'cover', borderRadius: 50, border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, maxWidth: '100%', objectFit: 'contain' }} />
+                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
                     <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-                      Near Adda Agency Danwran (Lodhran) | 03007194095
+                      Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092
                     </div>
                   </div>
                   <div style={{ flex: '0 0 auto', width: 100 }} />

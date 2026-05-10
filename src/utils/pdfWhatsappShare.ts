@@ -50,7 +50,7 @@ export async function generatePdfFromElement(
   options?: { width?: number; orientation?: 'portrait' | 'landscape' }
 ): Promise<Blob> {
   const canvas = await html2canvas(element, {
-    scale: 1.5,
+    scale: 2,
     useCORS: true,
     allowTaint: true,
     backgroundColor: '#ffffff',
@@ -58,8 +58,8 @@ export async function generatePdfFromElement(
     windowWidth: options?.width || element.scrollWidth,
   });
 
-  // Use JPEG at 70% quality to keep PDF size small
-  const imgData = canvas.toDataURL('image/jpeg', 0.7);
+  // Use PNG (lossless) so logos and text stay sharp in PDFs
+  const imgData = canvas.toDataURL('image/png');
   const imgWidth = canvas.width;
   const imgHeight = canvas.height;
 
@@ -70,7 +70,7 @@ export async function generatePdfFromElement(
     format: [imgWidth, imgHeight],
   });
 
-  pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
   return pdf.output('blob');
 }

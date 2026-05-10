@@ -125,7 +125,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     if (!content) return;
     setDownloading(true);
     try {
-      await downloadPdf(content, pdfFilename, { width: 400 });
+      await downloadPdf(content, pdfFilename, { width: 660 });
     } catch (err) {
       console.error('PDF download error:', err);
     } finally {
@@ -142,7 +142,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     if (!content) return;
     setSharing(true);
     try {
-      await shareViaWhatsApp(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 400 });
+      await shareViaWhatsApp(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 660 });
     } catch (err) {
       console.error('WhatsApp share error:', err);
     } finally {
@@ -156,7 +156,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     setSendingCloud(true);
     setCloudResult(null);
     try {
-      const result = await sendViaWhatsAppCloudApi(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 400 });
+      const result = await sendViaWhatsAppCloudApi(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 660 });
       setCloudResult(result);
       if (result.success) {
         setTimeout(() => setCloudResult(null), 4000);
@@ -171,7 +171,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
 
   return (
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
-      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 660 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
           <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pdf.deposit_slip_title')}</h6>
@@ -205,15 +205,15 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
           )}
           <div className="modal-body p-0">
             <div ref={slipRef}>
-              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
+              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 660, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
                   <div style={{ flex: '0 0 auto' }}>
-                    <img src={customerImageSrc} alt={plan.customerName} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9' }} />
+                    <img src={customerImageSrc} alt={plan.customerName} style={{ width: 120, height: 125, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9' }} />
                   </div>
-                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 130, height: 130, objectFit: 'contain' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03007194095</div>
+                  <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092</div>
                   </div>
                   <div style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
