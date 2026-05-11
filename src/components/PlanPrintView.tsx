@@ -80,6 +80,10 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; color: #333; }
           table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+          .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+          .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+          .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+          .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
           @media print {
             body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             @page { size: A4; margin: 10mm; }
@@ -173,6 +177,16 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
+          <style>{`
+            .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+            .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+            .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+            .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
+            @media(max-width:480px){
+              .plan-logo{width:160px!important}
+              .plan-cust-img{width:68px!important;height:68px!important}
+            }
+          `}</style>
           <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-file-text me-2"></i>{t('pdf.full_repayment_plan')}</h6>
             <div className="d-flex gap-1 flex-wrap">
@@ -208,17 +222,15 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
               <div style={{ width: '100%', padding: '24px 32px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', lineHeight: 1.6 }}>
 
                 {/* Header */}
-                <div className="receipt-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
-                  <div style={{ flex: '0 0 auto' }}>
-                    <img className="customer-photo" src={headerCustomerImage} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 120, height: 125, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                <div className="plan-hdr" style={{ paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
+                  <div className="plan-hdr-row">
+                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = USER_PLACEHOLDER; } }} className="plan-cust-img" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" className="plan-logo" style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <div />
                   </div>
-                  <div className="receipt-header-center" style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
-                    <img className="company-logo" src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-                      Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092
-                    </div>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#666', width: '100%' }}>
+                    Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092
                   </div>
-                  <div className="receipt-header-spacer" style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>

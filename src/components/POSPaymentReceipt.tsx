@@ -99,6 +99,10 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
           .items-table th, .items-table td { border: 1px solid #ccc; padding: 8px 10px; }
           .items-table th { background: #f5f5f5; font-weight: 700; font-size: 12px; text-transform: uppercase; }
           .footer-bar { text-align: center; background: #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 14px; font-weight: 600; }
+          .pos-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+          .pos-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+          .pos-logo{width:110px;height:110px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9}
+          .pos-cust-img{width:100px;height:100px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9;justify-self:start}
           @media print { body { padding: 0; } .slip { max-width: 100%; } }
         </style>
       </head>
@@ -165,9 +169,19 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
+          <style>{`
+            .pos-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+            .pos-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+            .pos-logo{width:110px;height:110px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9}
+            .pos-cust-img{width:100px;height:100px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9;justify-self:start}
+            @media(max-width:380px){
+              .pos-logo{width:80px!important;height:80px!important}
+              .pos-cust-img{width:72px!important;height:72px!important}
+            }
+          `}</style>
           <div className="modal-header bg-primary text-white py-2">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pos_receipt.title')}</h6>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 flex-wrap">
               <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
                 <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
@@ -194,15 +208,13 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
             <div ref={slipRef}>
               <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
-                  <div>
-                    <img src={customerImageSrc} alt={sale.customerName} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                <div className="pos-hdr" style={{ paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
+                  <div className="pos-hdr-row">
+                    <img src={customerImageSrc} alt={sale.customerName} className="pos-cust-img" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                    <img src="/assets/img/logo-small.png" alt="Logo" className="pos-logo" style={{ width: 110, height: 110, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                    <div />
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 130, height: 130, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
-                  </div>
-                  <div style={{ width: 100, minWidth: 100 }} />
+                  <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#666', width: '100%' }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
