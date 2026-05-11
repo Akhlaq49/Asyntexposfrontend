@@ -94,6 +94,11 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; }
+          .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+          .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+          .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain}
+          .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
+          @media(max-width:480px){.plan-logo{width:160px!important}.plan-cust-img{width:68px!important;height:68px!important}}
           .slip { width: 100%; max-width: 400px; margin: 0 auto; padding: 20px; }
           .slip-header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; }
           .slip-header .logo-area { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
@@ -185,6 +190,16 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 660 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
+          <style>{`
+            .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+            .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+            .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+            .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
+            @media(max-width:480px){
+              .plan-logo{width:160px!important}
+              .plan-cust-img{width:68px!important;height:68px!important}
+            }
+          `}</style>
           <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pdf.deposit_slip_title')}</h6>
             <div className="d-flex gap-1 flex-wrap">
@@ -219,15 +234,15 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
             <div ref={slipRef} className="receipt-print-area">
               <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 660, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div className="receipt-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
-                  <div style={{ flex: '0 0 auto' }}>
-                    <img className="customer-photo" src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 120, height: 125, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                <div className="plan-hdr" style={{ paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
+                  <div className="plan-hdr-row">
+                    <img src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = USER_PLACEHOLDER; } }} className="plan-cust-img" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" className="plan-logo" style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <div />
                   </div>
-                  <div className="receipt-header-center" style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingLeft: 60 }}>
-                    <img className="company-logo" src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 360, height: 120, maxWidth: '100%', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092</div>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#666', width: '100%' }}>
+                    Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092
                   </div>
-                  <div className="receipt-header-spacer" style={{ flex: '0 0 auto', width: 100 }} />
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 15 }}>
