@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
+import { mediaUrl } from '../services/api';
 
 /* ---- types expected from POSOrders ---- */
 export interface ReceiptSaleItem {
@@ -23,6 +24,7 @@ export interface ReceiptSale {
   reference: string;
   customerName: string;
   customerPhone?: string;
+  customerImage: string | null;
   grandTotal: number;
   paid: number;
   due: number;
@@ -56,6 +58,8 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
 
   const change = payment.receivedAmount - payment.payingAmount;
 
+  const customerImageSrc = sale.customerImage ? mediaUrl(sale.customerImage) : '/assets/img/users/user-01.jpg';
+
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
     try {
@@ -81,20 +85,24 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
         <title>Payment Receipt - ${sale.customerName}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; }
-          .slip { width: 100%; max-width: 400px; margin: 0 auto; padding: 20px; }
-          .slip-header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; }
-          .slip-header h2 { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
-          .slip-header .address { font-size: 11px; color: #666; margin-top: 2px; }
-          .slip-header .slip-title { display: inline-block; background: #4a90d9; color: white; padding: 4px 20px; border-radius: 4px; font-weight: 700; font-size: 14px; margin-top: 8px; }
-          .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 4px; margin: 15px 0 10px; }
-          .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; color: #333; }
+          .slip { width: 100%; max-width: 460px; margin: 0 auto; padding: 24px; }
+          .slip-header { text-align: center; padding-bottom: 18px; border-bottom: 2px solid #e0e0e0; margin-bottom: 18px; }
+          .slip-header h2 { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+          .slip-header .address { font-size: 12px; color: #666; margin-top: 3px; }
+          .slip-header .slip-title { display: inline-block; background: #4a90d9; color: white; padding: 6px 24px; border-radius: 4px; font-weight: 700; font-size: 15px; margin-top: 10px; }
+          .section-title { font-weight: 800; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 5px; margin: 16px 0 12px; }
+          .info-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; line-height: 1.6; }
           .info-row .label { color: #555; font-weight: 600; }
           .info-row .value { font-weight: 500; text-align: right; }
-          .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
-          .items-table th, .items-table td { border: 1px solid #ccc; padding: 6px 8px; }
-          .items-table th { background: #f5f5f5; font-weight: 700; font-size: 11px; text-transform: uppercase; }
-          .footer-bar { text-align: center; background: #333; color: #fff; padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 12px; font-weight: 600; }
+          .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+          .items-table th, .items-table td { border: 1px solid #ccc; padding: 8px 10px; }
+          .items-table th { background: #f5f5f5; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+          .footer-bar { text-align: center; background: #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 14px; font-weight: 600; }
+          .pos-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+          .pos-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+          .pos-logo{width:110px;height:110px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9}
+          .pos-cust-img{width:100px;height:100px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9;justify-self:start}
           @media print { body { padding: 0; } .slip { max-width: 100%; } }
         </style>
       </head>
@@ -161,9 +169,19 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
+          <style>{`
+            .pos-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+            .pos-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+            .pos-logo{width:110px;height:110px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9}
+            .pos-cust-img{width:100px;height:100px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9;justify-self:start}
+            @media(max-width:380px){
+              .pos-logo{width:80px!important;height:80px!important}
+              .pos-cust-img{width:72px!important;height:72px!important}
+            }
+          `}</style>
           <div className="modal-header bg-primary text-white py-2">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pos_receipt.title')}</h6>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 flex-wrap">
               <button className="btn btn-sm btn-light" onClick={handlePrint} title={t('pdf.print')}>
                 <i className="ti ti-printer me-1"></i>{t('pdf.print')}
               </button>
@@ -188,19 +206,18 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
           )}
           <div className="modal-body p-0">
             <div ref={slipRef}>
-              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 400, margin: '0 auto', padding: 20 }}>
+              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
-                        Asyentyx
-                      </h2>
-                      <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-                    </div>
+                <div className="pos-hdr" style={{ paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
+                  <div className="pos-hdr-row">
+                    <img src={customerImageSrc} alt={sale.customerName} className="pos-cust-img" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                    <img src="/assets/img/logo-small.png" alt="Logo" className="pos-logo" style={{ width: 110, height: 110, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                    <div />
                   </div>
-                  <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
+                  <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#666', width: '100%' }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
                     {t('pos_receipt.payment_receipt')}
                   </div>
                 </div>

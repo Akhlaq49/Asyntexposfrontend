@@ -2,6 +2,19 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import './Receipts.css';
+import { MEDIA_BASE_URL } from '../services/api';
+
+// Inline SVG fallback — clean person icon, always renders
+const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f4f8"/><circle cx="60" cy="46" r="22" fill="%23b6c4d4"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36" fill="%23b6c4d4"/></svg>'
+);
+
+const buildCustomerImageUrl = (path?: string | null): string => {
+  if (!path) return USER_PLACEHOLDER;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  return `${MEDIA_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 interface DepositSlipProps {
   plan: InstallmentPlan;
@@ -49,6 +62,12 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
         ? t('pdf.cash_misc')
         : t('pdf.cash');
 
+  const customerImageSrc = plan.customerImage
+    ? buildCustomerImageUrl(plan.customerImage)
+    : plan.customerPictures && plan.customerPictures.length > 0
+      ? buildCustomerImageUrl(plan.customerPictures[0].filePath)
+      : USER_PLACEHOLDER;
+
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
     try {
@@ -75,6 +94,11 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; }
+          .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+          .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+          .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain}
+          .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
+          @media(max-width:480px){.plan-logo{width:160px!important}.plan-cust-img{width:68px!important;height:68px!important}}
           .slip { width: 100%; max-width: 400px; margin: 0 auto; padding: 20px; }
           .slip-header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; }
           .slip-header .logo-area { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
@@ -118,7 +142,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     if (!content) return;
     setDownloading(true);
     try {
-      await downloadPdf(content, pdfFilename, { width: 400 });
+      await downloadPdf(content, pdfFilename, { width: 660 });
     } catch (err) {
       console.error('PDF download error:', err);
     } finally {
@@ -135,7 +159,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     if (!content) return;
     setSharing(true);
     try {
-      await shareViaWhatsApp(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 400 });
+      await shareViaWhatsApp(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 660 });
     } catch (err) {
       console.error('WhatsApp share error:', err);
     } finally {
@@ -149,7 +173,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
     setSendingCloud(true);
     setCloudResult(null);
     try {
-      const result = await sendViaWhatsAppCloudApi(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 400 });
+      const result = await sendViaWhatsAppCloudApi(content, pdfFilename, buildMessage(), plan.customerPhone, { width: 660 });
       setCloudResult(result);
       if (result.success) {
         setTimeout(() => setCloudResult(null), 4000);
@@ -164,8 +188,18 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
 
   return (
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
-      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: 660 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
+          <style>{`
+            .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+            .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+            .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+            .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
+            @media(max-width:480px){
+              .plan-logo{width:160px!important}
+              .plan-cust-img{width:68px!important;height:68px!important}
+            }
+          `}</style>
           <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-receipt me-2"></i>{t('pdf.deposit_slip_title')}</h6>
             <div className="d-flex gap-1 flex-wrap">
@@ -197,20 +231,21 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
             </div>
           )}
           <div className="modal-body p-0">
-            <div ref={slipRef}>
-              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 400, margin: '0 auto', padding: 20 }}>
+            <div ref={slipRef} className="receipt-print-area">
+              <div className="slip" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 660, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
-                        Asyentyx 
-                      </h2>
-                      <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-                    </div>
+                <div className="plan-hdr" style={{ paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 18 }}>
+                  <div className="plan-hdr-row">
+                    <img src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = USER_PLACEHOLDER; } }} className="plan-cust-img" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" className="plan-logo" style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <div />
                   </div>
-                  <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#666', width: '100%' }}>
+                    Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'inline-block', background: '#4a90d9', color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 15 }}>
                     {t('pdf.deposit_slip')}
                   </div>
                 </div>

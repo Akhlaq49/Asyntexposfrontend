@@ -22,14 +22,14 @@
   display: block;
 }
 .sidebar .sidebar-logo .logo-white img {
-   width: 203px;
+  width: 203px;
   height: 71px;
   object-fit: contain;
   object-position: center;
   display: block;
 }
 .sidebar .sidebar-logo .logo-small img {
-   width: 203px;
+ width: 203px;
   height: 71px;
   object-fit: contain;
   object-position: center;
@@ -37,7 +37,7 @@
   display: block;
 }
 .sidebar .sidebar-logo .logo-small-white img {
-   width: 203px;
+  width: 203px;
   height: 71px;
   object-fit: contain;
   object-position: center;
@@ -85,4 +85,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ---------- Sidebar logo responsive overrides ----------
+   Desktop sizes (203x71 above) keep brand presence; on smaller
+   screens the logo needs to shrink so it never overflows or distorts.
+*/
+@media (max-width: 991.98px) {
+  .sidebar .sidebar-logo .logo img,
+  .sidebar .sidebar-logo .logo-white img {
+    width: auto !important;
+    max-width: 180px !important;
+    height: 56px !important;
+  }
+  .sidebar .sidebar-logo .logo-small img,
+  .sidebar .sidebar-logo .logo-small-white img {
+    width: auto !important;
+    max-width: 56px !important;
+    height: 42px !important;
+  }
+}
+@media (max-width: 767.98px) {
+  .sidebar .sidebar-logo .logo img,
+  .sidebar .sidebar-logo .logo-white img {
+    max-width: 150px !important;
+    height: 48px !important;
+  }
+}
+@media (max-width: 575.98px) {
+  .sidebar .sidebar-logo .logo img,
+  .sidebar .sidebar-logo .logo-white img {
+    max-width: 130px !important;
+    height: 44px !important;
+  }
+  .sidebar .sidebar-logo .logo-small img,
+  .sidebar .sidebar-logo .logo-small-white img {
+    max-width: 44px !important;
+    height: 38px !important;
+  }
+}
+@media (max-width: 360px) {
+  .sidebar .sidebar-logo .logo img,
+  .sidebar .sidebar-logo .logo-white img {
+    max-width: 110px !important;
+    height: 40px !important;
+  }
 }

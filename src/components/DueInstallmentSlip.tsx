@@ -2,6 +2,12 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InstallmentPlan, RepaymentEntry } from '../services/installmentService';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import './Receipts.css';
+import { MEDIA_BASE_URL } from '../services/api';
+
+const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f4f8"/><circle cx="60" cy="46" r="22" fill="%23b6c4d4"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36" fill="%23b6c4d4"/></svg>'
+);
 
 interface DueInstallmentSlipProps {
   plan: InstallmentPlan;
@@ -23,6 +29,14 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
   }, []);
 
   const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  const customerImages: string[] = [];
+  if (plan.customerImage) customerImages.push(plan.customerImage);
+  if (plan.customerPictures) plan.customerPictures.forEach((p) => customerImages.push(p.filePath));
+
+  const customerImageSrc = customerImages.length > 0
+    ? `${MEDIA_BASE_URL}${customerImages[0].startsWith('/') ? '' : '/'}${customerImages[0]}`
+    : USER_PLACEHOLDER;
 
   const previouslyPaid = (entry.actualPaidAmount || 0) + (entry.miscAdjustedAmount || 0);
   const remainingForEntry = entry.emiAmount - previouslyPaid;
@@ -155,29 +169,30 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
             </div>
           )}
           <div className="modal-body p-0">
-            <div ref={slipRef}>
-              <div style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 400, margin: '0 auto', padding: 20 }}>
+            <div ref={slipRef} className="receipt-print-area">
+              <div style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", maxWidth: 460, margin: '0 auto', padding: 24, lineHeight: 1.5 }}>
                 {/* Header */}
-                <div style={{ textAlign: 'center', paddingBottom: 15, borderBottom: '2px solid #e0e0e0', marginBottom: 15 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
-                    <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'contain', border: '2px solid ' + statusColor }} />
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
-                        Asyentyx
-                      </h2>
-                      <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-                    </div>
+                <div className="receipt-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
+                  <div style={{ flex: '0 0 auto' }}>
+                    <img className="customer-photo" src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor, background: '#f0f4f8' }} />
                   </div>
-                  <div style={{ display: 'inline-block', background: statusColor, color: 'white', padding: '4px 20px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 8 }}>
+                  <div className="receipt-header-center" style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <img className="company-logo" src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 170, height: 170, objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <span style={{ display: 'block', fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03007194095</span>
+                  </div>
+                  <div className="receipt-header-spacer" style={{ flex: '0 0 auto', width: 100 }} />
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'inline-block', background: statusColor, color: 'white', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
                     {t('pdf.due_installment', { status: statusLabel })}
                   </div>
                 </div>
 
                 {/* Customer Information */}
-                <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
+                <div style={{ fontWeight: 800, fontSize: 14, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 5, margin: '18px 0 12px' }}>
                   {t('pdf.customer_information')}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 14, lineHeight: 1.6 }}>
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.name')}:</span>
                   <span style={{ fontWeight: 500 }}>{plan.customerName}</span>
                 </div>

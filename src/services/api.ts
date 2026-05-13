@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const DEFAULT_BACKEND_ORIGIN = 'https://apis.asyntexconsultancy.com';
+const DEFAULT_API_URL = `${DEFAULT_BACKEND_ORIGIN}/api`;
 
 const toOrigin = (url: string): string => url.replace(/\/+$/, '').replace(/\/api$/, '');
 
@@ -13,13 +14,16 @@ const resolvedApiBaseUrl = (() => {
     return configuredApiUrl.replace(/\/+$/, '');
   }
 
-  // Ensure local development goes through Vite proxy to avoid CORS.
+  // Use the local Vite proxy only during development.
   if (isLocalHost) {
     return '/api';
   }
 
-  const origin = configuredMediaUrl ? toOrigin(configuredMediaUrl) : DEFAULT_BACKEND_ORIGIN;
-  return `${origin}/api`;
+  if (configuredMediaUrl) {
+    return `${toOrigin(configuredMediaUrl)}/api`;
+  }
+
+  return DEFAULT_API_URL;
 })();
 
 const API_BASE_URL = resolvedApiBaseUrl;

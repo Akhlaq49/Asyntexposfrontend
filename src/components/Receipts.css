@@ -1,0 +1,161 @@
+/* =========================================================
+   Receipts.css — Responsive overrides for installment receipts
+   (PlanPrintView, DepositSlip, DueInstallmentSlip)
+
+   PDF rendering uses html2canvas with width=1100 (desktop sizing),
+   so media queries below 1024px ONLY affect on-screen viewing —
+   they NEVER affect generated PDFs. This means we can safely make
+   the on-screen experience mobile-friendly without breaking PDFs.
+
+   Inline styles in TSX components have higher specificity than
+   classes, so we use !important where needed to override them on
+   small screens only.
+   ========================================================= */
+
+/* Default desktop behavior — let inline styles drive layout */
+.receipt-print-area {
+  width: 100%;
+}
+.receipt-print-area img {
+  max-width: 100%;
+}
+
+/* ------- TABLET (≤991px) ------- */
+@media (max-width: 991.98px) {
+  .receipt-print-area > div {
+    padding: 18px 20px !important;
+  }
+  /* Header row */
+  .receipt-print-area .receipt-header {
+    gap: 14px !important;
+  }
+  /* Customer photo: shrink slightly */
+  .receipt-print-area .customer-photo {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  /* Logo: cap width, allow height to follow */
+  .receipt-print-area .company-logo {
+    width: 280px !important;
+    height: auto !important;
+    max-height: 110px !important;
+  }
+  /* Reduce paddings inside center column */
+  .receipt-print-area .receipt-header-center {
+    padding-left: 30px !important;
+  }
+  /* Right spacer: shrink */
+  .receipt-print-area .receipt-header-spacer {
+    width: 60px !important;
+  }
+}
+
+/* ------- MEDIUM MOBILE / TABLET PORTRAIT (≤768px) ------- */
+@media (max-width: 768px) {
+  .receipt-print-area > div {
+    padding: 16px !important;
+  }
+  /* Stack header items VERTICALLY for small screens */
+  .receipt-print-area .receipt-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding-bottom: 14px !important;
+    margin-bottom: 14px !important;
+    text-align: center;
+  }
+  /* Center column no longer needs left padding when stacked */
+  .receipt-print-area .receipt-header-center {
+    padding-left: 0 !important;
+    width: 100% !important;
+  }
+  /* Customer photo: smaller */
+  .receipt-print-area .customer-photo {
+    width: 90px !important;
+    height: 90px !important;
+  }
+  /* Logo: scale to container */
+  .receipt-print-area .company-logo {
+    width: 100% !important;
+    max-width: 280px !important;
+    height: auto !important;
+    max-height: 100px !important;
+  }
+  /* Hide the empty right spacer when stacked (visual balance is automatic) */
+  .receipt-print-area .receipt-header-spacer {
+    display: none !important;
+  }
+  /* Body text downsizing */
+  .receipt-print-area {
+    font-size: 13px;
+  }
+  /* Tables: allow horizontal scroll instead of overflow */
+  .receipt-print-area table {
+    font-size: 11px !important;
+  }
+  .receipt-print-area .table-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ------- SMALL MOBILE (≤480px) ------- */
+@media (max-width: 480px) {
+  .receipt-print-area > div {
+    padding: 12px !important;
+  }
+  .receipt-print-area .customer-photo {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  .receipt-print-area .company-logo {
+    max-width: 240px !important;
+    max-height: 90px !important;
+  }
+  .receipt-print-area .receipt-section-title {
+    font-size: 12px !important;
+  }
+}
+
+/* ------- EXTRA-SMALL (≤360px) ------- */
+@media (max-width: 360px) {
+  .receipt-print-area > div {
+    padding: 10px !important;
+  }
+  .receipt-print-area .customer-photo {
+    width: 72px !important;
+    height: 72px !important;
+  }
+  .receipt-print-area .company-logo {
+    max-width: 200px !important;
+    max-height: 80px !important;
+  }
+  .receipt-print-area {
+    font-size: 12px;
+  }
+}
+
+/* Modal sizing on mobile — let it use full width */
+@media (max-width: 768px) {
+  .modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-xl,
+  .modal-dialog.modal-dialog-centered.modal-dialog-scrollable {
+    margin: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+  }
+  .modal-content {
+    border-radius: 0 !important;
+  }
+}
+
+/* Modal action toolbar: wrap nicely on mobile so buttons aren't cut off */
+@media (max-width: 575.98px) {
+  .modal-header.bg-primary .d-flex.gap-1.flex-wrap {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .modal-header.bg-primary .btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}

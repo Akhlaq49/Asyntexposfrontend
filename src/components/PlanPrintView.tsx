@@ -3,7 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { InstallmentPlan } from '../services/installmentService';
 import { MEDIA_BASE_URL } from '../services/api';
 
+const USER_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f4f8"/><circle cx="60" cy="46" r="22" fill="%23b6c4d4"/><path d="M20 110c0-22 18-36 40-36s40 14 40 36" fill="%23b6c4d4"/></svg>'
+);
+
+const buildCustomerImageUrl = (path?: string | null): string => {
+  if (!path) return USER_PLACEHOLDER;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  return `${MEDIA_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured, normalizePhone } from '../utils/pdfWhatsappShare';
+import './Receipts.css';
 
 interface PlanPrintViewProps {
   plan: InstallmentPlan;
@@ -69,6 +80,10 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin: 0; color: #333; }
           table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+          .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+          .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+          .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+          .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
           @media print {
             body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             @page { size: A4; margin: 10mm; }
@@ -142,24 +157,36 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
   const progressPct = plan.tenure > 0 ? Math.round((plan.paidInstallments / plan.tenure) * 100) : 0;
 
   // Inline style helpers (for printable HTML in ref)
-  const sTitle: React.CSSProperties = { fontWeight: 800, fontSize: 14, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, marginBottom: 10, letterSpacing: 0.5 };
-  const sRow: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: 13 };
+  const sTitle: React.CSSProperties = { fontWeight: 800, fontSize: 15, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 5, marginBottom: 12, letterSpacing: 0.5 };
+  const sRow: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: 14, lineHeight: 1.6 };
   const sLabel: React.CSSProperties = { color: '#555', fontWeight: 600 };
   const sValue: React.CSSProperties = { fontWeight: 500 };
-  const sTh: React.CSSProperties = { background: '#4a90d9', color: '#fff', padding: '7px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', border: '1px solid #3a7bc8', whiteSpace: 'nowrap' };
-  const sTd: React.CSSProperties = { border: '1px solid #ddd', padding: '6px 8px', textAlign: 'center', fontSize: 12 };
-  const sImgBox: React.CSSProperties = { width: 120, height: 120, objectFit: 'cover', borderRadius: 6, border: '2px solid #ddd' };
-  const sImgSection: React.CSSProperties = { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, marginBottom: 12 };
+  const sTh: React.CSSProperties = { background: '#4a90d9', color: '#fff', padding: '9px 10px', textAlign: 'center', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', border: '1px solid #3a7bc8', whiteSpace: 'nowrap' };
+  const sTd: React.CSSProperties = { border: '1px solid #ddd', padding: '8px 10px', textAlign: 'center', fontSize: 13 };
 
   // Collect all customer images (profile + additional)
   const customerImages: string[] = [];
   if (plan.customerImage) customerImages.push(plan.customerImage);
-  if (plan.customerPictures) plan.customerPictures.forEach(p => customerImages.push(p.filePath));
+  if (plan.customerPictures) plan.customerPictures.forEach((p) => customerImages.push(p.filePath));
+
+  const headerCustomerImage = customerImages.length > 0
+    ? buildCustomerImageUrl(customerImages[0])
+    : USER_PLACEHOLDER;
 
   return (
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow-lg">
+          <style>{`
+            .plan-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
+            .plan-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+            .plan-logo{display:block;width:280px;max-width:100%;height:auto;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+            .plan-cust-img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:2px solid #4a90d9;background:#f0f4f8;justify-self:start}
+            @media(max-width:480px){
+              .plan-logo{width:160px!important}
+              .plan-cust-img{width:68px!important;height:68px!important}
+            }
+          `}</style>
           <div className="modal-header bg-primary text-white py-2 flex-wrap">
             <h6 className="modal-title fw-bold mb-0"><i className="ti ti-file-text me-2"></i>{t('pdf.full_repayment_plan')}</h6>
             <div className="d-flex gap-1 flex-wrap">
@@ -191,15 +218,22 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
             </div>
           )}
           <div className="modal-body p-0" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-            <div ref={printRef}>
-              <div style={{ width: '100%', padding: '20px 28px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333' }}>
+            <div ref={printRef} className="receipt-print-area">
+              <div style={{ width: '100%', padding: '24px 32px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', lineHeight: 1.6 }}>
 
                 {/* Header */}
-                <div style={{ textAlign: 'center', borderBottom: '3px solid #4a90d9', paddingBottom: 16, marginBottom: 20 }}>
-                  <img src="/assets/img/logo-small.png" alt="Logo" style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 8 }} />
-                  <h1 style={{ fontSize: 22, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, margin: 0 }}>Asyentyx</h1>
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>Lahore</div>
-                  <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '5px 24px', borderRadius: 4, fontWeight: 700, fontSize: 14, marginTop: 10 }}>
+                <div className="plan-hdr" style={{ paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
+                  <div className="plan-hdr-row">
+                    <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = USER_PLACEHOLDER; } }} className="plan-cust-img" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
+                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" className="plan-logo" style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <div />
+                  </div>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#666', width: '100%' }}>
+                    Near Adda Agency Danwran (Lodhran) | 0300-7194095 | 0300-8694092
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'inline-block', background: '#4a90d9', color: '#fff', padding: '7px 28px', borderRadius: 4, fontWeight: 700, fontSize: 16 }}>
                     {t('pdf.installment_plan_details')}
                   </div>
                 </div>
@@ -215,20 +249,12 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                         <div style={sRow}><span style={sLabel}>{t('pdf.mobile')}:</span><span style={sValue}>{plan.customerPhone || '—'}</span></div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.cnic')}:</span><span style={sValue}>{plan.customerCnic || '—'}</span></div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.address')}:</span><span style={sValue}>{plan.customerAddress || '—'}</span></div>
-                        {customerImages.length > 0 && (
-                          <div style={sImgSection}>
-                            {customerImages.map((img, i) => (
-                              <img key={i} src={`${MEDIA_BASE_URL}${img}`} alt={`Customer ${i + 1}`} style={sImgBox} crossOrigin="anonymous" />
-                            ))}
-                          </div>
-                        )}
                       </td>
                       <td style={{ width: '50%', verticalAlign: 'top', paddingLeft: 16 }}>
                         <div style={sTitle}>{t('pdf.product_information')}</div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.product')}:</span><span style={sValue}>{plan.productName}</span></div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.price')}:</span><span style={sValue}>Rs {fmt(plan.financeAmount ?? plan.productPrice)}</span></div>
                         <div style={sRow}><span style={sLabel}>{t('pdf.down_payment')}:</span><span style={sValue}>Rs {fmt(plan.downPayment)}</span></div>
-                        <div style={sRow}><span style={sLabel}>{t('pdf.financed')}:</span><span style={sValue}>Rs {fmt(plan.financedAmount)}</span></div>
                       </td>
                     </tr>
                   </tbody>
@@ -243,11 +269,9 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                         <td style={{ width: '50%', verticalAlign: 'top', paddingRight: 16 }}>
                           <div style={sRow}><span style={sLabel}>{t('pdf.start_date')}:</span><span style={sValue}>{plan.startDate}</span></div>
                           <div style={sRow}><span style={sLabel}>{t('pdf.tenure')}:</span><span style={sValue}>{plan.tenure} {t('pdf.months')}</span></div>
-                          <div style={sRow}><span style={sLabel}>{t('pdf.interest_rate')}:</span><span style={sValue}>{plan.interestRate}% {t('pdf.pa')}</span></div>
                           <div style={sRow}><span style={sLabel}>{t('pdf.monthly_emi')}:</span><span style={{ fontWeight: 700, color: '#4a90d9' }}>Rs {fmt(plan.emiAmount)}</span></div>
                         </td>
                         <td style={{ width: '50%', verticalAlign: 'top', paddingLeft: 16 }}>
-                          <div style={sRow}><span style={sLabel}>{t('pdf.total_interest')}:</span><span style={{ fontWeight: 600, color: '#dc3545' }}>Rs {fmt(plan.totalInterest)}</span></div>
                           <div style={sRow}><span style={sLabel}>{t('pdf.total_payable')}:</span><span style={{ fontWeight: 700 }}>Rs {fmt(plan.totalPayable)}</span></div>
                           <div style={sRow}><span style={sLabel}>{t('pdf.total_paid')}:</span><span style={{ fontWeight: 700, color: '#28a745' }}>Rs {fmt(totalPaid)}</span></div>
                           <div style={sRow}><span style={sLabel}>{t('pdf.outstanding')}:</span><span style={{ fontWeight: 700, color: totalRemaining > 0 ? '#dc3545' : '#28a745' }}>Rs {fmt(totalRemaining > 0 ? totalRemaining : 0)}</span></div>
@@ -287,9 +311,6 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                       </thead>
                       <tbody>
                         {plan.guarantors.map((g) => {
-                          const gImages: string[] = [];
-                          if (g.picture) gImages.push(g.picture);
-                          if (g.pictures) g.pictures.forEach(p => gImages.push(p.filePath));
                           return (
                             <React.Fragment key={g.id}>
                               <tr>
@@ -300,17 +321,6 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                                 <td style={{ ...sTd, textAlign: 'left' }}>{g.address || '—'}</td>
                                 <td style={sTd}>{g.relationship || '—'}</td>
                               </tr>
-                              {gImages.length > 0 && (
-                                <tr>
-                                  <td colSpan={6} style={{ ...sTd, textAlign: 'left' }}>
-                                    <div style={sImgSection}>
-                                      {gImages.map((img, i) => (
-                                        <img key={i} src={`${MEDIA_BASE_URL}${img}`} alt={`${g.name} ${i + 1}`} style={sImgBox} crossOrigin="anonymous" />
-                                      ))}
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
                             </React.Fragment>
                           );
                         })}

@@ -77,6 +77,15 @@ const Dashboard: React.FC = () => {
   // timezone/date-string re-filtering that can hide valid overdue rows.
   const overdueItems = data.overdueList ?? [];
 
+  const currentMonthPrefix = (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  })();
+
+  const upcomingThisMonth = (data.upcomingList ?? []).filter(item => item.dueDate?.startsWith(currentMonthPrefix));
+
   // Chart data
   const maxExpected = Math.max(...data.monthlyCollections.map(m => Math.max(m.collected, m.expected)), 1);
   const totalStatus = data.statusDistribution.active + data.statusDistribution.completed + data.statusDistribution.defaulted + data.statusDistribution.cancelled;
@@ -352,6 +361,11 @@ const Dashboard: React.FC = () => {
                           <td className="text-end pe-3">
                             {statusBadge(derivedStatusFromDueDate(d.dueDate))}
                           </td>
+                          <td className="text-end pe-3">
+                            <Link to={`/installment-details/${d.planId}`} className="btn btn-sm btn-outline-primary">
+                              <i className="ti ti-eye"></i>
+                            </Link>
+                          </td>
                         </tr>
                       ))
                     )}
@@ -442,16 +456,16 @@ const Dashboard: React.FC = () => {
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
               <h5 className="card-title mb-0"><i className="ti ti-calendar-event me-2 text-primary"></i>{t('Upcoming_installments') || 'Upcoming Installments'}</h5>
-              <span className="badge bg-primary">{data.upcomingList?.length || 0}</span>
+              <span className="badge bg-primary">{upcomingThisMonth.length}</span>
             </div>
             <div className="card-body p-0">
-              <div className="table-responsive">
+              <div className="table-responsive" style={{ maxHeight: 380, overflowY: 'auto' }}>
                 <table className="table table-borderless mb-0">
                   <tbody>
-                    {!data.upcomingList || data.upcomingList.length === 0 ? (
+                    {upcomingThisMonth.length === 0 ? (
                       <tr><td className="text-center text-muted py-4">{t('dashboard.no_upcoming_installments') || 'No upcoming installments'}</td></tr>
                     ) : (
-                      data.upcomingList.map((u, i) => (
+                      upcomingThisMonth.map((u, i) => (
                         <tr key={i}>
                           <td className="ps-3">
                             <h6 className="fs-13 fw-medium mb-1">{u.customerName}</h6>
@@ -463,6 +477,11 @@ const Dashboard: React.FC = () => {
                           </td>
                           <td className="text-end pe-3">
                             {statusBadge('upcoming')}
+                          </td>
+                          <td className="text-end pe-3">
+                            <Link to={`/installment-details/${u.planId}`} className="btn btn-sm btn-outline-primary">
+                              <i className="ti ti-eye"></i>
+                            </Link>
                           </td>
                         </tr>
                       ))
