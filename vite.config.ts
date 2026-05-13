@@ -21,25 +21,14 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
-    open: true,
-    proxy: {
-      '/api': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/media': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/uploads': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/storage': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/files': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true }
-    }
+    open: true
+    // No proxy: the app calls the backend directly using the URL set in
+    // src/config/backend.config.ts, so DevTools shows the real backend URL.
+    // (Backend must allow CORS from http://localhost:3000.)
   },
   preview: {
     port: 4173,
-    host: true,
-    proxy: {
-      '/api': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/media': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/uploads': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/storage': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true },
-      '/files': { target: 'https://apis.asyntexconsultancy.com', changeOrigin: true, secure: true }
-    }
+    host: true
   },
   build: {
     outDir: 'dist',

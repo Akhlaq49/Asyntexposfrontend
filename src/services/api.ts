@@ -1,33 +1,7 @@
 import axios from 'axios';
+import { API_BASE_URL, MEDIA_BASE_URL as CONFIG_MEDIA_BASE_URL } from '../config/backend.config';
 
-const DEFAULT_BACKEND_ORIGIN = 'https://apis.asyntexconsultancy.com';
-const DEFAULT_API_URL = `${DEFAULT_BACKEND_ORIGIN}/api`;
-
-const toOrigin = (url: string): string => url.replace(/\/+$/, '').replace(/\/api$/, '');
-
-const resolvedApiBaseUrl = (() => {
-  const configuredApiUrl = import.meta.env.VITE_API_URL as string | undefined;
-  const configuredMediaUrl = import.meta.env.VITE_MEDIA_BASE_URL as string | undefined;
-  const isLocalHost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-
-  if (configuredApiUrl) {
-    return configuredApiUrl.replace(/\/+$/, '');
-  }
-
-  // Use the local Vite proxy only during development.
-  if (isLocalHost) {
-    return '/api';
-  }
-
-  if (configuredMediaUrl) {
-    return `${toOrigin(configuredMediaUrl)}/api`;
-  }
-
-  return DEFAULT_API_URL;
-})();
-
-const API_BASE_URL = resolvedApiBaseUrl;
-export const MEDIA_BASE_URL = toOrigin(import.meta.env.VITE_MEDIA_BASE_URL || API_BASE_URL || DEFAULT_BACKEND_ORIGIN);
+export const MEDIA_BASE_URL = CONFIG_MEDIA_BASE_URL;
 
 /** Prefix a relative image path with the media base URL */
 export const mediaUrl = (path?: string | null): string => {
