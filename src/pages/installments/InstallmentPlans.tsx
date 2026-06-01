@@ -18,6 +18,7 @@ const InstallmentPlans: React.FC = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [whatsappPlan, setWhatsappPlan] = useState<InstallmentPlan | null>(null);
+  const [financePlan, setFinancePlan] = useState<InstallmentPlan | null>(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -280,6 +281,9 @@ const InstallmentPlans: React.FC = () => {
                           <Link to={`/installment-details/${plan.id}`} className="me-2 p-2" title={t('installment_plans.view_details')}>
                             <i data-feather="eye" className="feather-eye"></i>
                           </Link>
+                          <a className="me-2 p-2 text-warning" href="#" onClick={(e) => { e.preventDefault(); setFinancePlan(plan); }} title={t('installment_plans.finance')}>
+                            <i className="ti ti-businessplan fs-16"></i>
+                          </a>
                           <a className="me-2 p-2 text-success" href="#" onClick={(e) => { e.preventDefault(); setWhatsappPlan(plan); }} title={t('installment_plans.send_whatsapp')}>
                             <i className="ti ti-brand-whatsapp fs-16"></i>
                           </a>
@@ -319,6 +323,52 @@ const InstallmentPlans: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Finance Modal */}
+      {financePlan && (() => {
+        const purchasePrice = financePlan.productPrice;
+        const salePrice = financePlan.financeAmount ?? financePlan.productPrice;
+        const profit = salePrice - purchasePrice;
+        return (
+          <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title d-flex align-items-center">
+                    <span className="rounded-circle d-inline-flex p-1 bg-warning-transparent me-2"><i className="ti ti-businessplan fs-20 text-warning"></i></span>
+                    {t('installment_plans.finance')}
+                  </h5>
+                  <button type="button" className="btn-close" onClick={() => setFinancePlan(null)}></button>
+                </div>
+                <div className="modal-body">
+                  <div className="d-flex align-items-center mb-3">
+                    <span className="text-gray-9 fw-medium">{financePlan.customerName}</span>
+                    <span className="mx-2 text-muted">—</span>
+                    <span className="text-muted">{financePlan.productName}</span>
+                  </div>
+                  <ul className="list-group">
+                    <li className="list-group-item d-flex align-items-center justify-content-between">
+                      <span className="text-muted">{t('installment_plans.purchase_price')}</span>
+                      <span className="fw-medium">{fmt(purchasePrice)}</span>
+                    </li>
+                    <li className="list-group-item d-flex align-items-center justify-content-between">
+                      <span className="text-muted">{t('installment_plans.sale_price')}</span>
+                      <span className="fw-medium">{fmt(salePrice)}</span>
+                    </li>
+                    <li className="list-group-item d-flex align-items-center justify-content-between">
+                      <span className="fw-bold">{t('installment_plans.profit_amount')}</span>
+                      <span className={`fw-bold ${profit >= 0 ? 'text-success' : 'text-danger'}`}>{fmt(profit)}</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary fs-13 fw-medium p-2 px-3" onClick={() => setFinancePlan(null)}>{t('common.close')}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* WhatsApp Send Modal */}
       <WhatsAppSendModal
