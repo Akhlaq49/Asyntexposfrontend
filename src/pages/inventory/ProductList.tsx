@@ -7,7 +7,7 @@ import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
-const fmt = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+const fmt = (n: number) => `PKR ${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const ProductList: React.FC = () => {
   const { t } = useTranslation();

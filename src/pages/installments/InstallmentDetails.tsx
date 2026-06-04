@@ -95,6 +95,14 @@ const totalRemaining = useMemo(() => {
     return Math.round((plan.paidInstallments / plan.tenure) * 100);
   }, [plan]);
 
+  // The installment number of the first upcoming entry.
+  // Used to allow advance payment of only the very next upcoming installment.
+  const firstUpcomingNo = useMemo(() => {
+    if (!plan) return null;
+    const upcoming = plan.schedule.filter(e => e.status === 'upcoming').sort((a, b) => a.installmentNo - b.installmentNo);
+    return upcoming.length > 0 ? upcoming[0].installmentNo : null;
+  }, [plan?.schedule]);
+
   const openPayModal = async (instNo: number) => {
     if (!plan) return;
     
@@ -499,7 +507,7 @@ const totalRemaining = useMemo(() => {
                         <td>{statusBadgeEntry(entry.status)}</td>
                         <td>{entry.paidDate || '-'}</td>
                         <td>
-                          {(entry.status === 'due' || entry.status === 'overdue' || entry.status === 'partial') && plan.status === 'active' && (
+                          {(entry.status === 'due' || entry.status === 'overdue' || entry.status === 'partial' || (entry.status === 'upcoming' && entry.installmentNo === firstUpcomingNo)) && plan.status === 'active' && (
                             <button
                               className="btn btn-sm btn-success"
                               disabled={payingNo === entry.installmentNo}

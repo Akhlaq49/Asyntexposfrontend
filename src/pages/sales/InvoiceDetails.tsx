@@ -26,7 +26,7 @@ const statusBadge = (s: string) => {
   return 'bg-secondary';
 };
 
-const fmt = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => `PKR ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const InvoiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
