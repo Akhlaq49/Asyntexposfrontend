@@ -31,6 +31,7 @@ const InstallmentDetails: React.FC = () => {
   const [customerMiscBalance, setCustomerMiscBalance] = useState(0);
   const [slipEntry, setSlipEntry] = useState<RepaymentEntry | null>(null);
   const [slipNotes, setSlipNotes] = useState<string>('');
+  const [slipPaymentTime, setSlipPaymentTime] = useState<string | undefined>(undefined);
   const [showPlanPrint, setShowPlanPrint] = useState(false);
   const [dueSlipEntry, setDueSlipEntry] = useState<RepaymentEntry | null>(null);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
@@ -134,6 +135,7 @@ const totalRemaining = useMemo(() => {
     if (!plan || payInstNo === null || paymentForm.amount <= 0) return;
     
     setPayingNo(payInstNo);
+    const paymentTimestamp = new Date().toISOString();
     try {
       const result = await payInstallment(plan.id, payInstNo, paymentForm);
       
@@ -151,6 +153,7 @@ const totalRemaining = useMemo(() => {
       const paidEntry = updatedPlan.schedule.find(e => e.installmentNo === payInstNo);
       if (paidEntry && (paidEntry.status === 'paid' || paidEntry.status === 'partial')) {
         setSlipNotes(paymentForm.notes || '');
+        setSlipPaymentTime(paymentTimestamp);
         setSlipEntry(paidEntry);
       }
       
@@ -711,7 +714,7 @@ const totalRemaining = useMemo(() => {
 
       {/* Deposit Slip Modal */}
       {slipEntry && plan && (
-        <DepositSlip plan={plan} entry={slipEntry} notes={slipNotes || slipEntry.notes} onClose={() => { setSlipEntry(null); setSlipNotes(''); }} />
+        <DepositSlip plan={plan} entry={slipEntry} notes={slipNotes || slipEntry.notes} paymentTimestamp={slipPaymentTime} onClose={() => { setSlipEntry(null); setSlipNotes(''); setSlipPaymentTime(undefined); }} />
       )}
 
       {/* Full Plan Print View */}
