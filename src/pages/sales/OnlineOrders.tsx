@@ -55,7 +55,7 @@ const calcItem = (item: LocalItem): LocalItem => {
   return { ...item, taxAmount, unitCost, totalCost };
 };
 
-const fmt = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => `PKR ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /* ======================== Component ======================== */
 const OnlineOrders: React.FC = () => {

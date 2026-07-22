@@ -20,10 +20,11 @@ interface DepositSlipProps {
   plan: InstallmentPlan;
   entry: RepaymentEntry;
   notes?: string;
+  paymentTimestamp?: string;
   onClose: () => void;
 }
 
-const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }) => {
+const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, paymentTimestamp, onClose }) => {
   const { t } = useTranslation();
   const slipRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
@@ -68,14 +69,21 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
       ? buildCustomerImageUrl(plan.customerPictures[0].filePath)
       : USER_PLACEHOLDER;
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '-';
+  const formatDate = (dateStr?: string, timestampOverride?: string) => {
+    // Use the captured payment timestamp (exact local time) if available,
+    // otherwise fall back to the date-only string from the backend.
+    const raw = timestampOverride || dateStr;
+    if (!raw) return '-';
     try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-        ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      // Date-only strings (YYYY-MM-DD) have no time info — show date only.
+      // Full ISO strings (contain 'T') have the real time.
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw.trim());
+      const d = isDateOnly ? new Date(raw + 'T00:00:00') : new Date(raw);
+      const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      if (isDateOnly) return datePart;
+      return datePart + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     } catch {
-      return dateStr;
+      return raw;
     }
   };
 
@@ -289,7 +297,7 @@ const DepositSlip: React.FC<DepositSlipProps> = ({ plan, entry, notes, onClose }
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.deposit_date')}:</span>
-                  <span style={{ fontWeight: 500 }}>{formatDate(entry.paidDate)}</span>
+                  <span style={{ fontWeight: 500 }}>{formatDate(entry.paidDate, paymentTimestamp)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.payment_type')}:</span>

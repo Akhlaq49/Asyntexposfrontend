@@ -1010,7 +1010,7 @@ const CreateInstallment: React.FC = () => {
                   {isVisible('interestRate') && (
                   <div className="col-md-6 mb-3">
                     <label className="form-label">{t('create_installment.interest_rate_markup')}</label>
-                    <input type="number" className="form-control" min={0} step="0.1" value={form.interestRate || ''} onChange={(e) => set('interestRate', parseFloat(e.target.value) || 0)} placeholder="0" />
+                    <input type="number" className="form-control" min={0} step="0.01" value={form.interestRate || ''} onChange={(e) => set('interestRate', parseFloat(e.target.value) || 0)} placeholder="0" />
                     <small className="text-muted">
                       {t('create_installment.interest_markup_hint')}
                       {productPrice > 0 && (form.interestRate || 0) > 0 && (

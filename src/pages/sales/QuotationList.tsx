@@ -43,7 +43,7 @@ const calcItem = (item: LocalItem): LocalItem => {
   return { ...item, taxAmount: Math.round(taxAmount * 100) / 100, unitCost: Math.round(unitCost * 100) / 100, totalCost: Math.round(totalCost * 100) / 100 };
 };
 
-const fmt = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => `PKR ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /* ======================== Component ======================== */
 const QuotationList: React.FC = () => {
