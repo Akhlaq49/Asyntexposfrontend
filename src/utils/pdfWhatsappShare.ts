@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import api, { MEDIA_BASE_URL } from '../services/api';
 import {
   sendWhatsAppTextAndDocument,
   sendWhatsAppText,
@@ -46,6 +47,20 @@ export async function isWhatsAppCloudConfigured(): Promise<boolean> {
  * it works whether the backend has CORS headers or not.
  */
 async function urlToDataUrl(url: string): Promise<string | null> {
+  // Strategy 0: for our own backend media URLs, fetch the bytes through the API
+  // (/api/media), which always carries the app's CORS policy. This is the most
+  // reliable path in production where a reverse proxy/CDN may serve /uploads
+  // directly and strip CORS headers, breaking the raw cross-origin fetch below.
+  if (url.includes('/uploads/') && (url.startsWith(MEDIA_BASE_URL) || !url.startsWith('http'))) {
+    try {
+      const resp = await api.get('/media', {
+        params: { path: url },
+        responseType: 'blob',
+      });
+      return await blobToDataUrl(resp.data as Blob);
+    } catch { /* fall through to direct strategies */ }
+  }
+
   // Strategy 1: fetch with credentials (works if backend has CORS for our origin)
   try {
     const resp = await fetch(url, { credentials: 'include', mode: 'cors' });
