@@ -97,7 +97,7 @@ const BankSettingsGrid: React.FC = () => {
                     <div className="col-6"><small className="text-muted d-block">{t('settings.ifsc')}</small><span className="fw-medium">{acc.ifsc || '-'}</span></div>
                   </div>
                   <div className="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
-                    <div><small className="text-muted">{t('settings.opening_balance')}</small><h6 className="fw-bold mb-0 text-success">${acc.openingBalance.toFixed(2)}</h6></div>
+                    <div><small className="text-muted">{t('settings.opening_balance')}</small><h6 className="fw-bold mb-0 text-success">Rs {acc.openingBalance.toFixed(2)}</h6></div>
                     <div className="d-flex gap-1">
                       <span className={`badge fs-10 ${acc.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{acc.status === 'active' ? t('settings.active') : t('settings.inactive')}</span>
                       {acc.isDefault && <span className="badge bg-info fs-10">{t('settings.default')}</span>}

@@ -5,6 +5,7 @@ import {
   generatePdfFromElement,
 } from '../utils/pdfWhatsappShare';
 import { sendWhatsAppTextAndDocument, uploadSharePdf } from '../services/whatsappService';
+import LetterheadLogos from './common/LetterheadLogos';
 
 /** Optional full repayment schedule to render in PDF */
 export interface PlanScheduleEntry {
@@ -311,10 +312,10 @@ const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
           <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
             <div ref={pdfContentRef} style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", width: planData ? 700 : 400, padding: 24, background: '#fff', color: '#333' }}>
               {/* Header */}
-              <div style={{ textAlign: 'center', borderBottom: '2px solid #25D366', paddingBottom: 12, marginBottom: 16 }}>
+              <LetterheadLogos height={80} style={{ borderBottom: '2px solid #25D366', paddingBottom: 12, marginBottom: 16 }}>
                 <h2 style={{ fontSize: 20, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>Asyentyx</h2>
                 <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Lahore</div>
-              </div>
+              </LetterheadLogos>
 
               {planData ? (
                 <>

@@ -36,16 +36,16 @@ const Header: React.FC = () => {
         {/* Logo */}
         <div className="header-left active">
           <Link to="/" className="logo logo-normal">
-            <img src="/assets/img/newlogo.png" alt="Logo" />
+            <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
           </Link>
           <Link to="/" className="logo logo-white">
-            <img src="/assets/img/newlogo.png" alt="Logo" />
+            <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
           </Link>
           <Link to="/" className="logo-small">
-            <img src="/assets/img/newlogo.png" alt="Logo" />
+            <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
           </Link>
           <Link to="/" className="logo-small-white">
-            <img src="/assets/img/newlogo.png" alt="Logo" />
+            <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
           </Link>
         </div>
 
@@ -87,7 +87,7 @@ const Header: React.FC = () => {
                   </Link>
                 </div>
                 <div className="col-md-2">
-                  <Link to="/online-orders" className="link-item">
+                  <Link to="/pos-orders" className="link-item">
                     <span className="link-icon"><i className="ti ti-shopping-cart"></i></span>
                     <p>{t('header.sale')}</p>
                   </Link>
@@ -123,21 +123,9 @@ const Header: React.FC = () => {
                   </Link>
                 </div>
                 <div className="col-md-2">
-                  <Link to="/billers" className="link-item">
-                    <span className="link-icon"><i className="ti ti-shield"></i></span>
-                    <p>{t('header.biller')}</p>
-                  </Link>
-                </div>
-                <div className="col-md-2">
                   <Link to="/suppliers" className="link-item">
                     <span className="link-icon"><i className="ti ti-user-check"></i></span>
                     <p>{t('header.supplier')}</p>
-                  </Link>
-                </div>
-                <div className="col-md-2">
-                  <Link to="/stock-transfer" className="link-item">
-                    <span className="link-icon"><i className="ti ti-truck"></i></span>
-                    <p>{t('header.transfer')}</p>
                   </Link>
                 </div>
               </div>
@@ -177,67 +165,9 @@ const Header: React.FC = () => {
             <div className="dropdown-menu notifications">
               <div className="topnav-dropdown-header">
                 <h5 className="notification-title">{t('header.notifications')}</h5>
-                <a href="#" className="clear-noti">{t('header.mark_all_read')}</a>
               </div>
               <div className="noti-content">
-                <ul className="notification-list">
-                  <li className="notification-message">
-                    <Link to="/activities">
-                      <div className="media d-flex">
-                        <span className="avatar flex-shrink-0">
-                          <img alt="" src="/assets/img/profiles/avatar-13.jpg" />
-                        </span>
-                        <div className="flex-grow-1">
-                          <p className="noti-details"><span className="noti-title">James Kirwin</span> confirmed his order. Order No: #78901</p>
-                          <p className="noti-time">4 mins ago</p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="/activities">
-                      <div className="media d-flex">
-                        <span className="avatar flex-shrink-0">
-                          <img alt="" src="/assets/img/profiles/avatar-03.jpg" />
-                        </span>
-                        <div className="flex-grow-1">
-                          <p className="noti-details"><span className="noti-title">Leo Kelly</span> cancelled his order scheduled for 17 Jan 2025</p>
-                          <p className="noti-time">10 mins ago</p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="/activities" className="recent-msg">
-                      <div className="media d-flex">
-                        <span className="avatar flex-shrink-0">
-                          <img alt="" src="/assets/img/profiles/avatar-17.jpg" />
-                        </span>
-                        <div className="flex-grow-1">
-                          <p className="noti-details">Payment of $50 received for Order #67890 from <span className="noti-title">Antonio Engle</span></p>
-                          <p className="noti-time">05 mins ago</p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="/activities" className="recent-msg">
-                      <div className="media d-flex">
-                        <span className="avatar flex-shrink-0">
-                          <img alt="" src="/assets/img/profiles/avatar-02.jpg" />
-                        </span>
-                        <div className="flex-grow-1">
-                          <p className="noti-details"><span className="noti-title">Andrea</span> confirmed his order. Order No: #73401</p>
-                          <p className="noti-time">4 mins ago</p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div className="topnav-dropdown-footer d-flex align-items-center gap-3">
-                <a href="#" className="btn btn-secondary btn-md w-100">Cancel</a>
-                <Link to="/activities" className="btn btn-primary btn-md w-100">View all</Link>
+                <p className="text-muted text-center py-4 mb-0">{t('header.no_notifications')}</p>
               </div>
             </div>
           </li>

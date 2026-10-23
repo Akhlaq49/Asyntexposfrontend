@@ -177,7 +177,7 @@ const DueInstallmentSlip: React.FC<DueInstallmentSlipProps> = ({ plan, entry, on
                     <img className="customer-photo" src={customerImageSrc} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== USER_PLACEHOLDER) img.src = USER_PLACEHOLDER; }} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '2px solid ' + statusColor, background: '#f0f4f8' }} />
                   </div>
                   <div className="receipt-header-center" style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <img className="company-logo" src="/assets/img/newlogo.png" alt="Moiaz Corporation" style={{ width: 170, height: 170, objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <img className="company-logo" src="/assets/img/newlogo-sidebar.png" alt="Moiaz Corporation" style={{ width: 170, height: 170, objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
                     <span style={{ display: 'block', fontSize: 12, color: '#666', marginTop: 8 }}>Near Adda Agency Danwran (Lodhran) | 03007194095</span>
                   </div>
                   <div className="receipt-header-spacer" style={{ flex: '0 0 auto', width: 100 }} />

@@ -43,7 +43,7 @@ const InvoiceReport: React.FC = () => {
       {data && (
         <div className="row mb-3">
           {[
-            { label: t('reports.total_amount'), value: fmt(data.totalAmount), icon: 'ti-currency-dollar', color: 'primary' },
+            { label: t('reports.total_amount'), value: fmt(data.totalAmount), icon: 'ti-currency-rupee', color: 'primary' },
             { label: t('reports.total_paid'), value: fmt(data.totalPaid), icon: 'ti-check', color: 'success' },
             { label: t('reports.total_unpaid'), value: fmt(data.totalUnpaid), icon: 'ti-clock', color: 'warning' },
             { label: t('common.overdue'), value: fmt(data.overdue), icon: 'ti-alert-triangle', color: 'danger' },

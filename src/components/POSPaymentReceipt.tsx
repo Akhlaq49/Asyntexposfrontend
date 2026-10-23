@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../utils/pdfWhatsappShare';
 import { mediaUrl } from '../services/api';
+import { loadTermsContent, termsToHtml } from '../utils/termsConditions';
 
 /* ---- types expected from POSOrders ---- */
 export interface ReceiptSaleItem {
@@ -33,6 +34,12 @@ export interface ReceiptSale {
   shipping: number;
   saleDate: string;
   items: ReceiptSaleItem[];
+  /** Set when the sale came from a converted quotation: the terms & conditions are added to the receipt */
+  quotationReference?: string | null;
+  /** Terms edited for the source quotation (printed instead of the standard terms) */
+  quotationTerms?: string | null;
+  /** Taxes applied (one line each on the receipt) */
+  taxes?: { taxName: string; percent: number; amount: number }[];
 }
 
 interface POSPaymentReceiptProps {
@@ -49,6 +56,13 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
   const [sendingCloud, setSendingCloud] = useState(false);
   const [cloudConfigured, setCloudConfigured] = useState(false);
   const [cloudResult, setCloudResult] = useState<{ success: boolean; error?: string } | null>(null);
+
+  const [terms, setTerms] = useState('');
+  useEffect(() => {
+    if (!sale.quotationReference) setTerms('');
+    else if (sale.quotationTerms && sale.quotationTerms.trim()) setTerms(sale.quotationTerms);   // the quotation's own terms
+    else loadTermsContent().then(setTerms);                                                     // the standard terms
+  }, [sale.quotationReference, sale.quotationTerms]);
 
   useEffect(() => {
     isWhatsAppCloudConfigured().then(setCloudConfigured).catch(() => setCloudConfigured(false));
@@ -102,6 +116,7 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
           .pos-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
           .pos-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
           .pos-logo{width:110px;height:110px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9}
+          .pos-corner{width:140px;height:100px;object-fit:contain}.pos-corner-left{justify-self:start}.pos-corner-right{justify-self:end}
           .pos-cust-img{width:100px;height:100px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9;justify-self:start}
           @media print { body { padding: 0; } .slip { max-width: 100%; } }
         </style>
@@ -173,8 +188,10 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
             .pos-hdr{display:flex;flex-direction:column;align-items:center;width:100%}
             .pos-hdr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
             .pos-logo{width:110px;height:110px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9}
+            .pos-corner{width:140px;height:100px;object-fit:contain}.pos-corner-left{justify-self:start}.pos-corner-right{justify-self:end}
             .pos-cust-img{width:100px;height:100px;border-radius:50%;object-fit:contain;border:2px solid #4a90d9;justify-self:start}
             @media(max-width:380px){
+              .pos-corner{width:96px!important;height:68px!important}
               .pos-logo{width:80px!important;height:80px!important}
               .pos-cust-img{width:72px!important;height:72px!important}
             }
@@ -210,9 +227,9 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                 {/* Header */}
                 <div className="pos-hdr" style={{ paddingBottom: 18, borderBottom: '2px solid #e0e0e0', marginBottom: 18 }}>
                   <div className="pos-hdr-row">
-                    <img src={customerImageSrc} alt={sale.customerName} className="pos-cust-img" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
+                    <img src="/assets/img/receipt-left.jpeg" alt="" className="pos-corner pos-corner-left" style={{ width: 140, height: 100, objectFit: 'contain', justifySelf: 'start' }} />
                     <img src="/assets/img/logo-small.png" alt="Logo" className="pos-logo" style={{ width: 110, height: 110, borderRadius: '50%', objectFit: 'contain', border: '2px solid #4a90d9' }} />
-                    <div />
+                    <img src="/assets/img/receipt-right.jpeg" alt="" className="pos-corner pos-corner-right" style={{ width: 140, height: 100, objectFit: 'contain', justifySelf: 'end' }} />
                   </div>
                   <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#666', width: '100%' }}>Near Adda Agency Danwran (Lodhran) | 03008694092</div>
                 </div>
@@ -223,8 +240,9 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                 </div>
 
                 {/* Customer Information */}
-                <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
-                  {t('pos_receipt.customer_info')}
+                <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>{t('pos_receipt.customer_info')}</span>
+                  <img src={customerImageSrc} alt={sale.customerName} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a90d9' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.name')}:</span>
@@ -238,6 +256,12 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.sale_date')}:</span>
                   <span style={{ fontWeight: 500 }}>{sale.saleDate || '-'}</span>
                 </div>
+                {sale.quotationReference && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
+                    <span style={{ color: '#555', fontWeight: 600 }}>Quotation:</span>
+                    <span style={{ fontWeight: 500 }}>{sale.quotationReference}</span>
+                  </div>
+                )}
 
                 {/* Items */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
@@ -274,7 +298,12 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                     <span style={{ fontWeight: 500 }}>Rs {fmt(sale.discount)}</span>
                   </div>
                 )}
-                {sale.orderTax > 0 && (
+{sale.taxes && sale.taxes.length > 0 ? sale.taxes.map((tx, n) => (
+                  <div key={n} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
+                    <span style={{ color: '#555', fontWeight: 600 }}>{tx.taxName} ({tx.percent}%):</span>
+                    <span style={{ fontWeight: 500 }}>Rs {fmt(tx.amount)}</span>
+                  </div>
+                )) : sale.orderTax > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
                     <span style={{ color: '#555', fontWeight: 600 }}>{t('common.order_tax')}:</span>
                     <span style={{ fontWeight: 500 }}>Rs {fmt(sale.orderTax)}</span>
@@ -356,6 +385,19 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                     : t('pos_receipt.fully_paid')
                   }
                 </div>
+
+                {/* Terms & conditions (sales converted from a quotation) - starts on a new page when printed */}
+                {terms && (
+                  <div className="rc-terms" style={{ pageBreakBefore: 'always', breakBefore: 'page', marginTop: 18, fontSize: 10.5, lineHeight: 1.4, color: '#222' }}>
+                    <style>{`.rc-terms h3{font-size:12px;font-weight:800;margin:10px 0 3px;border-bottom:1px solid #999;padding-bottom:2px}
+                      .rc-terms h4{font-size:11px;font-weight:700;margin:7px 0 2px}.rc-terms ul{margin:1px 0 3px;padding-left:16px}
+                      .rc-terms li{margin:1px 0}.rc-terms p{margin:2px 0}.rc-terms .tc-sign{margin-top:16px;font-size:12px}`}</style>
+                    <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, marginBottom: 6, textAlign: 'center' }}>
+                      Terms &amp; Conditions
+                    </div>
+                    <div dangerouslySetInnerHTML={{ __html: termsToHtml(terms) }} />
+                  </div>
+                )}
               </div>
             </div>
           </div>

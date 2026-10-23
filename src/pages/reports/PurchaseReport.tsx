@@ -4,6 +4,7 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getPurchaseReport, PurchaseReportItemDto } from '../../services/reportService';
+import { mediaUrl } from '../../services/api';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
@@ -30,8 +31,12 @@ const PurchaseReport: React.FC = () => {
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
-  const cols = [t('common.reference'), t('common.sku'), t('reports.due_date'), t('common.product_name'), t('common.category'), t('reports.in_stock_qty'), t('reports.purchase_qty'), t('reports.purchase_amount')];
-  const rows = filtered.map(i => [i.reference, i.sku, i.dueDate, i.productName, i.category, i.inStockQty, i.purchaseQty, i.purchaseAmount.toFixed(2)]);
+  const cols = [t('common.reference'), t('common.sku'), t('reports.due_date'), t('common.product_name'), t('common.category'), t('reports.purchase_qty'), t('reports.purchase_amount')];
+  const rows = filtered.map(i => [i.reference, i.sku, i.dueDate, i.productName, i.category, i.purchaseQty, i.purchaseAmount.toFixed(2)]);
+  // PDF gets an extra Image column with the product photos (Excel stays text-only)
+  const pdfCols = [t('common.image'), ...cols];
+  const pdfRows = rows.map(r => ['', ...r]);
+  const pdfImages = { index: 0, urls: filtered.map(i => (i.productImage ? mediaUrl(i.productImage) : '')) };
 
   return (
     <>
@@ -46,19 +51,22 @@ const PurchaseReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2">
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'purchase-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'purchase-report', t('reports.purchase_report'))} />
+              onExportPDF={() => exportToPDF(pdfCols, pdfRows, 'purchase-report', t('reports.purchase_report'), undefined, pdfImages)} />
           </div>
         </div>
         <div className="card-body">
           {loading ? <div className="text-center py-5"><div className="spinner-border text-primary"></div></div> : (
             <div className="table-responsive"><table className="table table-hover">
-              <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
+              <thead><tr><th>{t('common.image')}</th>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length + 1} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
                   : paginatedData.map((item, idx) => (
                     <tr key={idx}>
+                      <td>{item.productImage
+                        ? <img src={mediaUrl(item.productImage)} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                        : <span className="d-inline-flex align-items-center justify-content-center bg-light text-muted rounded" style={{ width: 40, height: 40 }}><i className="ti ti-photo"></i></span>}</td>
                       <td>{item.reference}</td><td>{item.sku}</td><td>{item.dueDate}</td><td>{item.productName}</td>
-                      <td>{item.category}</td><td>{item.inStockQty}</td><td>{item.purchaseQty}</td><td>{item.purchaseAmount.toFixed(2)}</td>
+                      <td>{item.category}</td><td>{item.purchaseQty}</td><td>{item.purchaseAmount.toFixed(2)}</td>
                     </tr>
                   ))}
               </tbody>

@@ -1,10 +1,9 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import DashboardRedirect from './components/auth/DashboardRedirect'
 
 // Dashboard
-const Dashboard = lazy(() => import('./pages/Dashboard'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const UserDashboard = lazy(() => import('./pages/UserDashboard'))
 const SalesDashboard = lazy(() => import('./pages/misc/SalesDashboard'))
@@ -21,31 +20,21 @@ const ProductList = lazy(() => import('./pages/inventory/ProductList'))
 const AddProduct = lazy(() => import('./pages/inventory/AddProduct'))
 const EditProduct = lazy(() => import('./pages/inventory/EditProduct'))
 const ProductDetails = lazy(() => import('./pages/inventory/ProductDetails'))
-const ExpiredProducts = lazy(() => import('./pages/inventory/ExpiredProducts'))
 const LowStocks = lazy(() => import('./pages/inventory/LowStocks'))
 const CategoryList = lazy(() => import('./pages/inventory/CategoryList'))
-const SubCategories = lazy(() => import('./pages/inventory/SubCategories'))
 const BrandList = lazy(() => import('./pages/inventory/BrandList'))
 const Units = lazy(() => import('./pages/inventory/Units'))
+const TaxTypes = lazy(() => import('./pages/inventory/TaxTypes'))
 const VariantAttributes = lazy(() => import('./pages/inventory/VariantAttributes'))
 const Warranty = lazy(() => import('./pages/inventory/Warranty'))
-const Barcode = lazy(() => import('./pages/inventory/Barcode'))
-const QRCode = lazy(() => import('./pages/inventory/QRCode'))
 
-// Installments
-const InstallmentPlans = lazy(() => import('./pages/installments/InstallmentPlans'))
-const CreateInstallment = lazy(() => import('./pages/installments/CreateInstallment'))
-const InstallmentDetails = lazy(() => import('./pages/installments/InstallmentDetails'))
 
 // Stock
 const ManageStocks = lazy(() => import('./pages/stock/ManageStocks'))
-const StockAdjustment = lazy(() => import('./pages/stock/StockAdjustment'))
-const StockTransfer = lazy(() => import('./pages/stock/StockTransfer'))
 const StockHistory = lazy(() => import('./pages/stock/StockHistory'))
 const SoldStock = lazy(() => import('./pages/stock/SoldStock'))
 
 // Sales
-const OnlineOrders = lazy(() => import('./pages/sales/OnlineOrders'))
 const POSOrders = lazy(() => import('./pages/sales/POSOrders'))
 const Invoice = lazy(() => import('./pages/sales/Invoice'))
 const InvoiceDetails = lazy(() => import('./pages/sales/InvoiceDetails'))
@@ -53,54 +42,20 @@ const SalesReturns = lazy(() => import('./pages/sales/SalesReturns'))
 const QuotationList = lazy(() => import('./pages/sales/QuotationList'))
 const POS = lazy(() => import('./pages/sales/POS'))
 
-// Promo
-const Coupons = lazy(() => import('./pages/promo/Coupons'))
-const GiftCards = lazy(() => import('./pages/promo/GiftCards'))
-const DiscountPlan = lazy(() => import('./pages/promo/DiscountPlan'))
-const Discount = lazy(() => import('./pages/promo/Discount'))
 
 // Purchases
 const PurchaseList = lazy(() => import('./pages/purchases/PurchaseList'))
-const PurchaseOrderReport = lazy(() => import('./pages/purchases/PurchaseOrderReport'))
+const PurchaseOrders = lazy(() => import('./pages/purchases/PurchaseOrders'))
 const PurchaseReturns = lazy(() => import('./pages/purchases/PurchaseReturns'))
 
 // Finance
 const ExpenseList = lazy(() => import('./pages/finance/ExpenseList'))
 const ExpenseCategory = lazy(() => import('./pages/finance/ExpenseCategory'))
-const FinanceIncome = lazy(() => import('./pages/finance/Income'))
-const IncomeCategory = lazy(() => import('./pages/finance/IncomeCategory'))
-const AccountList = lazy(() => import('./pages/finance/AccountList'))
-const MoneyTransfer = lazy(() => import('./pages/finance/MoneyTransfer'))
-const BalanceSheet = lazy(() => import('./pages/finance/BalanceSheet'))
-const TrialBalance = lazy(() => import('./pages/finance/TrialBalance'))
-const CashFlow = lazy(() => import('./pages/finance/CashFlow'))
-const AccountStatement = lazy(() => import('./pages/finance/AccountStatement'))
 
 // People
 const Customers = lazy(() => import('./pages/people/Customers'))
-const Billers = lazy(() => import('./pages/people/Billers'))
 const Suppliers = lazy(() => import('./pages/people/Suppliers'))
-const StoreList = lazy(() => import('./pages/people/StoreList'))
-const WarehousePage = lazy(() => import('./pages/people/Warehouse'))
 
-// HRM
-const EmployeesGrid = lazy(() => import('./pages/hrm/EmployeesGrid'))
-const EmployeesList = lazy(() => import('./pages/hrm/EmployeesList'))
-const AddEmployee = lazy(() => import('./pages/hrm/AddEmployee'))
-const EditEmployee = lazy(() => import('./pages/hrm/EditEmployee'))
-const EmployeeDetails = lazy(() => import('./pages/hrm/EmployeeDetails'))
-const EmployeeSalary = lazy(() => import('./pages/hrm/EmployeeSalary'))
-const DepartmentGrid = lazy(() => import('./pages/hrm/DepartmentGrid'))
-const DepartmentList = lazy(() => import('./pages/hrm/DepartmentList'))
-const Designation = lazy(() => import('./pages/hrm/Designation'))
-const Shift = lazy(() => import('./pages/hrm/Shift'))
-const AttendanceEmployee = lazy(() => import('./pages/hrm/AttendanceEmployee'))
-const AttendanceAdmin = lazy(() => import('./pages/hrm/AttendanceAdmin'))
-const LeavesAdmin = lazy(() => import('./pages/hrm/LeavesAdmin'))
-const LeavesEmployee = lazy(() => import('./pages/hrm/LeavesEmployee'))
-const LeaveTypes = lazy(() => import('./pages/hrm/LeaveTypes'))
-const HolidaysPage = lazy(() => import('./pages/hrm/Holidays'))
-const Payslip = lazy(() => import('./pages/hrm/Payslip'))
 
 // Reports
 const SalesReport = lazy(() => import('./pages/reports/SalesReport'))
@@ -112,32 +67,14 @@ const SupplierReport = lazy(() => import('./pages/reports/SupplierReport'))
 const SupplierDueReport = lazy(() => import('./pages/reports/SupplierDueReport'))
 const CustomerReport = lazy(() => import('./pages/reports/CustomerReport'))
 const CustomerDueReport = lazy(() => import('./pages/reports/CustomerDueReport'))
-const DpdReport = lazy(() => import('./pages/reports/DpdReport'))
 const ProductReport = lazy(() => import('./pages/reports/ProductReport'))
 const ProductExpiryReport = lazy(() => import('./pages/reports/ProductExpiryReport'))
 const ProductQuantityAlert = lazy(() => import('./pages/reports/ProductQuantityAlert'))
 const ExpenseReport = lazy(() => import('./pages/reports/ExpenseReport'))
-const IncomeReport = lazy(() => import('./pages/reports/IncomeReport'))
 const TaxReports = lazy(() => import('./pages/reports/TaxReports'))
 const ProfitAndLoss = lazy(() => import('./pages/reports/ProfitAndLoss'))
 const AnnualReport = lazy(() => import('./pages/reports/AnnualReport'))
 
-// Installment Reports
-const InstallmentCollectionReport = lazy(() => import('./pages/reports/InstallmentCollectionReport'))
-const OutstandingBalanceReport = lazy(() => import('./pages/reports/OutstandingBalanceReport'))
-const DailyCashFlowReport = lazy(() => import('./pages/reports/DailyCashFlowReport'))
-const InstallmentProfitLossReport = lazy(() => import('./pages/reports/InstallmentProfitLossReport'))
-const CustomerLedgerReport = lazy(() => import('./pages/reports/CustomerLedgerReport'))
-const DefaultersReport = lazy(() => import('./pages/reports/DefaultersReport'))
-const PaymentHistoryReport = lazy(() => import('./pages/reports/PaymentHistoryReport'))
-const InstallmentSalesSummaryReport = lazy(() => import('./pages/reports/InstallmentSalesSummaryReport'))
-const InstProductSalesReport = lazy(() => import('./pages/reports/InstProductSalesReport'))
-const DefaultRateReport = lazy(() => import('./pages/reports/DefaultRateReport'))
-const RecoveryPerformanceReport = lazy(() => import('./pages/reports/RecoveryPerformanceReport'))
-const DueTodayReport = lazy(() => import('./pages/reports/DueTodayReport'))
-const UpcomingDueReport = lazy(() => import('./pages/reports/UpcomingDueReport'))
-const LateFeeReport = lazy(() => import('./pages/reports/LateFeeReport'))
-const ProductProfitReport = lazy(() => import('./pages/reports/ProductProfitReport'))
 
 // CMS
 const CmsPages = lazy(() => import('./pages/cms/Pages'))
@@ -158,7 +95,6 @@ const RolesPermissions = lazy(() => import('./pages/users/RolesPermissions'))
 const Permissions = lazy(() => import('./pages/users/Permissions'))
 const DeleteAccount = lazy(() => import('./pages/users/DeleteAccount'))
 const TenantMenuConfig = lazy(() => import('./pages/settings/TenantMenuConfig'))
-const WebContentManager = lazy(() => import('./pages/settings/WebContentManager'))
 
 // Settings
 const GeneralSettings = lazy(() => import('./pages/settings/GeneralSettings'))
@@ -186,7 +122,6 @@ const SMSTemplates = lazy(() => import('./pages/settings/SMSTemplates'))
 const OTPSettings = lazy(() => import('./pages/settings/OTPSettings'))
 const GDPRSettings = lazy(() => import('./pages/settings/GDPRSettings'))
 const PaymentGatewaySettings = lazy(() => import('./pages/settings/PaymentGatewaySettings'))
-const BankSettingsGrid = lazy(() => import('./pages/settings/BankSettingsGrid'))
 const TaxRates = lazy(() => import('./pages/settings/TaxRates'))
 const CurrencySettings = lazy(() => import('./pages/settings/CurrencySettings'))
 const StorageSettings = lazy(() => import('./pages/settings/StorageSettings'))
@@ -343,9 +278,9 @@ function App() {
           <Route path="/" element={<DashboardRedirect />} />
           
           {/* Dashboard */}
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/admin-dashboard-2" element={<Dashboard />} />
+          {/* Admin Dashboard 2 was removed - keep old links / saved defaults working */}
+          <Route path="/admin-dashboard-2" element={<Navigate to="/admin-dashboard" replace />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/sales-dashboard" element={<SalesDashboard />} />
 
@@ -361,31 +296,21 @@ function App() {
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/edit-product/:id" element={<EditProduct />} />
           <Route path="/product-details" element={<ProductDetails />} />
-          <Route path="/expired-products" element={<ExpiredProducts />} />
           <Route path="/low-stocks" element={<LowStocks />} />
           <Route path="/category-list" element={<CategoryList />} />
-          <Route path="/sub-categories" element={<SubCategories />} />
           <Route path="/brand-list" element={<BrandList />} />
           <Route path="/units" element={<Units />} />
+          <Route path="/tax-types" element={<TaxTypes />} />
           <Route path="/variant-attributes" element={<VariantAttributes />} />
           <Route path="/warranty" element={<Warranty />} />
-          <Route path="/barcode" element={<Barcode />} />
-          <Route path="/qrcode" element={<QRCode />} />
 
           {/* Stock */}
           <Route path="/manage-stocks" element={<ManageStocks />} />
-          <Route path="/stock-adjustment" element={<StockAdjustment />} />
-          <Route path="/stock-transfer" element={<StockTransfer />} />
           <Route path="/stock-history" element={<StockHistory />} />
           <Route path="/sold-stock" element={<SoldStock />} />
 
-          {/* Installments */}
-          <Route path="/installment-plans" element={<InstallmentPlans />} />
-          <Route path="/create-installment" element={<CreateInstallment />} />
-          <Route path="/installment-details/:id" element={<InstallmentDetails />} />
 
           {/* Sales */}
-          <Route path="/online-orders" element={<OnlineOrders />} />
           <Route path="/pos-orders" element={<POSOrders />} />
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/invoice-details/:id" element={<InvoiceDetails />} />
@@ -393,54 +318,21 @@ function App() {
           <Route path="/quotation-list" element={<QuotationList />} />
           <Route path="/pos" element={<POS />} />
 
-          {/* Promo */}
-          <Route path="/coupons" element={<Coupons />} />
-          <Route path="/gift-cards" element={<GiftCards />} />
-          <Route path="/discount-plan" element={<DiscountPlan />} />
-          <Route path="/discount" element={<Discount />} />
 
           {/* Purchases */}
           <Route path="/purchase-list" element={<PurchaseList />} />
-          <Route path="/purchase-order-report" element={<PurchaseOrderReport />} />
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/purchase-order-report" element={<Navigate to="/purchase-orders" replace />} />
           <Route path="/purchase-returns" element={<PurchaseReturns />} />
 
           {/* Finance */}
           <Route path="/expense-list" element={<ExpenseList />} />
           <Route path="/expense-category" element={<ExpenseCategory />} />
-          <Route path="/income" element={<FinanceIncome />} />
-          <Route path="/income-category" element={<IncomeCategory />} />
-          <Route path="/account-list" element={<AccountList />} />
-          <Route path="/money-transfer" element={<MoneyTransfer />} />
-          <Route path="/balance-sheet" element={<BalanceSheet />} />
-          <Route path="/trial-balance" element={<TrialBalance />} />
-          <Route path="/cash-flow" element={<CashFlow />} />
-          <Route path="/account-statement" element={<AccountStatement />} />
 
           {/* People */}
           <Route path="/customers" element={<Customers />} />
-          <Route path="/billers" element={<Billers />} />
           <Route path="/suppliers" element={<Suppliers />} />
-          <Route path="/store-list" element={<StoreList />} />
-          <Route path="/warehouse" element={<WarehousePage />} />
 
-          {/* HRM */}
-          <Route path="/employees-grid" element={<EmployeesGrid />} />
-          <Route path="/employees-list" element={<EmployeesList />} />
-          <Route path="/add-employee" element={<AddEmployee />} />
-          <Route path="/edit-employee" element={<EditEmployee />} />
-          <Route path="/employee-details" element={<EmployeeDetails />} />
-          <Route path="/employee-salary" element={<EmployeeSalary />} />
-          <Route path="/department-grid" element={<DepartmentGrid />} />
-          <Route path="/department-list" element={<DepartmentList />} />
-          <Route path="/designation" element={<Designation />} />
-          <Route path="/shift" element={<Shift />} />
-          <Route path="/attendance-employee" element={<AttendanceEmployee />} />
-          <Route path="/attendance-admin" element={<AttendanceAdmin />} />
-          <Route path="/leaves-admin" element={<LeavesAdmin />} />
-          <Route path="/leaves-employee" element={<LeavesEmployee />} />
-          <Route path="/leave-types" element={<LeaveTypes />} />
-          <Route path="/holidays" element={<HolidaysPage />} />
-          <Route path="/payslip" element={<Payslip />} />
 
           {/* Reports */}
           <Route path="/sales-report" element={<SalesReport />} />
@@ -452,32 +344,14 @@ function App() {
           <Route path="/supplier-due-report" element={<SupplierDueReport />} />
           <Route path="/customer-report" element={<CustomerReport />} />
           <Route path="/customer-due-report" element={<CustomerDueReport />} />
-          <Route path="/dpd-report" element={<DpdReport />} />
           <Route path="/product-report" element={<ProductReport />} />
           <Route path="/product-expiry-report" element={<ProductExpiryReport />} />
           <Route path="/product-quantity-alert" element={<ProductQuantityAlert />} />
           <Route path="/expense-report" element={<ExpenseReport />} />
-          <Route path="/income-report" element={<IncomeReport />} />
           <Route path="/tax-reports" element={<TaxReports />} />
           <Route path="/profit-and-loss" element={<ProfitAndLoss />} />
           <Route path="/annual-report" element={<AnnualReport />} />
 
-          {/* Installment Reports */}
-          <Route path="/inst-collection-report" element={<InstallmentCollectionReport />} />
-          <Route path="/inst-outstanding-balance" element={<OutstandingBalanceReport />} />
-          <Route path="/inst-daily-cashflow" element={<DailyCashFlowReport />} />
-          <Route path="/inst-profit-loss" element={<InstallmentProfitLossReport />} />
-          <Route path="/inst-customer-ledger" element={<CustomerLedgerReport />} />
-          <Route path="/inst-defaulters" element={<DefaultersReport />} />
-          <Route path="/inst-payment-history" element={<PaymentHistoryReport />} />
-          <Route path="/inst-sales-summary" element={<InstallmentSalesSummaryReport />} />
-          <Route path="/inst-product-sales" element={<InstProductSalesReport />} />
-          <Route path="/inst-default-rate" element={<DefaultRateReport />} />
-          <Route path="/inst-recovery-performance" element={<RecoveryPerformanceReport />} />
-          <Route path="/inst-due-today" element={<DueTodayReport />} />
-          <Route path="/inst-upcoming-due" element={<UpcomingDueReport />} />
-          <Route path="/inst-late-fees" element={<LateFeeReport />} />
-          <Route path="/inst-product-profit" element={<ProductProfitReport />} />
 
           {/* CMS */}
           <Route path="/pages" element={<CmsPages />} />
@@ -496,7 +370,6 @@ function App() {
           <Route path="/users" element={<Users />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/tenant-menu-config" element={<TenantMenuConfig />} />
-          <Route path="/web-content-manager" element={<WebContentManager />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/delete-account" element={<DeleteAccount />} />
 
@@ -527,7 +400,6 @@ function App() {
           <Route path="/otp-settings" element={<OTPSettings />} />
           <Route path="/gdpr-settings" element={<GDPRSettings />} />
           <Route path="/payment-gateway-settings" element={<PaymentGatewaySettings />} />
-          <Route path="/bank-settings-grid" element={<BankSettingsGrid />} />
           <Route path="/tax-rates" element={<TaxRates />} />
           <Route path="/currency-settings" element={<CurrencySettings />} />
           <Route path="/storage-settings" element={<StorageSettings />} />
@@ -574,7 +446,6 @@ function App() {
           {/* Ecommerce */}
           <Route path="/ecommerce/products" element={<EcomProducts />} />
           <Route path="/ecommerce/product-details" element={<EcomProductDetails />} />
-          <Route path="/ecommerce/orders" element={<OnlineOrders />} />
           <Route path="/ecommerce/customers" element={<Customers />} />
           <Route path="/ecommerce/cart" element={<CartPage />} />
           <Route path="/ecommerce/checkout" element={<CheckoutPage />} />

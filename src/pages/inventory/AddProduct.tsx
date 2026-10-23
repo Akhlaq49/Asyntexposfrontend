@@ -2,16 +2,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
   createProduct,
-  getStores,
-  getWarehouses,
   getCategories,
-  getSubCategories,
   getBrands,
   getUnits,
+  getWarranties,
   type DropdownOption,
 } from '../../services/productService';
-import { recordPurchaseExpense } from '../../services/financeService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
+import TaxSelector, { AppliedTax, cleanTaxes, taxTotal } from '../../components/common/TaxSelector';
 
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
@@ -19,27 +17,23 @@ const AddProduct: React.FC = () => {
   const { isVisible } = useFieldVisibility('AddProduct');
 
   // Dropdown options state
-  const [stores, setStores] = useState<DropdownOption[]>([]);
-  const [warehouses, setWarehouses] = useState<DropdownOption[]>([]);
   const [categories, setCategoriesOpts] = useState<DropdownOption[]>([]);
-  const [subCategories, setSubCategories] = useState<DropdownOption[]>([]);
   const [brands, setBrands] = useState<DropdownOption[]>([]);
   const [units, setUnits] = useState<DropdownOption[]>([]);
+  const [warranties, setWarranties] = useState<DropdownOption[]>([]);
 
   // Form state
+  const [taxes, setTaxes] = useState<AppliedTax[]>([]);
   const [form, setForm] = useState({
-    store: '',
-    warehouse: '',
     productName: '',
     slug: '',
     sku: '',
     sellingType: '',
     category: '',
-    subCategory: '',
     brand: '',
+    color: '',
+    model: '',
     unit: '',
-    barcodeSymbology: '',
-    itemBarcode: '',
     description: '',
     productType: 'single' as 'single' | 'variable',
     quantity: '',
@@ -50,9 +44,6 @@ const AddProduct: React.FC = () => {
     discountValue: '',
     quantityAlert: '',
     warranty: '',
-    manufacturer: '',
-    manufacturedDate: '',
-    expiryDate: '',
   });
 
   // Images state
@@ -65,8 +56,6 @@ const AddProduct: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [customFieldChecks, setCustomFieldChecks] = useState({
     warranties: false,
-    manufacturer: false,
-    expiry: false,
   });
 
   // Accordion state
@@ -84,20 +73,16 @@ const AddProduct: React.FC = () => {
   // Load dropdown data
   useEffect(() => {
     const loadDropdowns = async () => {
-      const [s, w, c, sc, b, u] = await Promise.all([
-        getStores(),
-        getWarehouses(),
+      const [c, b, u, w] = await Promise.all([
         getCategories(),
-        getSubCategories(),
         getBrands(),
         getUnits(),
+        getWarranties(),
       ]);
-      setStores(s);
-      setWarehouses(w);
       setCategoriesOpts(c);
-      setSubCategories(sc);
       setBrands(b);
       setUnits(u);
+      setWarranties(w);
     };
     loadDropdowns();
   }, []);
@@ -133,12 +118,6 @@ const AddProduct: React.FC = () => {
     let sku = 'PT';
     for (let i = 0; i < 6; i++) sku += chars.charAt(Math.floor(Math.random() * chars.length));
     setForm((prev) => ({ ...prev, sku }));
-  };
-
-  const generateBarcode = () => {
-    let barcode = '';
-    for (let i = 0; i < 12; i++) barcode += Math.floor(Math.random() * 10).toString();
-    setForm((prev) => ({ ...prev, itemBarcode: barcode }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,20 +166,12 @@ const AddProduct: React.FC = () => {
         price: Number(form.price) || 0,
         discountValue: Number(form.discountValue) || 0,
         quantityAlert: Number(form.quantityAlert) || 0,
+        // taxes go as a JSON list; the backend works out the amounts on the price
+        taxesJson: JSON.stringify(cleanTaxes(taxes, Number(form.price) || 0)),
         images: imageFiles,
       });
 
-      // Record inventory value as a finance expense if product has quantity & price
-      const qty = Number(form.quantity) || 0;
-      const price = Number(form.price) || 0;
-      if (qty > 0 && price > 0) {
-        recordPurchaseExpense({
-          amount: qty * price,
-          date: new Date().toISOString().slice(0, 10),
-          reference: form.sku || form.productName,
-          description: `Inventory - ${form.productName} (${qty} units)`,
-        });
-      }
+      // Opening stock (quantity × price) is recorded as a purchase by the backend
 
       setSuccess(true);
       setTimeout(() => navigate('/product-list'), 1500);
@@ -215,39 +186,14 @@ const AddProduct: React.FC = () => {
     setAccordion((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const barcodeSymbologies = [
-    { value: 'code128', label: 'Code 128' },
-    { value: 'code39', label: 'Code 39' },
-    { value: 'upc-a', label: 'UPC-A' },
-    { value: 'upc-e', label: 'UPC-E' },
-    { value: 'ean-8', label: 'EAN-8' },
-    { value: 'ean-13', label: 'EAN-13' },
-  ];
   const sellingTypes = [
     { value: 'online', label: 'Online' },
     { value: 'pos', label: 'POS' },
-  ];
-  const taxTypes = [
-    { value: 'exclusive', label: 'Exclusive' },
-    { value: 'inclusive', label: 'Inclusive' },
-  ];
-  const taxes = [
-    { value: 'igst-8', label: 'IGST (8%)' },
-    { value: 'gst-5', label: 'GST (5%)' },
-    { value: 'sgst-4', label: 'SGST (4%)' },
-    { value: 'cgst-16', label: 'CGST (16%)' },
-    { value: 'gst-18', label: 'GST 18%' },
   ];
   const discountTypes = [
     { value: 'percentage', label: 'Percentage' },
     { value: 'fixed', label: 'Fixed' },
   ];
-  const warranties = [
-    { value: 'replacement', label: 'Replacement Warranty' },
-    { value: 'onsite', label: 'On-Site Warranty' },
-    { value: 'accidental', label: 'Accidental Protection Plan' },
-  ];
-
   return (
     <>
       {/* Page Header */}
@@ -315,36 +261,6 @@ const AddProduct: React.FC = () => {
               {accordion.productInfo && (
                 <div className="accordion-collapse collapse show">
                   <div className="accordion-body border-top">
-                    {/* Store & Warehouse */}
-                    <div className="row">
-                      {isVisible('store') && (
-                      <div className="col-sm-6 col-12">
-                        <div className="mb-3">
-                          <label className="form-label">Store</label>
-                          <select className="form-select" name="store" value={form.store} onChange={handleChange}>
-                            <option value="">Select</option>
-                            {stores.map((s) => (
-                              <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      )}
-                      {isVisible('warehouse') && (
-                      <div className="col-sm-6 col-12">
-                        <div className="mb-3">
-                          <label className="form-label">Warehouse</label>
-                          <select className="form-select" name="warehouse" value={form.warehouse} onChange={handleChange}>
-                            <option value="">Select</option>
-                            {warehouses.map((w) => (
-                              <option key={w.value} value={w.value}>{w.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      )}
-                    </div>
-
                     {/* Product Name & Slug */}
                     <div className="row">
                       {isVisible('productName') && (
@@ -415,19 +331,6 @@ const AddProduct: React.FC = () => {
                           </div>
                         </div>
                         )}
-                        {isVisible('subCategory') && (
-                        <div className="col-sm-6 col-12">
-                          <div className="mb-3">
-                            <label className="form-label">Sub Category</label>
-                            <select className="form-select" name="subCategory" value={form.subCategory} onChange={handleChange}>
-                              <option value="">Select</option>
-                              {subCategories.map((sc) => (
-                                <option key={sc.value} value={sc.value}>{sc.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                        )}
                       </div>
                     </div>
 
@@ -464,37 +367,23 @@ const AddProduct: React.FC = () => {
                           </div>
                         </div>
                         )}
-                      </div>
-                    </div>
-
-                    {/* Barcode Symbology & Item Barcode */}
-                    <div className="row">
-                      {isVisible('barcodeSymbology') && (
-                      <div className="col-sm-6">
-                        <div className="mb-3">
-                          <div className="add-newplus">
-                            <label className="form-label">Barcode Symbology</label>
+                        {isVisible('color') && (
+                        <div className="col-sm-6 col-12">
+                          <div className="mb-3">
+                            <label className="form-label">Color</label>
+                            <input type="text" className="form-control" name="color" maxLength={100} placeholder="e.g. White, Black" value={form.color} onChange={handleChange} />
                           </div>
-                          <select className="form-select" name="barcodeSymbology" value={form.barcodeSymbology} onChange={handleChange}>
-                            <option value="">Select</option>
-                            {barcodeSymbologies.map((bs) => (
-                              <option key={bs.value} value={bs.value}>{bs.label}</option>
-                            ))}
-                          </select>
                         </div>
-                      </div>
-                      )}
-                      {isVisible('itemBarcode') && (
-                      <div className="col-lg-6 col-sm-6 col-12">
-                        <div className="mb-3 list position-relative">
-                          <label className="form-label">Item Barcode</label>
-                          <input type="text" className="form-control list" name="itemBarcode" value={form.itemBarcode} onChange={handleChange} />
-                          <button type="button" className="btn btn-primaryadd" onClick={generateBarcode}>
-                            Generate
-                          </button>
+                        )}
+                        {isVisible('model') && (
+                        <div className="col-sm-6 col-12">
+                          <div className="mb-3">
+                            <label className="form-label">Model</label>
+                            <input type="text" className="form-control" name="model" maxLength={150} placeholder="e.g. 1 Gang Matrix" value={form.model} onChange={handleChange} />
+                          </div>
                         </div>
+                        )}
                       </div>
-                      )}
                     </div>
 
                     {/* Description */}
@@ -587,30 +476,12 @@ const AddProduct: React.FC = () => {
                             </div>
                           </div>
                           )}
-                          {isVisible('taxType') && (
-                          <div className="col-lg-4 col-sm-6 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Tax Type</label>
-                              <select className="form-select" name="taxType" value={form.taxType} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {taxTypes.map((tt) => (
-                                  <option key={tt.value} value={tt.value}>{tt.label}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                          )}
                           {isVisible('tax') && (
-                          <div className="col-lg-4 col-sm-6 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Tax</label>
-                              <select className="form-select" name="tax" value={form.tax} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {taxes.map((t) => (
-                                  <option key={t.value} value={t.value}>{t.label}</option>
-                                ))}
-                              </select>
-                            </div>
+                          <div className="col-12">
+                            <TaxSelector base={Number(form.price) || 0} value={taxes} onChange={setTaxes} baseLabel="on the price" />
+                            {taxes.length > 0 && (
+                              <p className="mb-3">Price with tax: <strong style={{ fontSize: 16 }}>Rs {((Number(form.price) || 0) + taxTotal(taxes)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                            )}
                           </div>
                           )}
                           {isVisible('discountType') && (
@@ -786,30 +657,10 @@ const AddProduct: React.FC = () => {
                             />
                             <label className="form-check-label" htmlFor="warranties">Warranties</label>
                           </div>
-                          <div className="form-check form-check-inline">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id="manufacturer"
-                              checked={customFieldChecks.manufacturer}
-                              onChange={(e) => setCustomFieldChecks((prev) => ({ ...prev, manufacturer: e.target.checked }))}
-                            />
-                            <label className="form-check-label" htmlFor="manufacturer">Manufacturer</label>
-                          </div>
-                          <div className="form-check form-check-inline">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id="expiry"
-                              checked={customFieldChecks.expiry}
-                              onChange={(e) => setCustomFieldChecks((prev) => ({ ...prev, expiry: e.target.checked }))}
-                            />
-                            <label className="form-check-label" htmlFor="expiry">Expiry</label>
-                          </div>
                         </div>
                       </div>
 
-                      {/* Warranty & Manufacturer */}
+                      {/* Warranty */}
                       <div className="row">
                         {customFieldChecks.warranties && (
                           <div className="col-sm-6 col-12">
@@ -821,54 +672,16 @@ const AddProduct: React.FC = () => {
                                   <option key={w.value} value={w.value}>{w.label}</option>
                                 ))}
                               </select>
-                            </div>
-                          </div>
-                        )}
-                        {customFieldChecks.manufacturer && (
-                          <div className="col-sm-6 col-12">
-                            <div className="mb-3 add-product">
-                              <label className="form-label">Manufacturer</label>
-                              <input type="text" className="form-control" name="manufacturer" value={form.manufacturer} onChange={handleChange} />
+                              {warranties.length === 0 && (
+                                <small className="text-muted d-block mt-1">
+                                  No warranties yet. Add them in <Link to="/warranty">Inventory → Warranties</Link>.
+                                </small>
+                              )}
                             </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Dates */}
-                      {customFieldChecks.expiry && (
-                        <div className="row">
-                          <div className="col-sm-6 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Manufactured Date</label>
-                              <div className="input-groupicon calender-input">
-                                <i data-feather="calendar" className="info-img"></i>
-                                <input
-                                  type="date"
-                                  className="form-control"
-                                  name="manufacturedDate"
-                                  value={form.manufacturedDate}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-sm-6 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Expiry On</label>
-                              <div className="input-groupicon calender-input">
-                                <i data-feather="calendar" className="info-img"></i>
-                                <input
-                                  type="date"
-                                  className="form-control"
-                                  name="expiryDate"
-                                  value={form.expiryDate}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

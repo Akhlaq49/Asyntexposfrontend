@@ -76,12 +76,15 @@ const InvoiceDetails: React.FC = () => {
       {/* Invoice Card */}
       <div className="card">
         <div className="card-body">
-          {/* Top: Logo + Invoice No */}
+          {/* Corner logos */}
+          <div className="d-flex justify-content-between align-items-start mb-2">
+            <img src="/assets/img/receipt-left.jpeg" alt="" style={{ width: 170, height: 120, objectFit: 'contain' }} />
+            <img src="/assets/img/receipt-right.jpeg" alt="" style={{ width: 170, height: 120, objectFit: 'contain' }} />
+          </div>
+
+          {/* Top: Address + Invoice No (branding is in the corner logos above) */}
           <div className="row justify-content-between align-items-center border-bottom mb-3">
             <div className="col-md-6">
-              <div className="mb-2 invoice-logo">
-                <img src="/assets/img/newlogo.png" width="130" className="img-fluid logo" alt="logo" />
-              </div>
               <p>{invoice.fromAddress || ''}</p>
             </div>
             <div className="col-md-6">

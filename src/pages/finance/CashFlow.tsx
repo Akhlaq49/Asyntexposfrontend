@@ -31,15 +31,15 @@ const CashFlow: React.FC = () => {
       <div className="card-body p-0">
         <div className="table-responsive">
           <table className="table mb-0">
-            <thead className="thead-light"><tr><th>Description</th><th className="text-end">Amount ($)</th></tr></thead>
+            <thead className="thead-light"><tr><th>Description</th><th className="text-end">Amount (Rs)</th></tr></thead>
             <tbody>
               {items.map((item, idx) => (
-                <tr key={idx}><td>{item.description}</td><td className={`text-end ${item.amount >= 0 ? 'text-success' : 'text-danger'}`}>{item.amount >= 0 ? '' : '-'}${Math.abs(item.amount).toFixed(2)}</td></tr>
+                <tr key={idx}><td>{item.description}</td><td className={`text-end ${item.amount >= 0 ? 'text-success' : 'text-danger'}`}>{item.amount >= 0 ? '' : '-'}Rs {Math.abs(item.amount).toFixed(2)}</td></tr>
               ))}
               {items.length === 0 && <tr><td colSpan={2} className="text-center text-muted py-3">No items</td></tr>}
             </tbody>
             <tfoot className="table-secondary">
-              <tr><th>Subtotal</th><th className={`text-end ${total >= 0 ? 'text-success' : 'text-danger'}`}>{total >= 0 ? '' : '-'}${Math.abs(total).toFixed(2)}</th></tr>
+              <tr><th>Subtotal</th><th className={`text-end ${total >= 0 ? 'text-success' : 'text-danger'}`}>{total >= 0 ? '' : '-'}Rs {Math.abs(total).toFixed(2)}</th></tr>
             </tfoot>
           </table>
         </div>
@@ -95,7 +95,7 @@ const CashFlow: React.FC = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <div><h5 className="fw-bold mb-1">Net Cash Flow</h5><small className="text-muted">Total of all activities</small></div>
                 <h3 className={`fw-bold mb-0 ${data.netCashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
-                  {data.netCashFlow >= 0 ? '' : '-'}${Math.abs(data.netCashFlow).toFixed(2)}
+                  {data.netCashFlow >= 0 ? '' : '-'}Rs {Math.abs(data.netCashFlow).toFixed(2)}
                 </h3>
               </div>
             </div>
@@ -103,9 +103,9 @@ const CashFlow: React.FC = () => {
 
           {/* Summary Cards */}
           <div className="row">
-            <div className="col-md-4"><div className="card"><div className="card-body text-center"><small className="text-muted">Operating</small><h5 className={`fw-bold mb-0 ${data.totalOperating >= 0 ? 'text-success' : 'text-danger'}`}>${data.totalOperating.toFixed(2)}</h5></div></div></div>
-            <div className="col-md-4"><div className="card"><div className="card-body text-center"><small className="text-muted">Investing</small><h5 className={`fw-bold mb-0 ${data.totalInvesting >= 0 ? 'text-success' : 'text-danger'}`}>${data.totalInvesting.toFixed(2)}</h5></div></div></div>
-            <div className="col-md-4"><div className="card"><div className="card-body text-center"><small className="text-muted">Financing</small><h5 className={`fw-bold mb-0 ${data.totalFinancing >= 0 ? 'text-success' : 'text-danger'}`}>${data.totalFinancing.toFixed(2)}</h5></div></div></div>
+            <div className="col-md-4"><div className="card"><div className="card-body text-center"><small className="text-muted">Operating</small><h5 className={`fw-bold mb-0 ${data.totalOperating >= 0 ? 'text-success' : 'text-danger'}`}>Rs {data.totalOperating.toFixed(2)}</h5></div></div></div>
+            <div className="col-md-4"><div className="card"><div className="card-body text-center"><small className="text-muted">Investing</small><h5 className={`fw-bold mb-0 ${data.totalInvesting >= 0 ? 'text-success' : 'text-danger'}`}>Rs {data.totalInvesting.toFixed(2)}</h5></div></div></div>
+            <div className="col-md-4"><div className="card"><div className="card-body text-center"><small className="text-muted">Financing</small><h5 className={`fw-bold mb-0 ${data.totalFinancing >= 0 ? 'text-success' : 'text-danger'}`}>Rs {data.totalFinancing.toFixed(2)}</h5></div></div></div>
           </div>
         </>
       ) : (

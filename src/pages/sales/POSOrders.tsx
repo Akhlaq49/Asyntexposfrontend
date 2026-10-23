@@ -1,11 +1,10 @@
-﻿import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
-import { recordSaleIncome } from '../../services/financeService';
 import POSPaymentReceipt, { ReceiptSale, ReceiptPayment } from '../../components/POSPaymentReceipt';
 
 /* ---------- Types ---------- */
@@ -20,11 +19,14 @@ interface SalePaymentDto {
 }
 interface SaleDto {
   id: number; reference: string; customerId: number | null; customerName: string;
+  quotationReference?: string | null;
+  quotationTerms?: string | null;
   customerImage: string | null; biller: string; grandTotal: number; paid: number;
   due: number; orderTax: number; discount: number; shipping: number;
   status: string; paymentStatus: string; notes: string | null; saleDate: string;
   expectedDate: string | null;
   items: SaleItemDto[]; payments: SalePaymentDto[];
+  taxes?: { taxName: string; percent: number; amount: number }[];
 }
 interface CustomerResult { id: number; name: string; phone?: string; }
 interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; }
@@ -361,14 +363,6 @@ const POSOrders: React.FC = () => {
       if (editingPaymentId) await api.put(`/sales/${paymentSaleId}/payments/${editingPaymentId}`, paymentForm);
       else {
         await api.post(`/sales/${paymentSaleId}/payments`, paymentForm);
-        // Record new payment in finance income for financial reports
-        await recordSaleIncome({
-          amount: paymentForm.payingAmount,
-          date: new Date().toISOString().slice(0, 10),
-          reference: paymentForm.reference || `SALE-${paymentSaleId}`,
-          description: `POS Order Payment - Sale #${paymentSaleId}`,
-          paymentType: paymentForm.paymentType,
-        });
       }
       setShowPaymentFormModal(false);
       fetchData();
@@ -391,6 +385,9 @@ const POSOrders: React.FC = () => {
           discount: saleData.discount,
           shipping: saleData.shipping,
           saleDate: saleData.saleDate,
+          quotationReference: saleData.quotationReference,
+          quotationTerms: saleData.quotationTerms,
+          taxes: saleData.taxes,
           items: saleData.items.map((i) => ({ productName: i.productName, quantity: i.quantity, unitCost: i.unitCost, totalCost: i.totalCost })),
         });
         setReceiptPayment({
@@ -429,6 +426,9 @@ const POSOrders: React.FC = () => {
       discount: sale.discount,
       shipping: sale.shipping,
       saleDate: sale.saleDate,
+      quotationReference: sale.quotationReference,
+      quotationTerms: sale.quotationTerms,
+      taxes: sale.taxes,
       items: sale.items.map((i) => ({ productName: i.productName, quantity: i.quantity, unitCost: i.unitCost, totalCost: i.totalCost })),
     });
     setReceiptPayment({
@@ -484,15 +484,6 @@ const POSOrders: React.FC = () => {
         source: 'pos',
       });
 
-      for (const a of data.allocations) {
-        await recordSaleIncome({
-          amount: a.amountApplied,
-          date: new Date().toISOString().slice(0, 10),
-          reference: a.paymentReference,
-          description: `POS Order Payment (FIFO) - ${bulkPaymentGroup.customerName} - ${a.saleReference}`,
-          paymentType: bulkPaymentForm.paymentType,
-        });
-      }
 
       setShowBulkPaymentModal(false);
       setBulkPaymentGroup(null);

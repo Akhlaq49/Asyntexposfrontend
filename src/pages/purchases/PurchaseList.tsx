@@ -9,7 +9,8 @@ import {
   PurchaseItem
 } from '../../services/purchaseService';
 import { getProducts, ProductResponse } from '../../services/productService';
-import { recordPurchaseExpense } from '../../services/financeService';
+import { getParties } from '../../services/partyService';
+import { Link } from 'react-router-dom';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
@@ -76,7 +77,11 @@ const PurchaseList: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePurchaseId, setDeletePurchaseId] = useState<number | null>(null);
 
-  const suppliers = ['Apex Computers', 'Dazzle Shoes', 'Best Accessories', 'Global Traders'];
+  // Real suppliers (People > Suppliers)
+  const [suppliers, setSuppliers] = useState<string[]>([]);
+  useEffect(() => {
+    getParties('Supplier').then((list) => setSuppliers(list.map((p) => p.fullName))).catch(() => setSuppliers([]));
+  }, []);
   const statuses = ['Received', 'Pending', 'Ordered', 'Cancelled'];
 
   // Fetch purchases and products on mount
@@ -162,7 +167,7 @@ const PurchaseList: React.FC = () => {
     setSelectAll(next.size === paginatedPurchases.length);
   };
 
-  const fmt = (v: number) => `$${v.toFixed(2)}`;
+  const fmt = (v: number) => `Rs ${v.toFixed(2)}`;
 
   const handleAddPurchase = () => {
     resetForm();
@@ -318,13 +323,6 @@ const PurchaseList: React.FC = () => {
       } else {
         await createPurchase(payload);
         showSuccess('Purchase created successfully');
-        // Record purchase as a finance expense
-        recordPurchaseExpense({
-          amount: formData.total,
-          date: formData.date || new Date().toISOString().slice(0, 10),
-          reference: formData.reference,
-          description: `Purchase - ${formData.supplierName}`,
-        });
       }
 
       setShowAddModal(false);
@@ -488,7 +486,14 @@ const PurchaseList: React.FC = () => {
                         <label className="checkboxs"><input type="checkbox" checked={selectedIds.has(purchase.id)} onChange={e => handleSelectOne(purchase.id, e.target.checked)} /><span className="checkmarks"></span></label>
                       </td>
                       <td>{purchase.supplierName}</td>
-                      <td>{purchase.reference}</td>
+                      <td>
+                        {purchase.reference}
+                        {purchase.purchaseOrderId && (
+                          <Link to="/purchase-orders" className="badge bg-info-transparent text-info ms-1" title="Received against a purchase order - manage it from Purchase Orders">
+                            from {purchase.supplierRef || 'PO'}
+                          </Link>
+                        )}
+                      </td>
                       <td>{new Date(purchase.date).toLocaleDateString()}</td>
                       <td>{getStatusBadge(purchase.status)}</td>
                       <td>{fmt(purchase.total)}</td>
@@ -496,6 +501,9 @@ const PurchaseList: React.FC = () => {
                       <td>{fmt(purchase.total - purchase.paid)}</td>
                       <td>{getPaymentStatusBadge(purchase.paymentStatus)}</td>
                       <td className="text-center">
+                        {purchase.purchaseOrderId ? (
+                          <Link to="/purchase-orders" className="text-muted" title="Managed from Purchase Orders"><i className="ti ti-lock"></i></Link>
+                        ) : (<>
                         <a className="action-set" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                           <i className="fa fa-ellipsis-v" aria-hidden="true"></i>
                         </a>
@@ -511,6 +519,7 @@ const PurchaseList: React.FC = () => {
                             </a>
                           </li>
                         </ul>
+                        </>)}
                       </td>
                     </tr>
                   ))
@@ -660,7 +669,7 @@ const PurchaseList: React.FC = () => {
                             >
                               <span>{product.productName}</span>
                               <small className="text-muted">
-                                {product.sku ? `SKU: ${product.sku}` : ''} | Stock: {product.quantity} | ${product.price}
+                                {product.sku ? `SKU: ${product.sku}` : ''} | Stock: {product.quantity} | Rs {product.price}
                               </small>
                             </button>
                           ))}
@@ -748,12 +757,12 @@ const PurchaseList: React.FC = () => {
                         <tr key={index}>
                           <td>{item.productName}</td>
                           <td>{item.quantity}</td>
-                          <td>${item.purchasePrice.toFixed(2)}</td>
-                          <td>${item.discount.toFixed(2)}</td>
+                          <td>Rs {item.purchasePrice.toFixed(2)}</td>
+                          <td>Rs {item.discount.toFixed(2)}</td>
                           <td>{item.taxPercentage}%</td>
-                          <td>${item.taxAmount.toFixed(2)}</td>
-                          <td>${item.unitCost.toFixed(2)}</td>
-                          <td>${item.totalCost.toFixed(2)}</td>
+                          <td>Rs {item.taxAmount.toFixed(2)}</td>
+                          <td>Rs {item.unitCost.toFixed(2)}</td>
+                          <td>Rs {item.totalCost.toFixed(2)}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-danger"
@@ -844,7 +853,7 @@ const PurchaseList: React.FC = () => {
                 </div>
 
                 <div className="alert alert-info">
-                  <strong>{t('purchases.total_amount')}</strong> ${formData.total.toFixed(2)}
+                  <strong>{t('purchases.total_amount')}</strong> Rs {formData.total.toFixed(2)}
                 </div>
               </div>
               <div className="modal-footer">
@@ -968,7 +977,7 @@ const PurchaseList: React.FC = () => {
                             >
                               <span>{product.productName}</span>
                               <small className="text-muted">
-                                {product.sku ? `SKU: ${product.sku}` : ''} | Stock: {product.quantity} | ${product.price}
+                                {product.sku ? `SKU: ${product.sku}` : ''} | Stock: {product.quantity} | Rs {product.price}
                               </small>
                             </button>
                           ))}
@@ -1056,12 +1065,12 @@ const PurchaseList: React.FC = () => {
                         <tr key={index}>
                           <td>{item.productName}</td>
                           <td>{item.quantity}</td>
-                          <td>${item.purchasePrice.toFixed(2)}</td>
-                          <td>${item.discount.toFixed(2)}</td>
+                          <td>Rs {item.purchasePrice.toFixed(2)}</td>
+                          <td>Rs {item.discount.toFixed(2)}</td>
                           <td>{item.taxPercentage}%</td>
-                          <td>${item.taxAmount.toFixed(2)}</td>
-                          <td>${item.unitCost.toFixed(2)}</td>
-                          <td>${item.totalCost.toFixed(2)}</td>
+                          <td>Rs {item.taxAmount.toFixed(2)}</td>
+                          <td>Rs {item.unitCost.toFixed(2)}</td>
+                          <td>Rs {item.totalCost.toFixed(2)}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-danger"
@@ -1152,7 +1161,7 @@ const PurchaseList: React.FC = () => {
                 </div>
 
                 <div className="alert alert-info">
-                  <strong>{t('purchases.total_amount')}</strong> ${formData.total.toFixed(2)}
+                  <strong>{t('purchases.total_amount')}</strong> Rs {formData.total.toFixed(2)}
                 </div>
               </div>
               <div className="modal-footer">

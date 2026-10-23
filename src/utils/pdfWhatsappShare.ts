@@ -46,7 +46,7 @@ export async function isWhatsAppCloudConfigured(): Promise<boolean> {
  * Convert an image URL to a base64 data URL. Tries multiple strategies so
  * it works whether the backend has CORS headers or not.
  */
-async function urlToDataUrl(url: string): Promise<string | null> {
+export async function urlToDataUrl(url: string): Promise<string | null> {
   // Strategy 0: for our own backend media URLs, fetch the bytes through the API
   // (/api/media), which always carries the app's CORS policy. This is the most
   // reliable path in production where a reverse proxy/CDN may serve /uploads

@@ -66,7 +66,7 @@ const TrialBalance: React.FC = () => {
             <div className="table-responsive">
               <table className="table mb-0">
                 <thead className="thead-light">
-                  <tr><th>#</th><th>Account Name</th><th className="text-end">Debit ($)</th><th className="text-end">Credit ($)</th></tr>
+                  <tr><th>#</th><th>Account Name</th><th className="text-end">Debit (Rs)</th><th className="text-end">Credit (Rs)</th></tr>
                 </thead>
                 <tbody>
                   {data.items.map((item, idx) => (
@@ -97,13 +97,13 @@ const TrialBalance: React.FC = () => {
       {data && (
         <div className="row mt-3">
           <div className="col-md-4">
-            <div className="card border-primary"><div className="card-body text-center"><small className="text-muted">Total Debit</small><h4 className="fw-bold text-primary mb-0">${data.totalDebit.toFixed(2)}</h4></div></div>
+            <div className="card border-primary"><div className="card-body text-center"><small className="text-muted">Total Debit</small><h4 className="fw-bold text-primary mb-0">Rs {data.totalDebit.toFixed(2)}</h4></div></div>
           </div>
           <div className="col-md-4">
-            <div className="card border-success"><div className="card-body text-center"><small className="text-muted">Total Credit</small><h4 className="fw-bold text-success mb-0">${data.totalCredit.toFixed(2)}</h4></div></div>
+            <div className="card border-success"><div className="card-body text-center"><small className="text-muted">Total Credit</small><h4 className="fw-bold text-success mb-0">Rs {data.totalCredit.toFixed(2)}</h4></div></div>
           </div>
           <div className="col-md-4">
-            <div className={`card ${Math.abs(data.totalDebit - data.totalCredit) < 0.01 ? 'border-success' : 'border-danger'}`}><div className="card-body text-center"><small className="text-muted">Difference</small><h4 className={`fw-bold mb-0 ${Math.abs(data.totalDebit - data.totalCredit) < 0.01 ? 'text-success' : 'text-danger'}`}>${Math.abs(data.totalDebit - data.totalCredit).toFixed(2)}</h4>{Math.abs(data.totalDebit - data.totalCredit) < 0.01 && <span className="badge bg-success mt-1">Balanced</span>}</div></div>
+            <div className={`card ${Math.abs(data.totalDebit - data.totalCredit) < 0.01 ? 'border-success' : 'border-danger'}`}><div className="card-body text-center"><small className="text-muted">Difference</small><h4 className={`fw-bold mb-0 ${Math.abs(data.totalDebit - data.totalCredit) < 0.01 ? 'text-success' : 'text-danger'}`}>Rs {Math.abs(data.totalDebit - data.totalCredit).toFixed(2)}</h4>{Math.abs(data.totalDebit - data.totalCredit) < 0.01 && <span className="badge bg-success mt-1">Balanced</span>}</div></div>
           </div>
         </div>
       )}

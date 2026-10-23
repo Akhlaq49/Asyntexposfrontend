@@ -4,6 +4,7 @@ import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import { getSalesReport, SalesReportDto } from '../../services/reportService';
+import { mediaUrl } from '../../services/api';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
@@ -33,8 +34,12 @@ const SalesReport: React.FC = () => {
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
-  const cols = [t('common.sku'), t('common.product_name'), t('common.brand'), t('common.category'), t('reports.sold_qty'), t('reports.sold_amount'), t('reports.in_stock_qty')];
-  const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2), i.inStockQty]);
+  const cols = [t('common.sku'), t('common.product_name'), t('common.brand'), t('common.category'), t('reports.sold_qty'), t('reports.sold_amount')];
+  const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2)]);
+  // PDF gets an extra Image column with the product photos (Excel stays text-only)
+  const pdfCols = [t('common.image'), ...cols];
+  const pdfRows = rows.map(r => ['', ...r]);
+  const pdfImages = { index: 0, urls: filtered.map(i => (i.productImage ? mediaUrl(i.productImage) : '')) };
 
   return (
     <>
@@ -43,7 +48,7 @@ const SalesReport: React.FC = () => {
       {data && (
         <div className="row mb-3">
           {[
-            { label: t('reports.total_amount'), value: fmt(data.totalAmount), icon: 'ti-currency-dollar', color: 'primary' },
+            { label: t('reports.total_amount'), value: fmt(data.totalAmount), icon: 'ti-currency-rupee', color: 'primary' },
             { label: t('reports.total_paid'), value: fmt(data.totalPaid), icon: 'ti-check', color: 'success' },
             { label: t('reports.total_unpaid'), value: fmt(data.totalUnpaid), icon: 'ti-clock', color: 'warning' },
             { label: t('common.overdue'), value: fmt(data.overdue), icon: 'ti-alert-triangle', color: 'danger' },
@@ -68,21 +73,24 @@ const SalesReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2">
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'sales-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'sales-report', t('reports.sales_report'), [
+              onExportPDF={() => exportToPDF(pdfCols, pdfRows, 'sales-report', t('reports.sales_report'), [
                 { label: t('reports.total_amount'), value: fmt(data?.totalAmount ?? 0) }, { label: t('reports.total_paid'), value: fmt(data?.totalPaid ?? 0) },
-              ])} />
+              ], pdfImages)} />
           </div>
         </div>
         <div className="card-body">
           {loading ? <div className="text-center py-5"><div className="spinner-border text-primary"></div></div> : (
             <div className="table-responsive"><table className="table table-hover">
-              <thead><tr>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
+              <thead><tr><th>{t('common.image')}</th>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
               <tbody>
-                {paginatedData.length === 0 ? <tr><td colSpan={cols.length} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
+                {paginatedData.length === 0 ? <tr><td colSpan={cols.length + 1} className="text-center py-4">{t('reports.no_data_found')}</td></tr>
                   : paginatedData.map((item, idx) => (
                     <tr key={idx}>
+                      <td>{item.productImage
+                        ? <img src={mediaUrl(item.productImage)} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                        : <span className="d-inline-flex align-items-center justify-content-center bg-light text-muted rounded" style={{ width: 40, height: 40 }}><i className="ti ti-photo"></i></span>}</td>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.brand}</td><td>{item.category}</td>
-                      <td>{item.soldQty}</td><td>{item.soldAmount.toFixed(2)}</td><td>{item.inStockQty}</td>
+                      <td>{item.soldQty}</td><td>{item.soldAmount.toFixed(2)}</td>
                     </tr>
                   ))}
               </tbody>

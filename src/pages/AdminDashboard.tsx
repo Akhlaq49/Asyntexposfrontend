@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getPosDashboardData, PosDashboardData } from '../services/dashboardService';
+import { useAuth } from '../context/AuthContext';
 
 const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  // "SuperAdmin" -> "Super Admin"; custom role names are shown as-is
+  const roleLabel = (user?.role || '').replace(/([a-z])([A-Z])/g, '$1 $2');
   const [data, setData] = useState<PosDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,8 +59,7 @@ const AdminDashboard: React.FC = () => {
     <>
       <div className="d-lg-flex align-items-center justify-content-between mb-4">
         <div>
-          <h2 className="mb-1">{t('admin_dashboard.welcome')}</h2>
-          <p>{t('admin_dashboard.orders_today')}</p>
+          <h2 className="mb-1">{t('admin_dashboard.welcome', { role: roleLabel })}</h2>
         </div>
       </div>
 
@@ -73,7 +76,7 @@ const AdminDashboard: React.FC = () => {
               <div className="card-body d-flex align-items-center justify-content-between">
                 <div>
                   <p className="mb-2">{card.title}</p>
-                  <h2 className="mb-0">${card.value}</h2>
+                  <h2 className="mb-0">Rs {card.value}</h2>
                 </div>
                 <div className={`dash-widget-icon bg-${card.bg}-light`}>
                   <i className={`ti ${card.icon} fs-24`}></i>
@@ -94,8 +97,8 @@ const AdminDashboard: React.FC = () => {
         {[
           { label: t('admin_dashboard.total_customers'), value: fmtInt(data.totalCustomers), sub: `+${fmtInt(data.customersThisMonth)} ${t('common.this_month')}`, icon: 'ti-users', bg: 'info' },
           { label: t('admin_dashboard.total_products'), value: fmtInt(data.totalProducts), sub: `${fmtInt(data.lowStockProducts)} ${t('admin_dashboard.low_stock')}`, icon: 'ti-package', bg: 'secondary' },
-          { label: t('admin_dashboard.sales_this_month'), value: fmtInt(data.salesCountThisMonth), sub: `$${fmt(data.salesThisMonth)}`, icon: 'ti-chart-bar', bg: 'primary' },
-          { label: t('admin_dashboard.total_profit'), value: `$${fmt(data.totalProfit)}`, sub: `${t('admin_dashboard.due')}: $${fmt(data.totalSalesDue)}`, icon: 'ti-coin', bg: 'success' },
+          { label: t('admin_dashboard.sales_this_month'), value: fmtInt(data.salesCountThisMonth), sub: `Rs ${fmt(data.salesThisMonth)}`, icon: 'ti-chart-bar', bg: 'primary' },
+          { label: t('admin_dashboard.total_profit'), value: `Rs ${fmt(data.totalProfit)}`, sub: `${t('admin_dashboard.due')}: Rs ${fmt(data.totalSalesDue)}`, icon: 'ti-coin', bg: 'success' },
         ].map((s, i) => (
           <div key={i} className="col-xl-3 col-sm-6 d-flex">
             <div className="card w-100">
@@ -129,7 +132,7 @@ const AdminDashboard: React.FC = () => {
                   const sH = Math.round((m.sales / chartMax) * 200) || 2;
                   const pH = Math.round((m.purchases / chartMax) * 200) || 2;
                   return (
-                    <div key={m.month} className="text-center flex-fill" title={`${m.month}\nSales: $${fmt(m.sales)}\nPurchases: $${fmt(m.purchases)}`}>
+                    <div key={m.month} className="text-center flex-fill" title={`${m.month}\nSales: Rs ${fmt(m.sales)}\nPurchases: Rs ${fmt(m.purchases)}`}>
                       <div className="d-flex gap-1 justify-content-center align-items-end" style={{ height: 200 }}>
                         <div style={{ width: 12, height: sH, background: '#FE9F43', borderRadius: 3 }}></div>
                         <div style={{ width: 12, height: pH, background: '#28C76F', borderRadius: 3 }}></div>
@@ -166,7 +169,7 @@ const AdminDashboard: React.FC = () => {
                       <tr key={i}>
                         <td><h6 className="fs-14 fw-medium mb-0">{p.productName}</h6></td>
                         <td>{fmtInt(p.totalQty)}</td>
-                        <td className="fw-bold">${fmt(p.totalRevenue)}</td>
+                        <td className="fw-bold">Rs {fmt(p.totalRevenue)}</td>
                       </tr>
                     ))}
                     {data.bestSellers.length === 0 && (
@@ -199,7 +202,7 @@ const AdminDashboard: React.FC = () => {
                     <div key={i} className="mb-3">
                       <div className="d-flex justify-content-between mb-1">
                         <span>{e.category}</span>
-                        <span className="fw-bold">${fmt(e.total)}</span>
+                        <span className="fw-bold">Rs {fmt(e.total)}</span>
                       </div>
                       <div className="progress" style={{ height: 6 }}>
                         <div className={`progress-bar bg-${colors[i % colors.length]}`} style={{ width: `${pct}%` }}></div>
@@ -219,19 +222,19 @@ const AdminDashboard: React.FC = () => {
             <div className="card-body">
               <div className="row text-center">
                 <div className="col-3">
-                  <h4 className="text-primary mb-1">${fmt(data.salesThisMonth)}</h4>
+                  <h4 className="text-primary mb-1">Rs {fmt(data.salesThisMonth)}</h4>
                   <p className="text-muted mb-0">{t('admin_dashboard.sales')}</p>
                 </div>
                 <div className="col-3">
-                  <h4 className="text-success mb-1">${fmt(data.purchasesThisMonth)}</h4>
+                  <h4 className="text-success mb-1">Rs {fmt(data.purchasesThisMonth)}</h4>
                   <p className="text-muted mb-0">{t('admin_dashboard.purchase')}</p>
                 </div>
                 <div className="col-3">
-                  <h4 className="text-warning mb-1">${fmt(data.returnsThisMonth)}</h4>
+                  <h4 className="text-warning mb-1">Rs {fmt(data.returnsThisMonth)}</h4>
                   <p className="text-muted mb-0">{t('admin_dashboard.returns')}</p>
                 </div>
                 <div className="col-3">
-                  <h4 className="text-danger mb-1">${fmt(data.expensesThisMonth)}</h4>
+                  <h4 className="text-danger mb-1">Rs {fmt(data.expensesThisMonth)}</h4>
                   <p className="text-muted mb-0">{t('admin_dashboard.expenses')}</p>
                 </div>
               </div>
@@ -266,9 +269,9 @@ const AdminDashboard: React.FC = () => {
                   <tr key={o.id}>
                     <td><Link to={`/sales-detail/${o.id}`}>{o.reference}</Link></td>
                     <td>{o.customerName}</td>
-                    <td>${fmt(o.grandTotal)}</td>
-                    <td>${fmt(o.paid)}</td>
-                    <td>${fmt(o.due)}</td>
+                    <td>Rs {fmt(o.grandTotal)}</td>
+                    <td>Rs {fmt(o.paid)}</td>
+                    <td>Rs {fmt(o.due)}</td>
                     <td>{new Date(o.saleDate).toLocaleDateString()}</td>
                     <td>
                       <span className={`badge badge-xs bg-${statusColor[o.status] || 'secondary'}-light text-${statusColor[o.status] || 'secondary'}`}>

@@ -1,18 +1,15 @@
 import api from './api';
 
 export interface ProductPayload {
-  store: string;
-  warehouse: string;
   productName: string;
   slug: string;
   sku: string;
   sellingType: string;
   category: string;
-  subCategory: string;
   brand: string;
+  color?: string;
+  model?: string;
   unit: string;
-  barcodeSymbology: string;
-  itemBarcode: string;
   description: string;
   // Pricing & Stock
   productType: 'single' | 'variable';
@@ -20,22 +17,19 @@ export interface ProductPayload {
   price: number;
   taxType: string;
   tax: string;
+  /** JSON list of applied taxes (tax type + percent) */
+  taxesJson?: string;
   discountType: string;
   discountValue: number;
   quantityAlert: number;
   // Custom fields
   warranty: string;
-  manufacturer: string;
-  manufacturedDate: string;
-  expiryDate: string;
   // Images
   images: File[];
 }
 
 export interface ProductResponse {
   id: string;
-  store: string;
-  warehouse: string;
   productName: string;
   slug: string;
   sku: string;
@@ -43,6 +37,8 @@ export interface ProductResponse {
   category: string;
   subCategory: string;
   brand: string;
+  color?: string;
+  model?: string;
   unit: string;
   barcodeSymbology: string;
   itemBarcode: string;
@@ -52,6 +48,7 @@ export interface ProductResponse {
   price: number;
   taxType: string;
   tax: string;
+  taxes?: import('../components/common/TaxSelector').AppliedTax[];
   discountType: string;
   discountValue: number;
   quantityAlert: number;
@@ -154,4 +151,12 @@ export const getBrands = async (): Promise<DropdownOption[]> => {
 export const getUnits = async (): Promise<DropdownOption[]> => {
   const response = await api.get<DropdownOption[]>('/units');
   return response.data;
+};
+
+// Active warranties from the Warranties module (the product stores the warranty name)
+export const getWarranties = async (): Promise<DropdownOption[]> => {
+  const response = await api.get<{ name: string; durationDisplay: string; status: string }[]>('/warranties');
+  return response.data
+    .filter((w) => (w.status || '').toLowerCase() === 'active')
+    .map((w) => ({ value: w.name, label: w.durationDisplay ? `${w.name} (${w.durationDisplay})` : w.name }));
 };

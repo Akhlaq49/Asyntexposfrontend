@@ -115,7 +115,7 @@ const Income: React.FC = () => {
                       <td>{inc.store}</td>
                       <td>{inc.categoryName}</td>
                       <td>{inc.notes}</td>
-                      <td>${inc.amount.toFixed(2)}</td>
+                      <td>Rs {inc.amount.toFixed(2)}</td>
                       <td className="action-table-data"><div className="edit-delete-action">
                         <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditModal(inc); }}><i data-feather="edit" className="feather-edit"></i></a>
                         <a className="p-2" href="#" onClick={e => { e.preventDefault(); openDeleteModal(inc.id); }}><i data-feather="trash-2" className="feather-trash-2"></i></a>

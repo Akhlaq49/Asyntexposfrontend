@@ -76,7 +76,8 @@ const ProductList: React.FC = () => {
 
   const filtered = useMemo(() => products.filter((p) => {
     const q = searchTerm.toLowerCase();
-    const matchSearch = !searchTerm || p.productName.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
+    const matchSearch = !searchTerm || p.productName.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+      || (p.model || '').toLowerCase().includes(q) || (p.color || '').toLowerCase().includes(q);
     const matchCategory = !categoryFilter || p.category === categoryFilter;
     const matchBrand = !brandFilter || p.brand === brandFilter;
     return matchSearch && matchCategory && matchBrand;
@@ -169,6 +170,8 @@ const ProductList: React.FC = () => {
                     <th>{t('products.product_name')}</th>
                     <th>{t('products.category')}</th>
                     <th>{t('products.brand')}</th>
+                    <th>Model</th>
+                    <th>Color</th>
                     <th>{t('products.price')}</th>
                     <th>{t('products.unit')}</th>
                     <th>{t('products.qty')}</th>
@@ -177,7 +180,7 @@ const ProductList: React.FC = () => {
                 </thead>
                 <tbody>
                   {paginatedData.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-4 text-muted">{t('products.no_products')}</td></tr>
+                    <tr><td colSpan={11} className="text-center py-4 text-muted">{t('products.no_products')}</td></tr>
                   ) : (
                     paginatedData.map((p) => (
                       <tr key={p.id}>
@@ -197,6 +200,8 @@ const ProductList: React.FC = () => {
                         </td>
                         <td>{p.category}</td>
                         <td>{p.brand}</td>
+                        <td>{p.model || '-'}</td>
+                        <td>{p.color || '-'}</td>
                         <td>{fmt(p.price)}</td>
                         <td>{p.unit}</td>
                         <td>{p.quantity}</td>

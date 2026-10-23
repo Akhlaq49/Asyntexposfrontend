@@ -368,18 +368,13 @@ const CreateInstallment: React.FC = () => {
     try {
       const images: File[] = newProductImage ? [newProductImage] : [];
       const created = await createProduct({
-        store: '',
-        warehouse: '',
         productName: newProduct.productName,
         slug: newProduct.productName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         sku: newProduct.sku || ('PT' + Math.random().toString(36).substring(2, 8).toUpperCase()),
         sellingType: 'pos',
         category: '',
-        subCategory: '',
         brand: newProduct.brand,
         unit: '',
-        barcodeSymbology: '',
-        itemBarcode: '',
         description: '',
         productType: 'single',
         quantity: Number(newProduct.quantity) || 0,
@@ -390,9 +385,6 @@ const CreateInstallment: React.FC = () => {
         discountValue: 0,
         quantityAlert: 0,
         warranty: '',
-        manufacturer: '',
-        manufacturedDate: '',
-        expiryDate: '',
         images,
       });
       setProducts(prev => [created, ...prev]);

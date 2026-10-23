@@ -57,7 +57,7 @@ const DashboardRedirect: React.FC = () => {
     }
   }
 
-  // Nothing accessible at all — fall back to user dashboard hub
+  // Nothing accessible at all — fall back to the Accessibility hub
   return <Navigate to="/user-dashboard" replace />;
 };
 

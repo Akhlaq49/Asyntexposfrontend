@@ -225,7 +225,7 @@ const PlanPrintView: React.FC<PlanPrintViewProps> = ({ plan, onClose }) => {
                 <div className="plan-hdr" style={{ paddingBottom: 18, borderBottom: '3px solid #4a90d9', marginBottom: 24 }}>
                   <div className="plan-hdr-row">
                     <img src={headerCustomerImage} alt={plan.customerName} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = USER_PLACEHOLDER; } }} className="plan-cust-img" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '50%', border: '2px solid #4a90d9', background: '#f0f4f8' }} />
-                    <img src="/assets/img/newlogo.png" alt="Moiaz Corporation" className="plan-logo" style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
+                    <img src="/assets/img/newlogo-sidebar.png" alt="Moiaz Corporation" className="plan-logo" style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }} />
                     <div />
                   </div>
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#666', width: '100%' }}>

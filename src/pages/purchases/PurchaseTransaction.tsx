@@ -8,7 +8,6 @@ import {
   PurchaseItem,
 } from '../../services/purchaseService';
 import { getProducts, ProductResponse } from '../../services/productService';
-import { recordPurchaseExpense } from '../../services/financeService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 
@@ -268,13 +267,6 @@ const PurchaseTransaction: React.FC = () => {
       } else {
         await createPurchase(payload);
         showSuccess('Purchase created successfully');
-        // Record purchase as a finance expense
-        recordPurchaseExpense({
-          amount: formData.total,
-          date: formData.date || new Date().toISOString().slice(0, 10),
-          reference: formData.reference,
-          description: `Purchase - ${formData.supplierName}`,
-        });
       }
       setShowAddModal(false);
       setShowEditModal(false);
@@ -367,7 +359,7 @@ const PurchaseTransaction: React.FC = () => {
                 >
                   <span>{product.productName}</span>
                   <small className="text-muted">
-                    {product.sku ? `SKU: ${product.sku}` : ''} | Stock: {product.quantity} | ${product.price}
+                    {product.sku ? `SKU: ${product.sku}` : ''} | Stock: {product.quantity} | Rs {product.price}
                   </small>
                 </button>
               ))}
@@ -391,11 +383,11 @@ const PurchaseTransaction: React.FC = () => {
           onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-2">
-        <input type="number" className="form-control" placeholder="Price($)" value={newItem.purchasePrice || ''}
+        <input type="number" className="form-control" placeholder="Price(Rs)" value={newItem.purchasePrice || ''}
           onChange={(e) => setNewItem({ ...newItem, purchasePrice: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-2">
-        <input type="number" className="form-control" placeholder="Discount($)" value={newItem.discount || ''}
+        <input type="number" className="form-control" placeholder="Discount(Rs)" value={newItem.discount || ''}
           onChange={(e) => setNewItem({ ...newItem, discount: parseFloat(e.target.value) || 0 })} />
       </div>
       <div className="col-lg-2">
@@ -419,12 +411,12 @@ const PurchaseTransaction: React.FC = () => {
             <tr>
               <th className="bg-secondary-transparent p-3">Product</th>
               <th className="bg-secondary-transparent p-3">Qty</th>
-              <th className="bg-secondary-transparent p-3">Purchase Price($)</th>
-              <th className="bg-secondary-transparent p-3">Discount($)</th>
+              <th className="bg-secondary-transparent p-3">Purchase Price(Rs)</th>
+              <th className="bg-secondary-transparent p-3">Discount(Rs)</th>
               <th className="bg-secondary-transparent p-3">Tax(%)</th>
-              <th className="bg-secondary-transparent p-3">Tax Amount($)</th>
-              <th className="bg-secondary-transparent p-3">Unit Cost($)</th>
-              <th className="bg-secondary-transparent p-3">Total Cost($)</th>
+              <th className="bg-secondary-transparent p-3">Tax Amount(Rs)</th>
+              <th className="bg-secondary-transparent p-3">Unit Cost(Rs)</th>
+              <th className="bg-secondary-transparent p-3">Total Cost(Rs)</th>
               <th className="bg-secondary-transparent p-3">Action</th>
             </tr>
           </thead>
@@ -434,12 +426,12 @@ const PurchaseTransaction: React.FC = () => {
                 <tr key={index}>
                   <td>{item.productName}</td>
                   <td>{item.quantity}</td>
-                  <td>${item.purchasePrice.toFixed(2)}</td>
-                  <td>${item.discount.toFixed(2)}</td>
+                  <td>Rs {item.purchasePrice.toFixed(2)}</td>
+                  <td>Rs {item.discount.toFixed(2)}</td>
                   <td>{item.taxPercentage}%</td>
-                  <td>${item.taxAmount.toFixed(2)}</td>
-                  <td>${item.unitCost.toFixed(2)}</td>
-                  <td>${item.totalCost.toFixed(2)}</td>
+                  <td>Rs {item.taxAmount.toFixed(2)}</td>
+                  <td>Rs {item.unitCost.toFixed(2)}</td>
+                  <td>Rs {item.totalCost.toFixed(2)}</td>
                   <td>
                     <button className="btn btn-sm btn-danger" onClick={() => removeLineItem(index)}>
                       <i className="ti ti-trash"></i>
@@ -502,19 +494,19 @@ const PurchaseTransaction: React.FC = () => {
             <ul className="border-1 rounded-1 list-unstyled">
               <li className="border-0 border-bottom d-flex justify-content-between p-2">
                 <h6>Order Tax</h6>
-                <span>$ {formData.orderTax.toFixed(2)}</span>
+                <span>Rs {formData.orderTax.toFixed(2)}</span>
               </li>
               <li className="border-0 border-bottom d-flex justify-content-between p-2">
                 <h6>Discount</h6>
-                <span>$ {formData.discount.toFixed(2)}</span>
+                <span>Rs {formData.discount.toFixed(2)}</span>
               </li>
               <li className="border-0 border-bottom d-flex justify-content-between p-2">
                 <h6>Shipping</h6>
-                <span>$ {formData.shipping.toFixed(2)}</span>
+                <span>Rs {formData.shipping.toFixed(2)}</span>
               </li>
               <li className="border-0 d-flex justify-content-between p-2">
                 <h6 className="fw-bold">Grand Total</h6>
-                <span className="fw-bold">${formData.total.toFixed(2)}</span>
+                <span className="fw-bold">Rs {formData.total.toFixed(2)}</span>
               </li>
             </ul>
           </div>
@@ -624,9 +616,9 @@ const PurchaseTransaction: React.FC = () => {
                         <td>{purchase.reference}</td>
                         <td>{new Date(purchase.date).toLocaleDateString()}</td>
                         <td>{getStatusBadge(purchase.status)}</td>
-                        <td>${purchase.total.toFixed(2)}</td>
-                        <td>${purchase.paid.toFixed(2)}</td>
-                        <td>${(purchase.total - purchase.paid).toFixed(2)}</td>
+                        <td>Rs {purchase.total.toFixed(2)}</td>
+                        <td>Rs {purchase.paid.toFixed(2)}</td>
+                        <td>Rs {(purchase.total - purchase.paid).toFixed(2)}</td>
                         <td>{getPaymentStatusBadge(purchase.paymentStatus)}</td>
                         <td className="action-table-data">
                           <div className="edit-delete-action">

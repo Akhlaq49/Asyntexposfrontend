@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
+// Same logo and size as the sidebar (cropped image, 102px tall); the template caps .login-logo at 150px wide
+const loginLogoBox: React.CSSProperties = { maxWidth: 'none', textAlign: 'center' };
+const loginLogoImg: React.CSSProperties = { height: 102, width: 'auto', maxWidth: '100%', objectFit: 'contain' };
+
 const SignIn: React.FC = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
@@ -40,11 +44,11 @@ const SignIn: React.FC = () => {
             <div className="login-content">
               <form onSubmit={handleSubmit}>
                 <div className="login-userset">
-                  <div className="login-logo logo-normal">
-                    <img src="/assets/img/newlogo.png" alt="img" />
+                  <div className="login-logo logo-normal" style={loginLogoBox}>
+                    <img src="/assets/img/newlogo-sidebar.png" alt="Logo" style={loginLogoImg} />
                   </div>
-                  <Link to="/" className="login-logo logo-white">
-                    <img src="/assets/img/newlogo.png" alt="Img" />
+                  <Link to="/" className="login-logo logo-white" style={loginLogoBox}>
+                    <img src="/assets/img/newlogo-sidebar.png" alt="Logo" style={loginLogoImg} />
                   </Link>
                   <div className="login-userheading">
                     <h3>{t('auth.sign_in')}</h3>

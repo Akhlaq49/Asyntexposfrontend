@@ -28,6 +28,8 @@ export interface Purchase {
   paid: number;
   due: number;
   notes?: string;
+  /** set when created by receiving a purchase order (read-only here) */
+  purchaseOrderId?: number | null;
   items?: PurchaseItem[];
   createdAt: string;
   updatedAt: string;

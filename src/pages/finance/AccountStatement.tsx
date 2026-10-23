@@ -80,9 +80,9 @@ const AccountStatement: React.FC = () => {
                     <th>Date</th>
                     <th>Category</th>
                     <th>Description</th>
-                    <th className="text-end">Amount ($)</th>
+                    <th className="text-end">Amount (Rs)</th>
                     <th>Type</th>
-                    <th className="text-end">Balance ($)</th>
+                    <th className="text-end">Balance (Rs)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -94,14 +94,14 @@ const AccountStatement: React.FC = () => {
                       <td>{entry.category}</td>
                       <td>{entry.description}</td>
                       <td className={`text-end fw-medium ${entry.transactionType === 'Credit' ? 'text-success' : 'text-danger'}`}>
-                        {entry.transactionType === 'Credit' ? '+' : '-'}${entry.amount.toFixed(2)}
+                        {entry.transactionType === 'Credit' ? '+' : '-'}Rs {entry.amount.toFixed(2)}
                       </td>
                       <td>
                         <span className={`badge fs-10 ${entry.transactionType === 'Credit' ? 'bg-success' : 'bg-danger'}`}>
                           {entry.transactionType}
                         </span>
                       </td>
-                      <td className="text-end fw-medium">${entry.balance.toFixed(2)}</td>
+                      <td className="text-end fw-medium">Rs {entry.balance.toFixed(2)}</td>
                     </tr>
                   ))}
                   {data.entries.length === 0 && (
@@ -112,7 +112,7 @@ const AccountStatement: React.FC = () => {
                   <tfoot className="table-dark">
                     <tr>
                       <th colSpan={7}>Closing Balance</th>
-                      <th className="text-end">${data.closingBalance.toFixed(2)}</th>
+                      <th className="text-end">Rs {data.closingBalance.toFixed(2)}</th>
                     </tr>
                   </tfoot>
                 )}
@@ -128,16 +128,16 @@ const AccountStatement: React.FC = () => {
       {data && data.entries.length > 0 && (
         <div className="row mt-3">
           <div className="col-md-3">
-            <div className="card border-success"><div className="card-body text-center"><small className="text-muted">Total Credits</small><h5 className="fw-bold text-success mb-0">${data.entries.filter(e => e.transactionType === 'Credit').reduce((s, e) => s + e.amount, 0).toFixed(2)}</h5></div></div>
+            <div className="card border-success"><div className="card-body text-center"><small className="text-muted">Total Credits</small><h5 className="fw-bold text-success mb-0">Rs {data.entries.filter(e => e.transactionType === 'Credit').reduce((s, e) => s + e.amount, 0).toFixed(2)}</h5></div></div>
           </div>
           <div className="col-md-3">
-            <div className="card border-danger"><div className="card-body text-center"><small className="text-muted">Total Debits</small><h5 className="fw-bold text-danger mb-0">${data.entries.filter(e => e.transactionType === 'Debit').reduce((s, e) => s + e.amount, 0).toFixed(2)}</h5></div></div>
+            <div className="card border-danger"><div className="card-body text-center"><small className="text-muted">Total Debits</small><h5 className="fw-bold text-danger mb-0">Rs {data.entries.filter(e => e.transactionType === 'Debit').reduce((s, e) => s + e.amount, 0).toFixed(2)}</h5></div></div>
           </div>
           <div className="col-md-3">
             <div className="card border-primary"><div className="card-body text-center"><small className="text-muted">Total Transactions</small><h5 className="fw-bold text-primary mb-0">{data.entries.length}</h5></div></div>
           </div>
           <div className="col-md-3">
-            <div className="card border-info"><div className="card-body text-center"><small className="text-muted">Closing Balance</small><h5 className="fw-bold text-info mb-0">${data.closingBalance.toFixed(2)}</h5></div></div>
+            <div className="card border-info"><div className="card-body text-center"><small className="text-muted">Closing Balance</small><h5 className="fw-bold text-info mb-0">Rs {data.closingBalance.toFixed(2)}</h5></div></div>
           </div>
         </div>
       )}

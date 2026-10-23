@@ -30,8 +30,8 @@ const BestSeller: React.FC = () => {
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
 
-  const cols = [t('reports.sku'), t('reports.product_name'), t('reports.brand'), t('reports.category'), t('reports.sold_qty'), t('reports.sold_amount'), t('reports.in_stock_qty')];
-  const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2), i.inStockQty]);
+  const cols = [t('reports.sku'), t('reports.product_name'), t('reports.brand'), t('reports.category'), t('reports.sold_qty'), t('reports.sold_amount')];
+  const rows = filtered.map(i => [i.sku, i.productName, i.brand, i.category, i.soldQty, i.soldAmount.toFixed(2)]);
 
   return (
     <>
@@ -58,7 +58,7 @@ const BestSeller: React.FC = () => {
                   : paginatedData.map((item, idx) => (
                     <tr key={idx}>
                       <td>{item.sku}</td><td>{item.productName}</td><td>{item.brand}</td><td>{item.category}</td>
-                      <td>{item.soldQty}</td><td>{item.soldAmount.toFixed(2)}</td><td>{item.inStockQty}</td>
+                      <td>{item.soldQty}</td><td>{item.soldAmount.toFixed(2)}</td>
                     </tr>
                   ))}
               </tbody>

@@ -7,10 +7,10 @@
 // -----------------------------------------------------------------------------
 
 // --- Local .NET backend ---
- //export const BACKEND_URL = 'http://localhost:5193';
+ //export const BACKEND_URL = 'http://localhost:5194'; // SmartinnPos backend copy (Asyntexback/SmartinnPos)
 
 // --- Live / production backend ---
-export const BACKEND_URL = 'https://apis.asyntexconsultancy.com';
+export const BACKEND_URL = 'https://OneTouchAutomationbackend.asyntexconsultancy.com';
 
 // Derived URLs — do not edit.
 export const API_BASE_URL = `${BACKEND_URL.replace(/\/+$/, '')}/api`;

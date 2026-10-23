@@ -4,14 +4,12 @@ import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 
 /* ---------- Types ---------- */
-interface DropdownOption { value: string; label: string; }
 
 interface StockEntryDto {
   id: number;
-  warehouse: string;
-  store: string;
   productId: number;
   productName: string;
   productImage: string;
@@ -26,6 +24,7 @@ interface ProductResult {
   id: string;
   productName: string;
   sku: string;
+  quantity: number;
   category: string;
   images: string[];
   price: number;
@@ -34,18 +33,17 @@ interface ProductResult {
 /* ---------- ManageStocks ---------- */
 const ManageStocks: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [formError, setFormError] = useState('');
+  const [editPerson, setEditPerson] = useState('');
   const [entries, setEntries] = useState<StockEntryDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   /* lookups */
-  const [warehouses, setWarehouses] = useState<DropdownOption[]>([]);
-  const [stores, setStores] = useState<DropdownOption[]>([]);
   const [products, setProducts] = useState<ProductResult[]>([]);
 
   /* filters */
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterWarehouse, setFilterWarehouse] = useState('');
-  const [filterStore, setFilterStore] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
 
   /* select all */
@@ -54,7 +52,7 @@ const ManageStocks: React.FC = () => {
 
   /* add modal */
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addForm, setAddForm] = useState({ warehouse: '', store: '', person: '', productId: 0, quantity: 1 });
+  const [addForm, setAddForm] = useState<{ productId: number; quantity: number | '' }>({ productId: 0, quantity: '' });
   const [addSearchTerm, setAddSearchTerm] = useState('');
   const [addShowDropdown, setAddShowDropdown] = useState(false);
   const [addSelectedProduct, setAddSelectedProduct] = useState<ProductResult | null>(null);
@@ -62,7 +60,7 @@ const ManageStocks: React.FC = () => {
 
   /* edit modal */
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ id: 0, warehouse: '', store: '', person: '', productId: 0, quantity: 1 });
+  const [editForm, setEditForm] = useState<{ id: number; productId: number; quantity: number | '' }>({ id: 0, productId: 0, quantity: '' });
   const [editSearchTerm, setEditSearchTerm] = useState('');
   const [editShowDropdown, setEditShowDropdown] = useState(false);
   const [editSelectedProduct, setEditSelectedProduct] = useState<ProductResult | null>(null);
@@ -73,22 +71,23 @@ const ManageStocks: React.FC = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   /* ---- Fetch ---- */
+  // Products are loaded on their own so a failing stock-entries call can't leave the product search empty
+  const loadProducts = useCallback(async () => {
+    try {
+      const res = await api.get<ProductResult[]>('/products');
+      setProducts(res.data);
+    } catch { /* keep the previous list */ }
+  }, []);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eRes, wRes, sRes, pRes] = await Promise.all([
-        api.get<StockEntryDto[]>('/stock-entries'),
-        api.get<DropdownOption[]>('/warehouses'),
-        api.get<DropdownOption[]>('/stores'),
-        api.get<ProductResult[]>('/products'),
-      ]);
-      setEntries(eRes.data);
-      setWarehouses(wRes.data);
-      setStores(sRes.data);
-      setProducts(pRes.data);
+      const res = await api.get<StockEntryDto[]>('/stock-entries');
+      setEntries(res.data);
     } catch { /* ignore */ }
+    await loadProducts();
     setLoading(false);
-  }, []);
+  }, [loadProducts]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -110,16 +109,23 @@ const ManageStocks: React.FC = () => {
   const filtered = entries.filter((e) => {
     const matchSearch = !searchTerm ||
       e.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.person.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.warehouse.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.store.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchWarehouse = !filterWarehouse || e.warehouse === filterWarehouse;
-    const matchStore = !filterStore || e.store === filterStore;
+      e.person.toLowerCase().includes(searchTerm.toLowerCase());
     const matchProduct = !filterProduct || e.productName === filterProduct;
-    return matchSearch && matchWarehouse && matchStore && matchProduct;
+    return matchSearch && matchProduct;
   });
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
+
+  /* Products matching the page search that have no stock entry shown above */
+  const matchingProducts = (() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return [];
+    const shown = new Set(filtered.map((e) => String(e.productId)));
+    return products
+      .filter((p) => !shown.has(String(p.id)) &&
+        (p.productName.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)))
+      .slice(0, 10);
+  })();
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => {
@@ -141,21 +147,36 @@ const ManageStocks: React.FC = () => {
       : [];
 
   /* ---- Add ---- */
-  const resetAdd = () => { setAddForm({ warehouse: '', store: '', person: '', productId: 0, quantity: 1 }); setAddSearchTerm(''); setAddSelectedProduct(null); };
+  const resetAdd = () => { setAddForm({ productId: 0, quantity: '' }); setFormError(''); setAddSearchTerm(''); setAddSelectedProduct(null); };
+  const openAddForProduct = (p: ProductResult) => {
+    resetAdd();
+    loadProducts();
+    setAddSelectedProduct(p);
+    setAddForm((prev) => ({ ...prev, productId: parseInt(p.id) }));
+    setAddSearchTerm(p.productName);
+    setShowAddModal(true);
+  };
+
+  const validQty = (q: number | '') => typeof q === 'number' && q >= 1;
 
   const handleAddSave = async () => {
-    if (!addForm.warehouse || !addForm.store || !addForm.productId) return;
+    if (!addForm.productId || !validQty(addForm.quantity)) { setFormError(t('stocks.qty_required')); return; }
     try {
-      await api.post('/stock-entries', addForm);
+      await api.post('/stock-entries', { productId: addForm.productId, quantity: addForm.quantity });
       await fetchData();
-    } catch { /* ignore */ }
-    setShowAddModal(false);
-    resetAdd();
+      setShowAddModal(false);
+      resetAdd();
+    } catch (err: any) {
+      setFormError(err?.response?.data?.message || 'Something went wrong');
+    }
   };
 
   /* ---- Edit ---- */
   const openEditModal = (entry: StockEntryDto) => {
-    setEditForm({ id: entry.id, warehouse: entry.warehouse, store: entry.store, person: entry.person, productId: entry.productId, quantity: entry.quantity });
+    loadProducts();
+    setEditForm({ id: entry.id, productId: entry.productId, quantity: entry.quantity });
+    setEditPerson(entry.person);
+    setFormError('');
     setEditSearchTerm(entry.productName);
     const prod = products.find((p) => parseInt(p.id) === entry.productId) || null;
     setEditSelectedProduct(prod);
@@ -163,18 +184,14 @@ const ManageStocks: React.FC = () => {
   };
 
   const handleEditSave = async () => {
-    if (!editForm.warehouse || !editForm.store || !editForm.productId) return;
+    if (!editForm.productId || !validQty(editForm.quantity)) { setFormError(t('stocks.qty_required')); return; }
     try {
-      await api.put(`/stock-entries/${editForm.id}`, {
-        warehouse: editForm.warehouse,
-        store: editForm.store,
-        person: editForm.person,
-        productId: editForm.productId,
-        quantity: editForm.quantity,
-      });
+      await api.put(`/stock-entries/${editForm.id}`, { productId: editForm.productId, quantity: editForm.quantity });
       await fetchData();
-    } catch { /* ignore */ }
-    setShowEditModal(false);
+      setShowEditModal(false);
+    } catch (err: any) {
+      setFormError(err?.response?.data?.message || 'Something went wrong');
+    }
   };
 
   /* ---- Delete ---- */
@@ -187,8 +204,6 @@ const ManageStocks: React.FC = () => {
   };
 
   /* ---- Unique values for filters ---- */
-  const uniqueWarehouses = [...new Set(entries.map((e) => e.warehouse))];
-  const uniqueStores = [...new Set(entries.map((e) => e.store))];
   const uniqueProducts = [...new Set(entries.map((e) => e.productName))];
 
   /* ---- Product search modal form ---- */
@@ -231,6 +246,11 @@ const ManageStocks: React.FC = () => {
             </ul>
           </div>
         )}
+        {showDd && term.trim().length > 0 && searchProducts(term).length === 0 && (
+          <div className="dropdown-menu search-dropdown w-100 h-auto rounded-1 mt-2 show" style={{ display: 'block', position: 'absolute', zIndex: 1050 }}>
+            <p className="text-muted fs-14 mb-0 px-2 py-1">{t('common.no_results')}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -252,7 +272,7 @@ const ManageStocks: React.FC = () => {
           <li><a href="#" data-bs-placement="top" title={t('common.collapse')} onClick={(e) => e.preventDefault()}><i className="ti ti-chevron-up"></i></a></li>
         </ul>
         <div className="page-btn">
-          <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); setShowAddModal(true); }}>
+          <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); resetAdd(); loadProducts(); setShowAddModal(true); }}>
             <i className="ti ti-circle-plus me-1"></i>{t('stocks.add_stock')}
           </a>
         </div>
@@ -268,30 +288,6 @@ const ManageStocks: React.FC = () => {
             </div>
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-            {/* Warehouse filter */}
-            <div className="dropdown me-2">
-              <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterWarehouse || t('stocks.warehouse')}
-              </a>
-              <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(''); }}>{t('common.all')}</a></li>
-                {uniqueWarehouses.map((w) => (
-                  <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterWarehouse(w); }}>{w}</a></li>
-                ))}
-              </ul>
-            </div>
-            {/* Store filter */}
-            <div className="dropdown me-2">
-              <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-                {filterStore || t('stocks.store')}
-              </a>
-              <ul className="dropdown-menu dropdown-menu-end p-3">
-                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(''); }}>{t('common.all')}</a></li>
-                {uniqueStores.map((s) => (
-                  <li key={s}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setFilterStore(s); }}>{s}</a></li>
-                ))}
-              </ul>
-            </div>
             {/* Product filter */}
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
@@ -322,8 +318,6 @@ const ManageStocks: React.FC = () => {
                         <span className="checkmarks"></span>
                       </label>
                     </th>
-                    <th>{t('stocks.warehouse')}</th>
-                    <th>{t('stocks.store')}</th>
                     <th>{t('stocks.product')}</th>
                     <th>{t('stocks.date')}</th>
                     <th>{t('stocks.person')}</th>
@@ -340,8 +334,6 @@ const ManageStocks: React.FC = () => {
                           <span className="checkmarks"></span>
                         </label>
                       </td>
-                      <td>{entry.warehouse}</td>
-                      <td>{entry.store}</td>
                       <td>
                         <div className="d-flex align-items-center">
                           <span className="avatar avatar-md me-2">
@@ -367,6 +359,29 @@ const ManageStocks: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              {matchingProducts.length > 0 && (
+                <div className="p-3 border-top">
+                  <h6 className="mb-2">{t('stocks.matching_products')}</h6>
+                  <ul className="list-unstyled mb-0">
+                    {matchingProducts.map((p) => (
+                      <li key={p.id} className="d-flex align-items-center justify-content-between border rounded p-2 mb-2">
+                        <div className="d-flex align-items-center">
+                          <span className="avatar avatar-md me-2">
+                            <img src={mediaUrl(p.images?.[0])} alt="product" />
+                          </span>
+                          <div>
+                            <div className="fw-medium">{p.productName}</div>
+                            <small className="text-muted">{p.sku} · {t('stocks.current_stock')}: {p.quantity}</small>
+                          </div>
+                        </div>
+                        <a href="#" className="btn btn-sm btn-primary" onClick={(e) => { e.preventDefault(); openAddForProduct(p); }}>
+                          <i className="ti ti-circle-plus me-1"></i>{t('stocks.add_stock')}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -385,30 +400,6 @@ const ManageStocks: React.FC = () => {
               </div>
               <div className="modal-body">
                 <div className="row">
-                  <div className="col-lg-12">
-                    <div className="mb-3">
-                      <label className="form-label">{t('stocks.warehouse')}<span className="text-danger ms-1">*</span></label>
-                      <select className="form-select" value={addForm.warehouse} onChange={(e) => setAddForm((p) => ({ ...p, warehouse: e.target.value }))}>
-                        <option value="">{t('common.select')}</option>
-                        {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col-lg-12">
-                    <div className="mb-3">
-                      <label className="form-label">{t('stocks.store')}<span className="text-danger ms-1">*</span></label>
-                      <select className="form-select" value={addForm.store} onChange={(e) => setAddForm((p) => ({ ...p, store: e.target.value }))}>
-                        <option value="">{t('common.select')}</option>
-                        {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col-lg-12">
-                    <div className="mb-3">
-                      <label className="form-label">{t('stocks.responsible_person')}<span className="text-danger ms-1">*</span></label>
-                      <input type="text" className="form-control" value={addForm.person} onChange={(e) => setAddForm((p) => ({ ...p, person: e.target.value }))} placeholder={t('stocks.enter_person')} />
-                    </div>
-                  </div>
                   {renderProductSearch(
                     addSearchTerm,
                     setAddSearchTerm,
@@ -422,6 +413,24 @@ const ManageStocks: React.FC = () => {
                     },
                     t('stocks.product')
                   )}
+                  <div className="col-lg-12">
+                    <div className="mt-3 mb-3">
+                      <label className="form-label">{t('stocks.quantity_units')}<span className="text-danger ms-1">*</span></label>
+                      <input
+                        type="number"
+                        min={1}
+                        step={1}
+                        className="form-control"
+                        placeholder="e.g. 50"
+                        value={addForm.quantity}
+                        onChange={(e) => { const v = e.target.value; setAddForm((p) => ({ ...p, quantity: v === '' ? '' : Math.max(0, Math.floor(Number(v))) })); setFormError(''); }}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-12">
+                    <small className="text-muted">{t('stocks.added_by')}: <strong>{user?.fullName || '-'}</strong></small>
+                    {formError && <div className="alert alert-danger py-2 mt-2 mb-0">{formError}</div>}
+                  </div>
                 </div>
 
                 {/* Selected product preview */}
@@ -451,20 +460,11 @@ const ManageStocks: React.FC = () => {
                             <td>{addSelectedProduct.sku}</td>
                             <td>{addSelectedProduct.category}</td>
                             <td>
-                              <div className="product-quantity bg-gray-transparent border-0">
-                                <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setAddForm((p) => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}>
-                                  <i data-feather="minus-circle" className="feather-search"></i>
-                                </span>
-                                <input type="text" className="quntity-input bg-transparent" value={addForm.quantity}
-                                  onChange={(e) => setAddForm((p) => ({ ...p, quantity: Math.max(1, parseInt(e.target.value) || 1) }))} />
-                                <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setAddForm((p) => ({ ...p, quantity: p.quantity + 1 }))}>
-                                  <i data-feather="plus-circle" className="plus-circle"></i>
-                                </span>
-                              </div>
+                              {addForm.quantity || 0}
                             </td>
                             <td>
                               <div className="d-flex align-items-center edit-delete-action">
-                                <a className="d-flex align-items-center border rounded p-2" href="#" onClick={(e) => { e.preventDefault(); setAddSelectedProduct(null); setAddSearchTerm(''); setAddForm((p) => ({ ...p, productId: 0, quantity: 1 })); }}>
+                                <a className="d-flex align-items-center border rounded p-2" href="#" onClick={(e) => { e.preventDefault(); setAddSelectedProduct(null); setAddSearchTerm(''); setAddForm((p) => ({ ...p, productId: 0, quantity: '' })); }}>
                                   <i data-feather="trash-2" className="feather-trash-2"></i>
                                 </a>
                               </div>
@@ -498,30 +498,6 @@ const ManageStocks: React.FC = () => {
               </div>
               <div className="modal-body">
                 <div className="row">
-                  <div className="col-lg-12">
-                    <div className="mb-3">
-                      <label className="form-label">{t('stocks.warehouse')}<span className="text-danger ms-1">*</span></label>
-                      <select className="form-select" value={editForm.warehouse} onChange={(e) => setEditForm((p) => ({ ...p, warehouse: e.target.value }))}>
-                        <option value="">{t('common.select')}</option>
-                        {warehouses.map((w) => <option key={w.value} value={w.label}>{w.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col-lg-12">
-                    <div className="mb-3">
-                      <label className="form-label">{t('stocks.store')}<span className="text-danger ms-1">*</span></label>
-                      <select className="form-select" value={editForm.store} onChange={(e) => setEditForm((p) => ({ ...p, store: e.target.value }))}>
-                        <option value="">{t('common.select')}</option>
-                        {stores.map((s) => <option key={s.value} value={s.label}>{s.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col-lg-12">
-                    <div className="mb-3">
-                      <label className="form-label">{t('stocks.responsible_person')}<span className="text-danger ms-1">*</span></label>
-                      <input type="text" className="form-control" value={editForm.person} onChange={(e) => setEditForm((p) => ({ ...p, person: e.target.value }))} placeholder={t('stocks.enter_person')} />
-                    </div>
-                  </div>
                   {renderProductSearch(
                     editSearchTerm,
                     setEditSearchTerm,
@@ -535,6 +511,24 @@ const ManageStocks: React.FC = () => {
                     },
                     t('stocks.product')
                   )}
+                  <div className="col-lg-12">
+                    <div className="mt-3 mb-3">
+                      <label className="form-label">{t('stocks.quantity_units')}<span className="text-danger ms-1">*</span></label>
+                      <input
+                        type="number"
+                        min={1}
+                        step={1}
+                        className="form-control"
+                        placeholder="e.g. 50"
+                        value={editForm.quantity}
+                        onChange={(e) => { const v = e.target.value; setEditForm((p) => ({ ...p, quantity: v === '' ? '' : Math.max(0, Math.floor(Number(v))) })); setFormError(''); }}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-12">
+                    <small className="text-muted">{t('stocks.added_by')}: <strong>{editPerson || '-'}</strong></small>
+                    {formError && <div className="alert alert-danger py-2 mt-2 mb-0">{formError}</div>}
+                  </div>
                 </div>
 
                 {/* Selected product preview */}
@@ -564,20 +558,11 @@ const ManageStocks: React.FC = () => {
                             <td>{editSelectedProduct.sku}</td>
                             <td>{editSelectedProduct.category}</td>
                             <td>
-                              <div className="product-quantity bg-gray-transparent border-0">
-                                <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setEditForm((p) => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}>
-                                  <i data-feather="minus-circle" className="feather-search"></i>
-                                </span>
-                                <input type="text" className="quntity-input bg-transparent" value={editForm.quantity}
-                                  onChange={(e) => setEditForm((p) => ({ ...p, quantity: Math.max(1, parseInt(e.target.value) || 1) }))} />
-                                <span className="quantity-btn" style={{ cursor: 'pointer' }} onClick={() => setEditForm((p) => ({ ...p, quantity: p.quantity + 1 }))}>
-                                  <i data-feather="plus-circle" className="plus-circle"></i>
-                                </span>
-                              </div>
+                              {editForm.quantity || 0}
                             </td>
                             <td>
                               <div className="d-flex align-items-center edit-delete-action">
-                                <a className="d-flex align-items-center border rounded p-2" href="#" onClick={(e) => { e.preventDefault(); setEditSelectedProduct(null); setEditSearchTerm(''); setEditForm((p) => ({ ...p, productId: 0, quantity: 1 })); }}>
+                                <a className="d-flex align-items-center border rounded p-2" href="#" onClick={(e) => { e.preventDefault(); setEditSelectedProduct(null); setEditSearchTerm(''); setEditForm((p) => ({ ...p, productId: 0, quantity: '' })); }}>
                                   <i data-feather="trash-2" className="feather-trash-2"></i>
                                 </a>
                               </div>

@@ -111,7 +111,7 @@ const MiscBalanceManagement: React.FC = () => {
     }
   };
 
-  const formatAmount = (amount: number) => `$${amount.toFixed(2)}`;
+  const formatAmount = (amount: number) => `Rs ${amount.toFixed(2)}`;
   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString();
 
   return (

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import { getCustomers, Customer } from '../../services/customerService';
-import { recordSaleIncome } from '../../services/financeService';
 import Swal from 'sweetalert2';
 
 /* ───── types ───── */
@@ -455,14 +454,6 @@ const POS: React.FC = () => {
           description: `POS ${payType} Payment`,
         });
 
-        // Record in finance income so it appears in financial reports
-        await recordSaleIncome({
-          amount: payload.grandTotal,
-          date: new Date().toISOString().slice(0, 10),
-          reference: saleRef,
-          description: `POS Sale - ${customer ? customer.name : 'Walk in Customer'}`,
-          paymentType: payType,
-        });
       }
 
       // Update local product stock after successful sale
@@ -511,7 +502,7 @@ const POS: React.FC = () => {
             {clock}
           </span>
           <Link
-            to="/dashboard"
+            to="/"
             tabIndex={-1}
             className="btn btn-sm btn-purple d-inline-flex align-items-center"
           >

@@ -194,52 +194,6 @@ export const getCashFlow = (params?: { from?: string; to?: string; store?: strin
 export const getAccountStatement = (params?: { accountId?: number; from?: string; to?: string }) =>
   api.get<AccountStatementData>('/finance-reports/account-statement', { params });
 
-// ── Auto-record purchase as finance expense ──
-
-let _purchaseCategoryId: number | null = null;
-
-/**
- * Find or create a "Purchase / Inventory" expense category, then create an expense entry
- * so that the purchase appears in Balance Sheet, Trial Balance, Cash Flow, etc.
- * Failures are silently caught so that the purchase itself is never blocked.
- */
-export async function recordPurchaseExpense(opts: {
-  amount: number;
-  date: string;
-  reference: string;
-  description: string;
-}): Promise<void> {
-  try {
-    if (!_purchaseCategoryId) {
-      const { data: cats } = await getExpenseCategories();
-      const existing = cats.find(c =>
-        c.name.toLowerCase().includes('purchase') || c.name.toLowerCase().includes('inventory'),
-      );
-      if (existing) {
-        _purchaseCategoryId = existing.id;
-      } else {
-        const { data: created } = await createExpenseCategory({
-          name: 'Purchase / Inventory',
-          description: 'Auto-created category for purchase and inventory expenses',
-          status: 'Active',
-        });
-        _purchaseCategoryId = created.id;
-      }
-    }
-
-    await createExpense({
-      expenseName: opts.description,
-      expenseCategoryId: _purchaseCategoryId,
-      description: `Ref: ${opts.reference}`,
-      date: opts.date,
-      amount: opts.amount,
-      status: 'Active',
-    });
-  } catch (err) {
-    console.warn('Could not record purchase expense:', err);
-  }
-}
-
 // ── Auto-record sale as finance income ──
 
 let _salesCategoryId: number | null = null;

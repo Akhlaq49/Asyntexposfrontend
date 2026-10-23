@@ -145,7 +145,7 @@ const AccountList: React.FC = () => {
                       <td>{acc.accountNumber}</td>
                       <td>{acc.bankName}</td>
                       <td>{acc.accountTypeName}</td>
-                      <td>${acc.openingBalance.toFixed(2)}</td>
+                      <td>Rs {acc.openingBalance.toFixed(2)}</td>
                       <td>{acc.notes}</td>
                       <td><span className={`badge fw-medium fs-10 ${acc.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{acc.status === 'active' ? 'Active' : 'Inactive'}</span>{acc.isDefault && <span className="badge bg-info ms-1 fs-10">Default</span>}</td>
                       <td className="action-table-data"><div className="edit-delete-action">

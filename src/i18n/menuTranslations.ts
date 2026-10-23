@@ -13,7 +13,7 @@ const menuTitleToKey: Record<string, string> = {
   'Sales': 'menu.sales',
   'Promo': 'menu.promo',
   'Purchases': 'menu.purchases',
-  'Finance & Accounts': 'menu.finance_accounts',
+  'Finance': 'menu.finance_accounts',
   'Peoples': 'menu.peoples',
   'HRM': 'menu.hrm',
   'Reports': 'menu.reports',
@@ -22,6 +22,7 @@ const menuTitleToKey: Record<string, string> = {
   // Main
   'Dashboard': 'menu.dashboard',
   'Admin Dashboard': 'menu.admin_dashboard',
+  'Accessibility': 'menu.accessibility',
   'Sales Dashboard': 'menu.sales_dashboard',
 
   // Inventory items

@@ -187,7 +187,7 @@ const Dashboard: React.FC = () => {
                 <h3 className="mb-0">{t('common.rs')} {fmt(data.totalFinancedAmount)}</h3>
               </div>
               <div className="rounded-circle d-inline-flex p-3 bg-info-transparent">
-                <i className="ti ti-currency-dollar fs-24 text-info"></i>
+                <i className="ti ti-currency-rupee fs-24 text-info"></i>
               </div>
             </div>
           </div>

@@ -7,8 +7,6 @@ import { usePagination } from '../../utils/usePagination';
 
 interface ProductDto {
   id: string;
-  warehouse: string;
-  store: string;
   productName: string;
   category: string;
   sku: string;
@@ -19,8 +17,6 @@ interface ProductDto {
 
 interface LowStockItem {
   id: string;
-  warehouse: string;
-  store: string;
   name: string;
   image: string;
   category: string;
@@ -31,8 +27,6 @@ interface LowStockItem {
 
 const mapDto = (dto: ProductDto): LowStockItem => ({
   id: dto.id,
-  warehouse: dto.warehouse,
-  store: dto.store,
   name: dto.productName,
   image: dto.images && dto.images.length > 0 ? dto.images[0] : '',
   category: dto.category,
@@ -48,8 +42,6 @@ const LowStocks: React.FC = () => {
   const [outOfStocks, setOutOfStocks] = useState<LowStockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [warehouseFilter, setWarehouseFilter] = useState('');
-  const [storeFilter, setStoreFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
   // Select all
@@ -59,7 +51,7 @@ const LowStocks: React.FC = () => {
   // Edit modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
-    id: '', warehouse: '', store: '', sku: '', category: '', name: '', qty: 0, qtyAlert: 0,
+    id: '', sku: '', category: '', name: '', qty: 0, qtyAlert: 0,
   });
 
   // Delete modal
@@ -106,18 +98,14 @@ const LowStocks: React.FC = () => {
     const matchSearch = !searchTerm ||
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchWarehouse = !warehouseFilter || p.warehouse === warehouseFilter;
-    const matchStore = !storeFilter || p.store === storeFilter;
     const matchCategory = !categoryFilter || p.category === categoryFilter;
-    return matchSearch && matchWarehouse && matchStore && matchCategory;
+    return matchSearch && matchCategory;
   });
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filteredData);
 
   // Unique values for filters
   const allItems = [...lowStocks, ...outOfStocks];
-  const warehouses = [...new Set(allItems.map((p) => p.warehouse).filter(Boolean))];
-  const stores = [...new Set(allItems.map((p) => p.store).filter(Boolean))];
   const categories = [...new Set(allItems.map((p) => p.category).filter(Boolean))];
 
   const handleSelectAll = useCallback((checked: boolean) => {
@@ -141,8 +129,6 @@ const LowStocks: React.FC = () => {
   const openEditModal = (item: LowStockItem) => {
     setEditForm({
       id: item.id,
-      warehouse: item.warehouse,
-      store: item.store,
       sku: item.sku,
       category: item.category,
       name: item.name,
@@ -155,8 +141,6 @@ const LowStocks: React.FC = () => {
   const handleEditSave = async () => {
     try {
       await api.put(`/products/low-stocks/${editForm.id}`, {
-        warehouse: editForm.warehouse,
-        store: editForm.store,
         sku: editForm.sku,
         category: editForm.category,
         productName: editForm.name,
@@ -169,7 +153,7 @@ const LowStocks: React.FC = () => {
       const updater = (prev: LowStockItem[]) =>
         prev.map((p) =>
           p.id === editForm.id
-            ? { ...p, warehouse: editForm.warehouse, store: editForm.store, sku: editForm.sku, category: editForm.category, name: editForm.name, qty: editForm.qty, qtyAlert: editForm.qtyAlert }
+            ? { ...p, sku: editForm.sku, category: editForm.category, name: editForm.name, qty: editForm.qty, qtyAlert: editForm.qtyAlert }
             : p
         );
       setLowStocks(updater);
@@ -203,8 +187,6 @@ const LowStocks: React.FC = () => {
                 <span className="checkmarks"></span>
               </label>
             </th>
-            <th>{t('common.warehouse')}</th>
-            <th>{t('common.store')}</th>
             <th>{t('low_stocks.product_name')}</th>
             <th>{t('low_stocks.category')}</th>
             <th>{t('low_stocks.sku')}</th>
@@ -226,8 +208,6 @@ const LowStocks: React.FC = () => {
                   <span className="checkmarks"></span>
                 </label>
               </td>
-              <td>{item.warehouse}</td>
-              <td>{item.store}</td>
               <td>
                 <div className="d-flex align-items-center">
                   <a href="#" className="avatar avatar-md me-2" onClick={(e) => e.preventDefault()}>
@@ -280,30 +260,6 @@ const LowStocks: React.FC = () => {
         </div>
       </div>
       <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-        {/* Warehouse Filter */}
-        <div className="dropdown me-2">
-          <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-            {warehouseFilter || t('common.warehouse')}
-          </a>
-          <ul className="dropdown-menu dropdown-menu-end p-3">
-            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(''); }}>{t('common.all')}</a></li>
-            {warehouses.map((w) => (
-              <li key={w}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setWarehouseFilter(w); }}>{w}</a></li>
-            ))}
-          </ul>
-        </div>
-        {/* Store Filter */}
-        <div className="dropdown me-2">
-          <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
-            {storeFilter || t('common.store')}
-          </a>
-          <ul className="dropdown-menu dropdown-menu-end p-3">
-            <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(''); }}>{t('common.all')}</a></li>
-            {stores.map((s) => (
-              <li key={s}><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStoreFilter(s); }}>{s}</a></li>
-            ))}
-          </ul>
-        </div>
         {/* Category Filter */}
         <div className="dropdown">
           <a href="#" className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown" onClick={(e) => e.preventDefault()}>
@@ -421,24 +377,6 @@ const LowStocks: React.FC = () => {
               </div>
               <div className="modal-body pb-0">
                 <div className="row">
-                  <div className="col-sm-6 mb-3">
-                    <label className="form-label">{t('common.warehouse')}<span className="text-danger ms-1">*</span></label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={editForm.warehouse}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, warehouse: e.target.value }))}
-                    />
-                  </div>
-                  <div className="col-sm-6 mb-3">
-                    <label className="form-label">{t('common.store')}<span className="text-danger ms-1">*</span></label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={editForm.store}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, store: e.target.value }))}
-                    />
-                  </div>
                   <div className="col-sm-6 mb-3">
                     <label className="form-label">SKU<span className="text-danger ms-1">*</span></label>
                     <input

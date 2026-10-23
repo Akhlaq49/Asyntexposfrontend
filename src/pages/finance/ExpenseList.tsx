@@ -132,7 +132,7 @@ const ExpenseList: React.FC = () => {
                       <td>{exp.categoryName}</td>
                       <td>{exp.description}</td>
                       <td>{exp.date}</td>
-                      <td>${exp.amount.toFixed(2)}</td>
+                      <td>Rs {exp.amount.toFixed(2)}</td>
                       <td><span className={`badge fw-medium fs-10 ${exp.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{exp.status === 'active' ? 'Active' : 'Inactive'}</span></td>
                       <td className="action-table-data"><div className="edit-delete-action">
                         <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditModal(exp); }}><i data-feather="edit" className="feather-edit"></i></a>

@@ -174,7 +174,7 @@ const InstallmentPlans: React.FC = () => {
                 <p className="mb-1 text-muted">{t('installment_plans.total_financed')}</p>
                 <h4 className="fw-bold">{fmt(plans.reduce((s, p) => s + p.financedAmount, 0))}</h4>
               </div>
-              <span className="rounded-circle d-inline-flex p-2 bg-warning-transparent"><i className="ti ti-currency-dollar fs-24 text-warning"></i></span>
+              <span className="rounded-circle d-inline-flex p-2 bg-warning-transparent"><i className="ti ti-currency-rupee fs-24 text-warning"></i></span>
             </div>
           </div>
         </div>

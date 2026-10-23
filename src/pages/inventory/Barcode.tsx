@@ -59,7 +59,7 @@ const BarcodeLabel: React.FC<{
     <div className="barcode-scanner-link text-center">
       {showStore && <h6>{storeName}</h6>}
       {showProduct && <p>{productName}</p>}
-      {showPrice && <p>Price: ${price.toFixed(2)}</p>}
+      {showPrice && <p>Price: Rs {price.toFixed(2)}</p>}
       <div className="barscaner-img">
         <svg ref={svgRef}></svg>
       </div>

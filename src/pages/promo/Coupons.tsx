@@ -168,7 +168,7 @@ const Coupons: React.FC = () => {
 
   /* ─── format discount display ─── */
   const fmtDiscount = (c: CouponDto) =>
-    c.type === 'Percentage' ? `${c.discount}%` : `$${c.discount}`;
+    c.type === 'Percentage' ? `${c.discount}%` : `Rs ${c.discount}`;
 
   return (
     <>

@@ -387,6 +387,7 @@ export const getProductProfitReport = (from?: string, to?: string) =>
 // ═══════════════════════════════════════
 
 export interface SalesReportItemDto {
+  productImage?: string;
   sku: string; productName: string; brand: string; category: string;
   soldQty: number; soldAmount: number; inStockQty: number;
 }
@@ -396,6 +397,7 @@ export interface SalesReportDto {
 }
 
 export interface PurchaseReportItemDto {
+  productImage?: string;
   reference: string; sku: string; dueDate: string; productName: string;
   category: string; inStockQty: number; purchaseQty: number; purchaseAmount: number;
 }

@@ -4,7 +4,6 @@ import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
-import { recordSaleIncome } from '../../services/financeService';
 
 /* ---------- Types ---------- */
 interface SaleItemDto {
@@ -271,14 +270,6 @@ const OnlineOrders: React.FC = () => {
       if (editingPaymentId) await api.put(`/sales/${paymentSaleId}/payments/${editingPaymentId}`, paymentForm);
       else {
         await api.post(`/sales/${paymentSaleId}/payments`, paymentForm);
-        // Record new payment in finance income for financial reports
-        await recordSaleIncome({
-          amount: paymentForm.payingAmount,
-          date: new Date().toISOString().slice(0, 10),
-          reference: paymentForm.reference || `SALE-${paymentSaleId}`,
-          description: `Online Order Payment - Sale #${paymentSaleId}`,
-          paymentType: paymentForm.paymentType,
-        });
       }
       setShowPaymentFormModal(false);
       fetchData();

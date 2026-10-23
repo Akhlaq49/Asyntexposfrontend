@@ -10,6 +10,7 @@ export interface MenuItem {
   iconType: 'tabler' | 'feather';
   path?: string;
   badge?: string;
+  hideInSidebar?: boolean; // keep for permissions/routing but don't show in the sidebar
   children?: (SubMenuItem | SubmenuItem)[];
 }
 
@@ -18,6 +19,7 @@ export interface SubmenuItem {
   icon?: string;
   iconType?: 'tabler' | 'feather';
   path?: string;
+  hideInSidebar?: boolean;
   children?: (SubMenuItem | SubmenuItem)[];
 }
 
@@ -36,8 +38,7 @@ const menuData: MenuSection[] = [
         iconType: 'tabler',
         children: [
           { title: 'Admin Dashboard', path: '/admin-dashboard' },
-          { title: 'Admin Dashboard 2', path: '/admin-dashboard-2' },
-          { title: 'User Dashboard', path: '/user-dashboard' },
+          { title: 'Accessibility', path: '/user-dashboard' },
           // { title: 'Sales Dashboard', path: '/sales-dashboard' },
         ],
       },
@@ -112,93 +113,19 @@ const menuData: MenuSection[] = [
     items: [
       { title: 'Products', icon: 'box', iconType: 'feather', path: '/product-list' },
       { title: 'Create Product', icon: 'ti-table-plus', iconType: 'tabler', path: '/add-product' },
-      { title: 'Expired Products', icon: 'ti-progress-alert', iconType: 'tabler', path: '/expired-products' },
-      { title: 'Low Stocks', icon: 'ti-trending-up-2', iconType: 'tabler', path: '/low-stocks' },
       { title: 'Category', icon: 'ti-list-details', iconType: 'tabler', path: '/category-list' },
-      { title: 'Sub Category', icon: 'ti-carousel-vertical', iconType: 'tabler', path: '/sub-categories' },
       { title: 'Brands', icon: 'ti-triangles', iconType: 'tabler', path: '/brand-list' },
       { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
+      { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
+      { title: 'Low Stocks', icon: 'ti-trending-up-2', iconType: 'tabler', path: '/low-stocks' },
       { title: 'Variant Attributes', icon: 'ti-checklist', iconType: 'tabler', path: '/variant-attributes' },
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
-      { title: 'Print Barcode', icon: 'ti-barcode', iconType: 'tabler', path: '/barcode' },
-      { title: 'Print QR Code', icon: 'ti-qrcode', iconType: 'tabler', path: '/qrcode' },
     ],
   },
   {
     header: 'Stock',
     items: [
       { title: 'Manage Stock', icon: 'ti-stack-3', iconType: 'tabler', path: '/manage-stocks' },
-      { title: 'Stock Adjustment', icon: 'ti-stairs-up', iconType: 'tabler', path: '/stock-adjustment' },
-      { title: 'Stock Transfer', icon: 'ti-stack-pop', iconType: 'tabler', path: '/stock-transfer' },
-    ],
-  },
-  {
-    header: 'Installments',
-    items: [
-      {
-        title: 'Installments',
-        icon: 'ti-calendar-dollar',
-        iconType: 'tabler',
-        children: [
-          { title: 'All Plans', path: '/installment-plans' },
-          { title: 'Create Plan', path: '/create-installment' },
-        ],
-      },
-    ],
-  },
-  {
-    header: 'Installment Reports',
-    items: [
-      {
-        title: 'Financial Reports',
-        icon: 'ti-report-money',
-        iconType: 'tabler',
-        children: [
-          { title: 'Installment Collection', path: '/inst-collection-report' },
-          { title: 'Outstanding Balance', path: '/inst-outstanding-balance' },
-          { title: 'Daily Cash Flow', path: '/inst-daily-cashflow' },
-          { title: 'Profit & Loss', path: '/inst-profit-loss' },
-          { title: 'Product Profit', path: '/inst-product-profit' },
-        ],
-      },
-      {
-        title: 'Customer Reports',
-        icon: 'ti-users-group',
-        iconType: 'tabler',
-        children: [
-          { title: 'Customer Ledger', path: '/inst-customer-ledger' },
-          { title: 'Defaulters', path: '/inst-defaulters' },
-          { title: 'Payment History', path: '/inst-payment-history' },
-        ],
-      },
-      {
-        title: 'Sales Reports',
-        icon: 'ti-chart-bar',
-        iconType: 'tabler',
-        children: [
-          { title: 'Sales Summary', path: '/inst-sales-summary' },
-          { title: 'Product-wise Sales', path: '/inst-product-sales' },
-        ],
-      },
-      {
-        title: 'Risk & Compliance',
-        icon: 'ti-shield-check',
-        iconType: 'tabler',
-        children: [
-          { title: 'Default Rate', path: '/inst-default-rate' },
-          { title: 'Recovery Performance', path: '/inst-recovery-performance' },
-        ],
-      },
-      {
-        title: 'Operational Reports',
-        icon: 'ti-clipboard-check',
-        iconType: 'tabler',
-        children: [
-          { title: 'Due Today', path: '/inst-due-today' },
-          { title: 'Upcoming Due (7 Days)', path: '/inst-upcoming-due' },
-          { title: 'Late Fee Report', path: '/inst-late-fees' },
-        ],
-      },
     ],
   },
   {
@@ -209,42 +136,26 @@ const menuData: MenuSection[] = [
         icon: 'ti-layout-grid',
         iconType: 'tabler',
         children: [
-          { title: 'Online Orders', path: '/online-orders' },
           { title: 'POS Orders', path: '/pos-orders' },
         ],
       },
       { title: 'Invoices', icon: 'ti-file-invoice', iconType: 'tabler', path: '/invoice' },
       { title: 'Sales Return', icon: 'ti-receipt-refund', iconType: 'tabler', path: '/sales-returns' },
       { title: 'Quotation', icon: 'ti-files', iconType: 'tabler', path: '/quotation-list' },
-      { title: 'POS', icon: 'ti-device-laptop', iconType: 'tabler', path: '/pos' },
-    ],
-  },
-  {
-    header: 'Promo',
-    items: [
-      { title: 'Coupons', icon: 'ti-ticket', iconType: 'tabler', path: '/coupons' },
-      { title: 'Gift Cards', icon: 'ti-cards', iconType: 'tabler', path: '/gift-cards' },
-      {
-        title: 'Discount',
-        icon: 'ti-file-percent',
-        iconType: 'tabler',
-        children: [
-          { title: 'Discount Plan', path: '/discount-plan' },
-          { title: 'Discount', path: '/discount' },
-        ],
-      },
+      // Hidden from the sidebar (opened from the header POS button); kept here so the Sales/POS permission still applies
+      { title: 'POS', icon: 'ti-device-laptop', iconType: 'tabler', path: '/pos', hideInSidebar: true },
     ],
   },
   {
     header: 'Purchases',
     items: [
       { title: 'Purchases', icon: 'ti-shopping-bag', iconType: 'tabler', path: '/purchase-list' },
-      { title: 'Purchase Order', icon: 'ti-file-unknown', iconType: 'tabler', path: '/purchase-order-report' },
+      { title: 'Purchase Order', icon: 'ti-file-invoice', iconType: 'tabler', path: '/purchase-orders' },
       { title: 'Purchase Return', icon: 'ti-file-upload', iconType: 'tabler', path: '/purchase-returns' },
     ],
   },
   {
-    header: 'Finance & Accounts',
+    header: 'Finance',
     items: [
       {
         title: 'Expenses',
@@ -255,69 +166,13 @@ const menuData: MenuSection[] = [
           { title: 'Expense Category', path: '/expense-category' },
         ],
       },
-      {
-        title: 'Income',
-        icon: 'ti-file-pencil',
-        iconType: 'tabler',
-        children: [
-          { title: 'Income', path: '/income' },
-          { title: 'Income Category', path: '/income-category' },
-        ],
-      },
-      { title: 'Bank Accounts', icon: 'ti-building-bank', iconType: 'tabler', path: '/account-list' },
-      { title: 'Money Transfer', icon: 'ti-moneybag', iconType: 'tabler', path: '/money-transfer' },
-      { title: 'Balance Sheet', icon: 'ti-report-money', iconType: 'tabler', path: '/balance-sheet' },
-      { title: 'Trial Balance', icon: 'ti-alert-circle', iconType: 'tabler', path: '/trial-balance' },
-      { title: 'Cash Flow', icon: 'ti-zoom-money', iconType: 'tabler', path: '/cash-flow' },
-      { title: 'Account Statement', icon: 'ti-file-infinity', iconType: 'tabler', path: '/account-statement' },
     ],
   },
   {
     header: 'Peoples',
     items: [
       { title: 'Customers', icon: 'ti-users-group', iconType: 'tabler', path: '/customers' },
-      { title: 'Billers', icon: 'ti-user-up', iconType: 'tabler', path: '/billers' },
       { title: 'Suppliers', icon: 'ti-user-dollar', iconType: 'tabler', path: '/suppliers' },
-      { title: 'Stores', icon: 'ti-home-bolt', iconType: 'tabler', path: '/store-list' },
-      { title: 'Warehouses', icon: 'ti-archive', iconType: 'tabler', path: '/warehouse' },
-    ],
-  },
-  {
-    header: 'HRM',
-    items: [
-      { title: 'Employees', icon: 'ti-user', iconType: 'tabler', path: '/employees-grid' },
-      { title: 'Departments', icon: 'ti-compass', iconType: 'tabler', path: '/department-grid' },
-      { title: 'Designation', icon: 'ti-git-merge', iconType: 'tabler', path: '/designation' },
-      { title: 'Shifts', icon: 'ti-arrows-shuffle', iconType: 'tabler', path: '/shift' },
-      {
-        title: 'Attendence',
-        icon: 'ti-user-cog',
-        iconType: 'tabler',
-        children: [
-          { title: 'Employee', path: '/attendance-employee' },
-          { title: 'Admin', path: '/attendance-admin' },
-        ],
-      },
-      {
-        title: 'Leaves',
-        icon: 'ti-calendar',
-        iconType: 'tabler',
-        children: [
-          { title: 'Admin Leaves', path: '/leaves-admin' },
-          { title: 'Employee Leaves', path: '/leaves-employee' },
-          { title: 'Leave Types', path: '/leave-types' },
-        ],
-      },
-      { title: 'Holidays', icon: 'ti-calendar-share', iconType: 'tabler', path: '/holidays' },
-      {
-        title: 'Payroll',
-        icon: 'ti-file-dollar',
-        iconType: 'tabler',
-        children: [
-          { title: 'Employee Salary', path: '/employee-salary' },
-          { title: 'Payslip', path: '/payslip' },
-        ],
-      },
     ],
   },
   {
@@ -360,7 +215,6 @@ const menuData: MenuSection[] = [
         children: [
           { title: 'Customer Report', path: '/customer-report' },
           { title: 'Customer Due Report', path: '/customer-due-report' },
-          { title: 'DPD Report', path: '/dpd-report' },
         ],
       },
       {
@@ -374,7 +228,6 @@ const menuData: MenuSection[] = [
         ],
       },
       { title: 'Expense Report', icon: 'ti-file-vector', iconType: 'tabler', path: '/expense-report' },
-      { title: 'Income Report', icon: 'ti-chart-ppf', iconType: 'tabler', path: '/income-report' },
       { title: 'Tax Report', icon: 'ti-chart-dots-2', iconType: 'tabler', path: '/tax-reports' },
       { title: 'Profit & Loss', icon: 'ti-chart-donut', iconType: 'tabler', path: '/profit-and-loss' },
       { title: 'Annual Report', icon: 'ti-report-search', iconType: 'tabler', path: '/annual-report' },
@@ -422,7 +275,6 @@ const menuData: MenuSection[] = [
       { title: 'Users', icon: 'ti-shield-up', iconType: 'tabler', path: '/users' },
       { title: 'Roles & Permissions', icon: 'ti-jump-rope', iconType: 'tabler', path: '/roles-permissions' },
       { title: 'Menu Configuration', icon: 'ti-layout-list', iconType: 'tabler', path: '/tenant-menu-config' },
-      { title: 'Web Content', icon: 'ti-world', iconType: 'tabler', path: '/web-content-manager' },
       { title: 'Delete Account Request', icon: 'ti-trash-x', iconType: 'tabler', path: '/delete-account' },
     ],
   },
@@ -496,7 +348,7 @@ const menuData: MenuSection[] = [
   //       ],
   //     },
   //     { title: 'Blank Page', icon: 'ti-file', iconType: 'tabler', path: '/blank-page' },
-  //     { title: 'Pricing', icon: 'ti-currency-dollar', iconType: 'tabler', path: '/pricing' },
+  //     { title: 'Pricing', icon: 'ti-currency-rupee', iconType: 'tabler', path: '/pricing' },
   //     { title: 'Coming Soon', icon: 'ti-send', iconType: 'tabler', path: '/coming-soon' },
   //     { title: 'Under Maintenance', icon: 'ti-alert-triangle', iconType: 'tabler', path: '/under-maintenance' },
   //   ],

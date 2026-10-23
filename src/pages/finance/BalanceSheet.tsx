@@ -66,11 +66,11 @@ const BalanceSheet: React.FC = () => {
                     <thead className="thead-light"><tr><th>Account</th><th className="text-end">Amount</th></tr></thead>
                     <tbody>
                       {data.assets.map((item, idx) => (
-                        <tr key={idx}><td>{item.accountName}</td><td className="text-end">${item.amount.toFixed(2)}</td></tr>
+                        <tr key={idx}><td>{item.accountName}</td><td className="text-end">Rs {item.amount.toFixed(2)}</td></tr>
                       ))}
                       {data.assets.length === 0 && <tr><td colSpan={2} className="text-center text-muted py-3">No assets found</td></tr>}
                     </tbody>
-                    <tfoot className="table-dark"><tr><th>Total Assets</th><th className="text-end">${data.totalAssets.toFixed(2)}</th></tr></tfoot>
+                    <tfoot className="table-dark"><tr><th>Total Assets</th><th className="text-end">Rs {data.totalAssets.toFixed(2)}</th></tr></tfoot>
                   </table>
                 </div>
               </div>
@@ -87,11 +87,11 @@ const BalanceSheet: React.FC = () => {
                     <thead className="thead-light"><tr><th>Account</th><th className="text-end">Amount</th></tr></thead>
                     <tbody>
                       {data.liabilities.map((item, idx) => (
-                        <tr key={idx}><td>{item.accountName}</td><td className="text-end">${item.amount.toFixed(2)}</td></tr>
+                        <tr key={idx}><td>{item.accountName}</td><td className="text-end">Rs {item.amount.toFixed(2)}</td></tr>
                       ))}
                       {data.liabilities.length === 0 && <tr><td colSpan={2} className="text-center text-muted py-3">No liabilities found</td></tr>}
                     </tbody>
-                    <tfoot><tr className="table-secondary"><th>Total Liabilities</th><th className="text-end">${data.totalLiabilities.toFixed(2)}</th></tr></tfoot>
+                    <tfoot><tr className="table-secondary"><th>Total Liabilities</th><th className="text-end">Rs {data.totalLiabilities.toFixed(2)}</th></tr></tfoot>
                   </table>
                 </div>
               </div>
@@ -99,12 +99,12 @@ const BalanceSheet: React.FC = () => {
             <div className="card">
               <div className="card-header bg-success-transparent"><h5 className="card-title mb-0 text-success"><i className="ti ti-wallet me-2"></i>Equity</h5></div>
               <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center"><span className="fw-medium">Owner's Equity</span><h5 className="mb-0 fw-bold text-success">${data.equity.toFixed(2)}</h5></div>
+                <div className="d-flex justify-content-between align-items-center"><span className="fw-medium">Owner's Equity</span><h5 className="mb-0 fw-bold text-success">Rs {data.equity.toFixed(2)}</h5></div>
               </div>
             </div>
             <div className="card bg-light border">
               <div className="card-body py-3">
-                <div className="d-flex justify-content-between align-items-center"><span className="fw-bold fs-16">Total Liabilities & Equity</span><h4 className="mb-0 fw-bold">${(data.totalLiabilities + data.equity).toFixed(2)}</h4></div>
+                <div className="d-flex justify-content-between align-items-center"><span className="fw-bold fs-16">Total Liabilities & Equity</span><h4 className="mb-0 fw-bold">Rs {(data.totalLiabilities + data.equity).toFixed(2)}</h4></div>
               </div>
             </div>
           </div>

@@ -23,8 +23,17 @@ const Sidebar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { allowedKeys, tenantHiddenKeys, isLoading: permLoading } = usePermissions();
 
-  // ── Permission-filtered menu data ──
-  const permittedMenuData = useMemo(() => filterMenuDataByKeys(allowedKeys, tenantHiddenKeys), [allowedKeys, tenantHiddenKeys]);
+  // ── Permission-filtered menu data (minus items flagged hideInSidebar) ──
+  const permittedMenuData = useMemo(
+    () =>
+      filterMenuDataByKeys(allowedKeys, tenantHiddenKeys)
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => !(item as { hideInSidebar?: boolean }).hideInSidebar),
+        }))
+        .filter((section) => section.items.length > 0),
+    [allowedKeys, tenantHiddenKeys]
+  );
 
   // ── Menu filtering logic ──
   const matchesSearch = useCallback(
@@ -225,16 +234,16 @@ const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className="sidebar-logo">
         <Link to="/" className="logo logo-normal">
-          <img src="/assets/img/newlogo.png" alt="Logo" />
+          <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo logo-white">
-          <img src="/assets/img/newlogo.png" alt="Logo" />
+          <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo-small">
-          <img src="/assets/img/newlogo.png" alt="Logo" />
+          <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
         </Link>
         <Link to="/" className="logo-small-white">
-          <img src="/assets/img/newlogo.png" alt="Logo" />
+          <img src="/assets/img/newlogo-sidebar.png" alt="Logo" />
         </Link>
         <a id="toggle_btn" href="#" onClick={(e) => {
           e.preventDefault();

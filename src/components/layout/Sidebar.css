@@ -11,19 +11,28 @@
   z-index: 2;
   flex-shrink: 0;
   overflow: visible;
+  padding: 0; /* template adds 0 24px on both sides, which squeezed the logo */
+  height: 145px; /* match the logo image height (template default is 65px) */
+}
+
+/* Let the full logo link span the sidebar width */
+.sidebar .sidebar-logo .logo,
+.sidebar .sidebar-logo .logo-white {
+  flex: 1 1 auto;
+  width: 100%;
 }
 
 /* Constrain logo images so they don't overflow the sidebar-logo container */
 .sidebar .sidebar-logo .logo img {
-  width: 203px;
-  height: 71px;
+  width: 100%;
+  height: 145px;
   object-fit: contain;
   object-position: center;
   display: block;
 }
 .sidebar .sidebar-logo .logo-white img {
-  width: 203px;
-  height: 71px;
+  width: 100%;
+  height: 145px;
   object-fit: contain;
   object-position: center;
   display: block;

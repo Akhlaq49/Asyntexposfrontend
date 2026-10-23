@@ -4,14 +4,13 @@ import { getMenuKeysBySection } from '../../utils/menuKeys';
 
 const DASHBOARD_OPTIONS = [
   { value: '/admin-dashboard', label: 'Admin Dashboard' },
-  { value: '/admin-dashboard-2', label: 'Admin Dashboard 2' },
 ];
 
 const allSections = getMenuKeysBySection();
 
 const TenantMenuConfig: React.FC = () => {
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
-  const [defaultDashboard, setDefaultDashboard] = useState('/admin-dashboard-2');
+  const [defaultDashboard, setDefaultDashboard] = useState('/admin-dashboard');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
@@ -21,10 +20,12 @@ const TenantMenuConfig: React.FC = () => {
     try {
       const [keys, dashboard] = await Promise.all([
         tenantMenuService.getHiddenKeys(),
-        tenantMenuService.getDefaultDashboard().catch(() => '/admin-dashboard-2'),
+        tenantMenuService.getDefaultDashboard().catch(() => '/admin-dashboard'),
       ]);
       setHiddenKeys(new Set(keys));
-      setDefaultDashboard(dashboard || '/admin-dashboard-2');
+      setDefaultDashboard(
+        DASHBOARD_OPTIONS.some((o) => o.value === dashboard) ? dashboard : '/admin-dashboard'
+      );
     } catch {
       setMessage({ type: 'danger', text: 'Failed to load tenant menu configuration.' });
     } finally {
