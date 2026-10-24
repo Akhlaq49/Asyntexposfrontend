@@ -2,17 +2,18 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageHeader from '../../components/common/PageHeader';
 import Pagination from '../../components/common/Pagination';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
-import { printDocument } from '../../utils/printDocument';
+import { printDocument, openPrintWindow, esc, printMoney } from '../../utils/printDocument';
 import DateFilters, { DateFilterValue, EMPTY_DATE_FILTER, matchesDateFilter, describeDateFilter } from '../../components/common/DateFilters';
 import TaxSelector, { AppliedTax, cleanTaxes, taxTotal } from '../../components/common/TaxSelector';
 import { usePagination } from '../../utils/usePagination';
-import { mediaUrl } from '../../services/api';
+import api, { mediaUrl } from '../../services/api';
 import { getParties, Party } from '../../services/partyService';
 import { getProducts, ProductResponse, createProduct, getCategories, getUnits, DropdownOption } from '../../services/productService';
 import {
   PurchaseOrder, PurchaseOrderStatus, SavePurchaseOrderPayload, apiError,
   getPurchaseOrders, createPurchaseOrder, updatePurchaseOrder, markPurchaseOrderOrdered,
   receivePurchaseOrder, cancelPurchaseOrder, deletePurchaseOrder,
+  PurchaseOrderReceipt, PAYMENT_METHODS, revisePurchaseOrder, getPurchaseOrderRevisions, addPurchasePayment, getPurchaseOrder,
 } from '../../services/purchaseOrderService';
 
 /* ────────────────────────── helpers ────────────────────────── */
@@ -34,11 +35,15 @@ const canReceive = (po: PurchaseOrder) => po.status === 'Draft' || po.status ===
 const canCancel = (po: PurchaseOrder) => po.status !== 'Received' && po.status !== 'Cancelled';
 const canDelete = (po: PurchaseOrder) => po.receivedUnits === 0 && po.receipts.length === 0;
 
-interface FormLine { productId: number; productName: string; sku?: string; image?: string; quantity: number | ''; unitCost: number | ''; discount: number | ''; taxPercent: number | '' }
+interface FormLine { productId: number; productName: string; sku?: string; image?: string; quantity: number | ''; unitCost: number | ''; discount: number | ''; taxPercent: number | ''; /** Item discount: Yes ticked (UI only) */ discountOn?: boolean }
 interface FormState {
   id?: number; supplierId: number | ''; supplierName: string; orderDate: string; expectedDate: string;
+  /** set when the form saves a new revision of this order instead of editing it */
+  reviseFromId?: number; revisionNo?: string;
   orderTax: number | ''; shipping: number | ''; discount: number | ''; notes: string; lines: FormLine[];
   taxes: AppliedTax[];
+  /** Overall discount / shipping: Yes ticked (UI only) */
+  discountOn?: boolean; shippingOn?: boolean;
 }
 const emptyForm = (): FormState => ({ supplierId: '', supplierName: '', orderDate: today(), expectedDate: '', orderTax: '', shipping: '', discount: '', notes: '', lines: [], taxes: [] });
 const num = (v: number | '') => (v === '' ? 0 : Number(v));
@@ -47,6 +52,32 @@ const lineTotal = (l: FormLine) => {
   const disc = Math.min(num(l.discount), gross);
   return gross - disc + ((gross - disc) * num(l.taxPercent)) / 100;
 };
+
+/** Whole-rupee inputs: block anything that is not a digit, read the typed digits as an integer */
+const blockNonDigits = (e: React.KeyboardEvent<HTMLInputElement>) => { if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) e.preventDefault(); };
+const wholeRupees = (raw: string): number | '' => { const d = raw.replace(/\D/g, ''); return d === '' ? '' : parseInt(d, 10); };
+
+/** "No / Yes" choice; Yes shows a whole-rupee box (same pattern as the quotation form) */
+const YesNoAmount: React.FC<{ id: string; on: boolean; value: number | ''; onToggle: (on: boolean) => void; onChange: (v: number | '') => void; placeholder?: string; small?: boolean }> =
+  ({ id, on, value, onToggle, onChange, placeholder, small }) => (
+    <div className="d-flex align-items-center gap-2 flex-nowrap">
+      <div className="form-check form-check-inline mb-0 me-0">
+        <input className="form-check-input" type="radio" id={`${id}-no`} checked={!on} onChange={() => onToggle(false)} />
+        <label className="form-check-label" htmlFor={`${id}-no`}>No</label>
+      </div>
+      <div className="form-check form-check-inline mb-0 me-0">
+        <input className="form-check-input" type="radio" id={`${id}-yes`} checked={on} onChange={() => onToggle(true)} />
+        <label className="form-check-label" htmlFor={`${id}-yes`}>Yes</label>
+      </div>
+      {on && (
+        <div className={`input-group ${small ? 'input-group-sm' : ''}`} style={{ maxWidth: small ? 120 : 160 }}>
+          <span className="input-group-text">Rs</span>
+          <input type="number" min={0} step={1} inputMode="numeric" className="form-control" placeholder={placeholder} autoFocus
+            value={value} onKeyDown={blockNonDigits} onChange={(e) => onChange(wholeRupees(e.target.value))} />
+        </div>
+      )}
+    </div>
+  );
 
 /* ────────────────────────── page ────────────────────────── */
 
@@ -78,6 +109,15 @@ const PurchaseOrders: React.FC = () => {
   const [receiveNotes, setReceiveNotes] = useState('');
   const [receiveError, setReceiveError] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [receiveMethod, setReceiveMethod] = useState('Cash');
+  /* revisions */
+  const [showAllVersions, setShowAllVersions] = useState(true);
+  const [versions, setVersions] = useState<PurchaseOrder[] | null>(null);
+  /* payments / refunds on a receipt */
+  const [payTarget, setPayTarget] = useState<{ po: PurchaseOrder; receipt: PurchaseOrderReceipt; type: 'Payment' | 'Refund' } | null>(null);
+  const [payForm, setPayForm] = useState({ amount: '' as number | '', method: 'Cash', date: today(), reference: '', notes: '' });
+  const [payError, setPayError] = useState('');
+  const [openHistory, setOpenHistory] = useState<number | null>(null);
   const [printing, setPrinting] = useState<PurchaseOrder | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -111,12 +151,35 @@ const PurchaseOrders: React.FC = () => {
   };
 
   /* ── list ── */
+  /* ── revisions: PO-0001 -> PO-0001_R1 -> PO-0001_R2 (every version kept) ── */
+  const familyId = (po: PurchaseOrder) => po.rootPurchaseOrderId ?? po.id;
+  const familyOf = (po: PurchaseOrder) => orders.filter((o) => familyId(o) === familyId(po));
+  const versionLabel = (po: PurchaseOrder) => (po.revisionNo ? `R${po.revisionNo}` : 'Original');
+  const baseNumber = (po: PurchaseOrder) => orders.find((o) => o.id === familyId(po))?.poNumber || po.poNumber.replace(/_R\d+$/, '');
+  const nextRevisionNo = (po: PurchaseOrder) => Math.max(0, ...familyOf(po).map((o) => o.revisionNo || 0)) + 1;
+  /** the version of this order that goods were received against (only one version can be) */
+  const receivedVersion = (po: PurchaseOrder) => familyOf(po).find((o) => o.receivedUnits > 0 || o.receipts.length > 0);
+  const familyOpen = (po: PurchaseOrder) => !receivedVersion(po);
+  const mayEdit = (po: PurchaseOrder) => canEdit(po) && !po.supersededById && familyOpen(po);
+  const mayReceive = (po: PurchaseOrder) => canReceive(po) && (!receivedVersion(po) || receivedVersion(po)!.id === po.id);
+  const mayDelete = (po: PurchaseOrder) => canDelete(po) && !po.supersededById;
+  const mayRevise = (po: PurchaseOrder) => familyOpen(po);
+  const showVersions = async (po: PurchaseOrder) => {
+    try { setVersions(await getPurchaseOrderRevisions(po.id)); } catch (e) { flash('danger', apiError(e, 'Could not load the versions')); }
+  };
+
   const filtered = useMemo(() => orders.filter((o) => {
     const q = search.trim().toLowerCase();
+    if (!showAllVersions && o.supersededById) return false;
     return (!statusFilter || o.status === statusFilter) &&
       matchesDateFilter(o.orderDate, dateFilter) &&   // by order date
       (!q || o.poNumber.toLowerCase().includes(q) || o.supplierName.toLowerCase().includes(q) || o.items.some((i) => i.productName.toLowerCase().includes(q)));
-  }), [orders, search, statusFilter, dateFilter]);
+  }).sort((a, b) => {
+    // versions of one order stay together: newest order first, then R2 above R1 above the original
+    const fa = Math.max(...orders.filter((o) => (o.rootPurchaseOrderId ?? o.id) === (a.rootPurchaseOrderId ?? a.id)).map((o) => o.id));
+    const fb = Math.max(...orders.filter((o) => (o.rootPurchaseOrderId ?? o.id) === (b.rootPurchaseOrderId ?? b.id)).map((o) => o.id));
+    return fa !== fb ? fb - fa : (b.revisionNo || 0) - (a.revisionNo || 0);
+  }), [orders, search, statusFilter, dateFilter, showAllVersions]);
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
   useEffect(() => { setCurrentPage(1); }, [dateFilter]); // eslint-disable-line react-hooks/exhaustive-deps
   const counts = useMemo(() => {
@@ -128,13 +191,17 @@ const PurchaseOrders: React.FC = () => {
 
   /* ── create / edit ── */
   const openCreate = () => { loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null); setForm(emptyForm()); };
-  const openEdit = (po: PurchaseOrder) => {
+  const openEdit = (po: PurchaseOrder, revise = false) => {
     loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null);
     setForm({
-      id: po.id, supplierId: po.supplierId ?? '', supplierName: po.supplierName, orderDate: dateOnly(po.orderDate), expectedDate: dateOnly(po.expectedDate),
+      id: revise ? undefined : po.id,
+      reviseFromId: revise ? po.id : undefined,
+      revisionNo: revise ? `${baseNumber(po)}_R${nextRevisionNo(po)}` : undefined,
+      supplierId: po.supplierId ?? '', supplierName: po.supplierName, orderDate: dateOnly(po.orderDate), expectedDate: dateOnly(po.expectedDate),
       orderTax: po.orderTax || '', shipping: po.shipping || '', discount: po.discount || '', notes: po.notes || '',
+      discountOn: (po.discount || 0) > 0, shippingOn: (po.shipping || 0) > 0,
       taxes: po.taxes || [],
-      lines: po.items.map((i) => ({ productId: i.productId, productName: i.productName, sku: i.sku, image: i.productImage, quantity: i.quantity, unitCost: i.unitCost, discount: i.discount || '', taxPercent: i.taxPercent || '' })),
+      lines: po.items.map((i) => ({ productId: i.productId, productName: i.productName, sku: i.sku, image: i.productImage, quantity: i.quantity, unitCost: i.unitCost, discount: i.discount || '', discountOn: (i.discount || 0) > 0, taxPercent: i.taxPercent || '' })),
     });
   };
   const setLine = (idx: number, patch: Partial<FormLine>) =>
@@ -209,6 +276,14 @@ const PurchaseOrders: React.FC = () => {
     };
     setSaving(true); setFormError('');
     try {
+      if (form.reviseFromId) {
+        const po = await revisePurchaseOrder(form.reviseFromId, payload);
+        setForm(null);
+        await load();   // the version it replaced is marked as an earlier version
+        flash('success', `Revision ${po.poNumber} saved${status === 'Ordered' ? ' and marked as ordered' : ' as a draft'}. Earlier versions are kept unchanged.`);
+        setSaving(false);
+        return;
+      }
       const po = form.id ? await updatePurchaseOrder(form.id, payload) : await createPurchaseOrder(payload);
       upsert(po);
       setForm(null);
@@ -237,7 +312,7 @@ const PurchaseOrders: React.FC = () => {
   const openReceive = (po: PurchaseOrder) => {
     const q: Record<number, number | ''> = {};
     po.items.forEach((i) => { q[i.id] = i.remainingQuantity; });
-    setReceiveQty(q); setReceiveDate(today()); setReceivePaid(''); setReceiveNotes(''); setReceiveError('');
+    setReceiveQty(q); setReceiveDate(today()); setReceivePaid(''); setReceiveMethod('Cash'); setReceiveNotes(''); setReceiveError('');
     setReceiving(po);
   };
   const receiveValue = useMemo(() => {
@@ -254,7 +329,7 @@ const PurchaseOrders: React.FC = () => {
     if (over) { setReceiveError(`${over.productName}: only ${over.remainingQuantity} still to receive.`); return; }
     setSaving(true); setReceiveError('');
     try {
-      const po = await receivePurchaseOrder(receiving.id, { date: receiveDate, paid: num(receivePaid), notes: receiveNotes || undefined, lines });
+      const po = await receivePurchaseOrder(receiving.id, { date: receiveDate, paid: num(receivePaid), paymentMethod: receiveMethod, notes: receiveNotes || undefined, lines });
       upsert(po);
       setReceiving(null);
       const units = lines.reduce((s, l) => s + l.quantity, 0);
@@ -263,7 +338,77 @@ const PurchaseOrders: React.FC = () => {
     setSaving(false);
   };
 
+  /* ── payments / refunds against a receipt ── */
+  const openPayment = (po: PurchaseOrder, receipt: PurchaseOrderReceipt, type: 'Payment' | 'Refund') => {
+    setPayError('');
+    setPayForm({ amount: type === 'Payment' && receipt.due > 0 ? Math.round(receipt.due * 100) / 100 : '', method: 'Cash', date: today(), reference: '', notes: '' });
+    setPayTarget({ po, receipt, type });
+  };
+  const submitPayment = async () => {
+    if (!payTarget) return;
+    const amount = num(payForm.amount);
+    if (amount <= 0) { setPayError('Enter an amount greater than 0.'); return; }
+    if (payTarget.type === 'Refund' && amount > payTarget.receipt.paid) { setPayError(`Only ${money(payTarget.receipt.paid)} has been paid on this receipt.`); return; }
+    setSaving(true); setPayError('');
+    try {
+      await addPurchasePayment(payTarget.receipt.purchaseId, {
+        type: payTarget.type, amount, method: payForm.method, date: payForm.date,
+        reference: payForm.reference.trim() || undefined, notes: payForm.notes.trim() || undefined,
+      });
+      upsert(await getPurchaseOrder(payTarget.po.id));
+      setOpenHistory(payTarget.receipt.purchaseId);
+      flash('success', `${payTarget.type === 'Refund' ? 'Refund of' : 'Payment of'} ${money(amount)} recorded on ${payTarget.receipt.reference}.`);
+      setPayTarget(null);
+    } catch (e) { setPayError(apiError(e)); }
+    setSaving(false);
+  };
+  const payBadge = (s: string) => {
+    const cls = s === 'Paid' ? 'bg-success' : s === 'Partial' ? 'bg-warning' : s === 'Overpaid' ? 'bg-info' : 'bg-danger';
+    return <span className={`badge ${cls}`}>{s}</span>;
+  };
+
+  /* ── print a delivery receipt: goods received + payments ── */
+  const printReceipt = async (po: PurchaseOrder, r: PurchaseOrderReceipt) => {
+    const win = openPrintWindow();   // opened inside the click so it isn't blocked as a pop-up
+    let items: { productName: string; quantity: number; unitCost: number; totalCost: number }[] = [];
+    let notes = '';
+    try {
+      const { data } = await api.get(`/purchases/${r.purchaseId}`);
+      items = data.items || [];
+      notes = data.notes || '';
+    } catch { /* print what the order already has */ }
+    const itemsTotal = items.reduce((sum, i) => sum + (i.totalCost || 0), 0);
+    const orderShare = Math.round((r.total - itemsTotal) * 100) / 100;   // this delivery's share of order tax / shipping / discount
+    const itemRows = items.map((i, n) => `<tr><td class="c">${n + 1}</td><td>${esc(i.productName)}</td><td class="r">${i.quantity}</td>
+      <td class="r">${printMoney(i.unitCost)}</td><td class="r">${printMoney(i.totalCost)}</td></tr>`).join('');
+    const payRows = r.payments.map((p) => `<tr><td>${esc(showDate(p.date))}</td><td>${p.type === 'Refund' ? 'Refund from supplier' : 'Payment to supplier'}</td>
+      <td>${esc(p.method)}</td><td>${esc(p.reference || '-')}</td><td>${esc(p.notes || '-')}</td><td>${esc(p.createdBy || '-')}</td>
+      <td class="r">${p.type === 'Refund' ? '- ' : ''}${printMoney(p.amount)}</td></tr>`).join('');
+    printDocument(`Receipt ${r.reference}`, 'GOODS RECEIVED RECEIPT', r.reference, `
+      <table class="info" style="margin-bottom:14px"><tbody>
+        <tr><th>Supplier</th><td>${esc(po.supplierName)}${po.supplierPhone ? ` - ${esc(po.supplierPhone)}` : ''}</td><th>Date received</th><td>${esc(showDate(r.date))}</td></tr>
+        <tr><th>Purchase order</th><td>${esc(po.poNumber)}</td><th>Payment status</th><td>${esc(r.paymentStatus)}</td></tr>
+      </tbody></table>
+      <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th><th class="r">Qty received</th><th class="r">Unit cost</th><th class="r">Total</th></tr></thead>
+        <tbody>${itemRows || `<tr><td colspan="5" class="c">${r.units} unit(s) received</td></tr>`}</tbody>
+        <tfoot>
+          ${orderShare !== 0 && items.length ? `<tr><td colspan="4" class="r">Share of order tax / shipping / discount</td><td class="r">${printMoney(orderShare)}</td></tr>` : ''}
+          <tr class="total"><th colspan="4" class="r">Receipt value</th><th class="r">${printMoney(r.total)}</th></tr>
+          <tr><td colspan="4" class="r">Paid</td><td class="r">${printMoney(r.paid)}</td></tr>
+          <tr class="total"><th colspan="4" class="r">${r.due < 0 ? 'Paid over' : 'Balance due'}</th><th class="r">${printMoney(Math.abs(r.due))}</th></tr>
+        </tfoot></table>
+      <h3 style="font-size:15px;margin:18px 0 6px">Payments</h3>
+      ${payRows ? `<table><thead><tr><th>Date</th><th>Type</th><th>Method</th><th>Reference</th><th>Notes</th><th>By</th><th class="r">Amount</th></tr></thead><tbody>${payRows}</tbody></table>`
+        : '<p style="color:#555">No payment made yet.</p>'}
+      ${notes ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(notes)}</p>` : ''}
+      <div class="sign"><div>Received by</div><div>Supplier signature</div></div>`, win);
+  };
+
   /* ── print ── */
+  // columns with nothing in them are left out of the printed order
+  const printHasDiscount = !!printing && printing.items.some((i) => i.discount > 0);
+  const printHasTax = !!printing && printing.items.some((i) => i.taxPercent > 0 || i.taxAmount > 0);
+  const printLabelCols = 5 + (printHasDiscount ? 1 : 0) + (printHasTax ? 1 : 0);
   useEffect(() => {
     if (!printing || !printRef.current) return;
     // letterhead (logos + address footer) from the shared print helper
@@ -286,12 +431,13 @@ const PurchaseOrders: React.FC = () => {
   const actionButtons = (po: PurchaseOrder, inDetail = false) => (
     <div className={`d-flex flex-wrap gap-1 ${inDetail ? '' : 'justify-content-end'}`}>
       {!inDetail && <button className="btn btn-sm btn-outline-secondary" title="View" onClick={() => setDetail(po)}><i className="ti ti-eye" /></button>}
-      {canReceive(po) && <button className="btn btn-sm btn-success" title="Receive goods" onClick={() => openReceive(po)}><i className="ti ti-truck-delivery me-1" />Receive</button>}
+      {mayReceive(po) && <button className="btn btn-sm btn-success" title="Receive goods" onClick={() => openReceive(po)}><i className="ti ti-truck-delivery me-1" />Receive</button>}
       {po.status === 'Draft' && <button className="btn btn-sm btn-outline-info" title="Mark as ordered" onClick={() => doAction(() => markPurchaseOrderOrdered(po.id), 'marked as ordered')}><i className="ti ti-send" /></button>}
-      {canEdit(po) && <button className="btn btn-sm btn-outline-primary" title="Edit" onClick={() => openEdit(po)}><i className="ti ti-edit" /></button>}
+      {mayRevise(po) && <button className="btn btn-sm btn-outline-info" title={`Revise: save a new version (${baseNumber(po)}_R${nextRevisionNo(po)})`} onClick={() => openEdit(po, true)}><i className="ti ti-versions" /></button>}
+      {mayEdit(po) && <button className="btn btn-sm btn-outline-primary" title="Edit" onClick={() => openEdit(po)}><i className="ti ti-edit" /></button>}
       <button className="btn btn-sm btn-outline-dark" title="Print" onClick={() => setPrinting(po)}><i className="ti ti-printer" /></button>
       {canCancel(po) && <button className="btn btn-sm btn-outline-warning" title={po.receivedUnits ? 'Cancel the remaining quantity' : 'Cancel order'} onClick={() => { if (window.confirm(`Cancel ${po.poNumber}?${po.receivedUnits ? ' Goods already received stay in stock.' : ''}`)) doAction(() => cancelPurchaseOrder(po.id), 'cancelled'); }}><i className="ti ti-ban" /></button>}
-      {canDelete(po) && <button className="btn btn-sm btn-outline-danger" title="Delete" onClick={() => setDeleteId(po.id)}><i className="ti ti-trash" /></button>}
+      {mayDelete(po) && <button className="btn btn-sm btn-outline-danger" title="Delete" onClick={() => setDeleteId(po.id)}><i className="ti ti-trash" /></button>}
     </div>
   );
 
@@ -331,7 +477,13 @@ const PurchaseOrders: React.FC = () => {
           {/* Order date: a month, or a From / To range */}
           <div className="w-100 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <DateFilters value={dateFilter} onChange={setDateFilter} />
-            <small className="text-muted">{filtered.length} of {orders.length} purchase order(s){describeDateFilter(dateFilter) ? ` - ${describeDateFilter(dateFilter)}` : ''}</small>
+            <div className="d-flex align-items-center gap-3">
+              <div className="form-check form-switch mb-0">
+                <input className="form-check-input" type="checkbox" id="po-all-versions" checked={showAllVersions} onChange={(e) => setShowAllVersions(e.target.checked)} />
+                <label className="form-check-label" htmlFor="po-all-versions">Show all versions</label>
+              </div>
+              <small className="text-muted">{filtered.length} of {orders.length} purchase order(s){describeDateFilter(dateFilter) ? ` - ${describeDateFilter(dateFilter)}` : ''}</small>
+            </div>
           </div>
         </div>
         <div className="card-body p-0">
@@ -346,13 +498,25 @@ const PurchaseOrders: React.FC = () => {
                     </td></tr>
                   ) : paginatedData.map((po) => (
                     <tr key={po.id}>
-                      <td><a href="#" className="fw-semibold" onClick={(e) => { e.preventDefault(); setDetail(po); }}>{po.poNumber}</a></td>
+                      <td>
+                        <a href="#" className="fw-semibold" onClick={(e) => { e.preventDefault(); setDetail(po); }}>{po.poNumber}</a>
+                        {familyOf(po).length > 1 && (
+                          <div className="d-flex align-items-center gap-1 mt-1">
+                            <span className={`badge ${po.supersededById ? 'bg-secondary' : 'bg-info'}`}>{versionLabel(po)}</span>
+                            <a href="#" className="small" onClick={(e) => { e.preventDefault(); showVersions(po); }}>{familyOf(po).length} versions</a>
+                          </div>
+                        )}
+                      </td>
                       <td>{po.supplierName}</td>
                       <td>{showDate(po.orderDate)}</td>
                       <td>{showDate(po.expectedDate)}</td>
                       <td>{progress(po)}</td>
                       <td className="text-end">{money(po.total)}</td>
-                      <td>{statusBadge(po.status)}</td>
+                      <td>
+                        {statusBadge(po.status)}
+                        {receivedVersion(po) && receivedVersion(po)!.id !== po.id && <div><small className="text-muted">Not chosen ({receivedVersion(po)!.poNumber} received)</small></div>}
+                        {!receivedVersion(po) && po.supersededById && <div><small className="text-muted">Earlier version</small></div>}
+                      </td>
                       <td>{actionButtons(po)}</td>
                     </tr>
                   ))}
@@ -370,7 +534,8 @@ const PurchaseOrders: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="mb-0">{form.id ? 'Edit Purchase Order' : 'New Purchase Order'}</h4>
+                <h4 className="mb-0">{form.reviseFromId ? `New revision ${form.revisionNo}` : form.id ? 'Edit Purchase Order' : 'New Purchase Order'}</h4>
+                {form.reviseFromId && <small className="text-muted ms-3">{orders.find((o) => o.id === form.reviseFromId)?.poNumber} will be kept unchanged</small>}
                 <button type="button" className="btn-close" onClick={() => setForm(null)} />
               </div>
               <div className="modal-body">
@@ -454,7 +619,7 @@ const PurchaseOrders: React.FC = () => {
 
                 <div className="table-responsive">
                   <table className="table table-sm align-middle">
-                    <thead className="thead-light"><tr><th>Product</th><th style={{ width: 100 }}>Qty</th><th style={{ width: 130 }}>Unit cost</th><th style={{ width: 120 }}>Discount</th><th className="text-end" style={{ width: 140 }}>Line total</th><th /></tr></thead>
+                    <thead className="thead-light"><tr><th>Product</th><th style={{ width: 100 }}>Qty</th><th style={{ width: 130 }}>Unit cost</th><th style={{ width: 230 }} title="Rupees off this product line">Item Discount<br /><small className="text-muted fw-normal">whole line (Rs)</small></th><th className="text-end" style={{ width: 140 }}>Line total</th><th /></tr></thead>
                     <tbody>
                       {form.lines.length === 0 ? (
                         <tr><td colSpan={6} className="text-center text-muted py-3">Search above to add products to this order.</td></tr>
@@ -466,10 +631,15 @@ const PurchaseOrders: React.FC = () => {
                               <div><div>{l.productName}</div><small className="text-muted">{l.sku}</small></div>
                             </div>
                           </td>
-                          {(['quantity', 'unitCost', 'discount'] as const).map((k) => (
+                          {(['quantity', 'unitCost'] as const).map((k) => (
                             <td key={k}><input type="number" min={k === 'quantity' ? 1 : 0} step={k === 'quantity' ? 1 : 'any'} className="form-control form-control-sm"
                               value={l[k]} onChange={(e) => setLine(idx, { [k]: e.target.value === '' ? '' : Number(e.target.value) } as Partial<FormLine>)} /></td>
                           ))}
+                          <td>
+                            <YesNoAmount id={`po-line-disc-${idx}`} small on={!!l.discountOn} value={l.discount} placeholder="Rs"
+                              onToggle={(on) => setLine(idx, { discountOn: on, discount: on ? l.discount : '' })}
+                              onChange={(v) => setLine(idx, { discount: v === '' ? '' : Math.min(v, Math.floor(num(l.quantity) * num(l.unitCost))) })} />
+                          </td>
                           <td className="text-end">{money(lineTotal(l))}</td>
                           <td><button className="btn btn-sm btn-outline-danger" title="Remove" onClick={() => setForm({ ...form, lines: form.lines.filter((_, i) => i !== idx) })}><i className="ti ti-x" /></button></td>
                         </tr>
@@ -484,13 +654,21 @@ const PurchaseOrders: React.FC = () => {
                     <textarea className="form-control" rows={4} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                   </div>
                   <div className="col-md-6">
-                    {([['discount', 'Order discount'], ['shipping', 'Shipping']] as const).map(([k, label]) => (
-                      <div className="d-flex align-items-center justify-content-between mb-2" key={k}>
-                        <span>{label}</span>
-                        <input type="number" min={0} step="any" className="form-control form-control-sm" style={{ maxWidth: 160 }} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value === '' ? '' : Number(e.target.value) })} />
-                      </div>
-                    ))}
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span title="Rupees off the whole order">Overall Discount <small className="text-muted">(whole order)</small></span>
+                      <YesNoAmount id="po-disc" on={!!form.discountOn} value={form.discount} placeholder="e.g. 500"
+                        onToggle={(on) => setForm({ ...form, discountOn: on, discount: on ? form.discount : '' })}
+                        onChange={(v) => setForm({ ...form, discount: v === '' ? '' : Math.min(v, Math.floor(formSubTotal)) })} />
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span>Shipping</span>
+                      <YesNoAmount id="po-ship" on={!!form.shippingOn} value={form.shipping} placeholder="e.g. 300"
+                        onToggle={(on) => setForm({ ...form, shippingOn: on, shipping: on ? form.shipping : '' })}
+                        onChange={(v) => setForm({ ...form, shipping: v })} />
+                    </div>
                     <div className="d-flex justify-content-between border-top pt-2"><span>Subtotal</span><span>{money(formSubTotal)}</span></div>
+                    {num(form.discount) > 0 && <div className="d-flex justify-content-between"><span>Overall discount</span><span>- {money(num(form.discount))}</span></div>}
+                    {num(form.shipping) > 0 && <div className="d-flex justify-content-between"><span>Shipping</span><span>{money(num(form.shipping))}</span></div>}
                     {form.taxes.map((t, n) => t.amount > 0 && <div key={n} className="d-flex justify-content-between"><span>{t.taxName} ({t.percent}%)</span><span>{money(t.amount)}</span></div>)}
                     <div className="d-flex justify-content-between align-items-center fw-bold border-top mt-2 pt-2"><span style={{ fontSize: 18 }}>Total</span><span className="text-primary" style={{ fontSize: 26 }}>{money(formTotal)}</span></div>
                   </div>
@@ -515,6 +693,7 @@ const PurchaseOrders: React.FC = () => {
             <div className="modal-content">
               <div className="modal-header">
                 <h4 className="mb-0 me-2">{detail.poNumber}</h4>{statusBadge(detail.status)}
+                {familyOf(detail).length > 1 && <a href="#" className="ms-3 small" onClick={(e) => { e.preventDefault(); showVersions(detail); }}>{versionLabel(detail)} - all {familyOf(detail).length} versions</a>}
                 <button type="button" className="btn-close ms-auto" onClick={() => setDetail(null)} />
               </div>
               <div className="modal-body">
@@ -547,19 +726,54 @@ const PurchaseOrders: React.FC = () => {
                         ? detail.taxes.map((t, n) => <tr key={n}><td colSpan={6} className="text-end">{t.taxName} ({t.percent}%)</td><td className="text-end">{money(t.amount)}</td></tr>)
                         : detail.orderTax > 0 && <tr><td colSpan={6} className="text-end">Order tax</td><td className="text-end">{money(detail.orderTax)}</td></tr>}
                       {detail.shipping > 0 && <tr><td colSpan={6} className="text-end">Shipping</td><td className="text-end">{money(detail.shipping)}</td></tr>}
-                      {detail.discount > 0 && <tr><td colSpan={6} className="text-end">Discount</td><td className="text-end">- {money(detail.discount)}</td></tr>}
+                      {detail.discount > 0 && <tr><td colSpan={6} className="text-end">Overall discount</td><td className="text-end">- {money(detail.discount)}</td></tr>}
                       <tr className="fw-bold"><td colSpan={6} className="text-end" style={{ fontSize: 18 }}>Total</td><td className="text-end text-primary text-nowrap" style={{ fontSize: 22 }}>{money(detail.total)}</td></tr>
                     </tfoot>
                   </table>
                 </div>
                 {detail.notes && <p className="mb-3"><small className="text-muted">Notes: </small>{detail.notes}</p>}
 
-                <h6 className="mt-2">Deliveries received</h6>
+                <div className="d-flex align-items-center justify-content-between mt-2">
+                  <h6 className="mb-0">Deliveries received &amp; payments</h6>
+                  {detail.receipts.length > 0 && <small className="text-muted">Paid to supplier: <strong>{money(detail.paidTotal ?? detail.receipts.reduce((s, r) => s + r.paid, 0))}</strong> of {money(detail.receivedValue)} received</small>}
+                </div>
                 {detail.receipts.length === 0 ? <p className="text-muted mb-0">Nothing received yet.</p> : (
-                  <table className="table table-sm">
-                    <thead className="thead-light"><tr><th>Purchase ref.</th><th>Date</th><th className="text-end">Units</th><th className="text-end">Value</th><th className="text-end">Paid</th><th>Payment</th></tr></thead>
+                  <table className="table table-sm align-middle mt-2">
+                    <thead className="thead-light"><tr><th>Receipt</th><th>Date</th><th className="text-end">Units</th><th className="text-end">Value</th><th className="text-end">Paid</th><th className="text-end">Due</th><th>Payment</th><th /></tr></thead>
                     <tbody>{detail.receipts.map((r) => (
-                      <tr key={r.purchaseId}><td>{r.reference}</td><td>{showDate(r.date)}</td><td className="text-end">{r.units}</td><td className="text-end">{money(r.total)}</td><td className="text-end">{money(r.paid)}</td><td>{r.paymentStatus}</td></tr>
+                      <React.Fragment key={r.purchaseId}>
+                        <tr>
+                          <td className="fw-semibold">{r.reference}</td><td>{showDate(r.date)}</td><td className="text-end">{r.units}</td>
+                          <td className="text-end">{money(r.total)}</td><td className="text-end">{money(r.paid)}</td>
+                          <td className={`text-end ${r.due > 0 ? 'text-danger fw-semibold' : ''}`}>{r.due < 0 ? `${money(-r.due)} over` : money(r.due)}</td>
+                          <td>{payBadge(r.paymentStatus)}</td>
+                          <td className="text-end text-nowrap">
+                            <button className="btn btn-sm btn-success me-1" title="Pay the supplier" onClick={() => openPayment(detail, r, 'Payment')}><i className="ti ti-cash me-1" />Pay</button>
+                            <button className="btn btn-sm btn-outline-warning me-1" title="Money back from the supplier" disabled={r.paid <= 0} onClick={() => openPayment(detail, r, 'Refund')}><i className="ti ti-receipt-refund me-1" />Refund</button>
+                            <button className="btn btn-sm btn-outline-dark me-1" title="Print receipt" onClick={() => printReceipt(detail, r)}><i className="ti ti-printer" /></button>
+                            <button className="btn btn-sm btn-outline-secondary" title="Payment history" onClick={() => setOpenHistory(openHistory === r.purchaseId ? null : r.purchaseId)}>
+                              <i className="ti ti-history me-1" />{r.payments.length}
+                            </button>
+                          </td>
+                        </tr>
+                        {openHistory === r.purchaseId && (
+                          <tr><td colSpan={8} className="bg-light">
+                            {r.payments.length === 0 ? <small className="text-muted">No payments yet.</small> : (
+                              <table className="table table-sm mb-0">
+                                <thead><tr><th>Date</th><th>Type</th><th className="text-end">Amount</th><th>Method</th><th>Reference</th><th>Notes</th><th>By</th></tr></thead>
+                                <tbody>{r.payments.map((p) => (
+                                  <tr key={p.id}>
+                                    <td className="text-nowrap">{showDate(p.date)}</td>
+                                    <td>{p.type === 'Refund' ? <span className="badge bg-warning">Refund (in)</span> : <span className="badge bg-success">Payment (out)</span>}</td>
+                                    <td className="text-end">{p.type === 'Refund' ? '- ' : ''}{money(p.amount)}</td>
+                                    <td>{p.method}</td><td>{p.reference || '-'}</td><td>{p.notes || '-'}</td><td>{p.createdBy || '-'}</td>
+                                  </tr>
+                                ))}</tbody>
+                              </table>
+                            )}
+                          </td></tr>
+                        )}
+                      </React.Fragment>
                     ))}</tbody>
                   </table>
                 )}
@@ -607,6 +821,11 @@ const PurchaseOrders: React.FC = () => {
                     <label className="form-label">Amount paid now</label>
                     <input type="number" min={0} step="any" className="form-control" placeholder="0" value={receivePaid} onChange={(e) => setReceivePaid(e.target.value === '' ? '' : Number(e.target.value))} />
                     <button type="button" className="btn btn-link btn-sm p-0" onClick={() => setReceivePaid(Math.round(receiveValue * 100) / 100)}>Paid in full</button>
+                    {num(receivePaid) > 0 && (
+                      <select className="form-select form-select-sm mt-1" value={receiveMethod} onChange={(e) => setReceiveMethod(e.target.value)} title="Payment method">
+                        {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    )}
                   </div>
                   <div className="col-md-4 mb-3 text-end"><small className="text-muted d-block">Value of this delivery</small><span className="fw-bold" style={{ fontSize: 22 }}>{money(receiveValue)}</span></div>
                 </div>
@@ -617,6 +836,85 @@ const PurchaseOrders: React.FC = () => {
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setReceiving(null)} disabled={saving}>Cancel</button>
                 <button className="btn btn-success" onClick={submitReceive} disabled={saving}><i className="ti ti-package-import me-1" />{saving ? 'Saving...' : 'Receive into stock'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────── versions of an order ───────────── */}
+      {versions && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1065 }} tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h4 className="mb-0">Versions of {versions[0]?.poNumber}</h4>
+                <button type="button" className="btn-close" onClick={() => setVersions(null)} />
+              </div>
+              <div className="modal-body">
+                <p className="text-muted mb-2">Every version is kept. Any version can be ordered, received or cancelled - once goods are received against one version, the others can't be received.</p>
+                <table className="table table-sm align-middle">
+                  <thead className="thead-light"><tr><th>Version</th><th>PO No.</th><th>Order date</th><th className="text-end">Total</th><th>Status</th><th /></tr></thead>
+                  <tbody>{versions.map((v) => {
+                    const listed = orders.find((o) => o.id === v.id) || v;
+                    return (
+                      <tr key={v.id} className={v.supersededById ? '' : 'table-success'}>
+                        <td>{versionLabel(v)}</td><td className="fw-semibold">{v.poNumber}</td><td>{showDate(v.orderDate)}</td>
+                        <td className="text-end">{money(v.total)}</td><td>{statusBadge(v.status)}</td>
+                        <td className="text-end"><button className="btn btn-sm btn-outline-secondary" onClick={() => { setVersions(null); setDetail(listed); }}><i className="ti ti-eye me-1" />Open</button></td>
+                      </tr>
+                    );
+                  })}</tbody>
+                </table>
+              </div>
+              <div className="modal-footer"><button className="btn btn-secondary" onClick={() => setVersions(null)}>Close</button></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────── pay the supplier / refund from the supplier ───────────── */}
+      {payTarget && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1070 }} tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h4 className="mb-0">{payTarget.type === 'Refund' ? 'Refund from supplier' : 'Pay supplier'} - {payTarget.receipt.reference}</h4>
+                <button type="button" className="btn-close" onClick={() => setPayTarget(null)} disabled={saving} />
+              </div>
+              <div className="modal-body">
+                <div className="d-flex justify-content-between mb-3 p-2 bg-light rounded">
+                  <span>Receipt value <strong className="d-block">{money(payTarget.receipt.total)}</strong></span>
+                  <span>Paid so far <strong className="d-block">{money(payTarget.receipt.paid)}</strong></span>
+                  <span>{payTarget.receipt.due < 0 ? 'Paid over' : 'Due'} <strong className={`d-block ${payTarget.receipt.due > 0 ? 'text-danger' : ''}`}>{money(Math.abs(payTarget.receipt.due))}</strong></span>
+                </div>
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Amount <span className="text-danger">*</span></label>
+                    <input type="number" min={0} step="any" className="form-control" autoFocus value={payForm.amount}
+                      onChange={(e) => setPayForm({ ...payForm, amount: e.target.value === '' ? '' : Number(e.target.value) })} />
+                    {payTarget.type === 'Payment' && num(payForm.amount) > Math.max(0, payTarget.receipt.due) && (
+                      <small className="text-info">This is {money(num(payForm.amount) - Math.max(0, payTarget.receipt.due))} more than the amount due (e.g. an extra charge or advance).</small>
+                    )}
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Method</label>
+                    <select className="form-select" value={payForm.method} onChange={(e) => setPayForm({ ...payForm, method: e.target.value })}>
+                      {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-md-6 mb-3"><label className="form-label">Date</label><input type="date" className="form-control" value={payForm.date} onChange={(e) => setPayForm({ ...payForm, date: e.target.value })} /></div>
+                  <div className="col-md-6 mb-3"><label className="form-label">Reference</label><input className="form-control" placeholder="auto if empty" value={payForm.reference} onChange={(e) => setPayForm({ ...payForm, reference: e.target.value })} /></div>
+                </div>
+                <label className="form-label">Notes</label>
+                <input className="form-control" placeholder={payTarget.type === 'Refund' ? 'e.g. damaged items returned' : 'e.g. balance payment / extra loading charge'} value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} />
+                {payError && <div className="alert alert-danger py-2 mt-3 mb-0">{payError}</div>}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setPayTarget(null)} disabled={saving}>Cancel</button>
+                <button className={`btn ${payTarget.type === 'Refund' ? 'btn-warning' : 'btn-success'}`} onClick={submitPayment} disabled={saving}>
+                  {saving ? 'Saving...' : payTarget.type === 'Refund' ? 'Record refund' : 'Record payment'}
+                </button>
               </div>
             </div>
           </div>
@@ -636,20 +934,20 @@ const PurchaseOrders: React.FC = () => {
               </tbody>
             </table>
             <table>
-              <thead><tr><th>#</th><th>Product</th><th>SKU</th><th className="r">Qty</th><th className="r">Unit cost</th><th className="r">Discount</th><th className="r">Tax</th><th className="r">Total</th></tr></thead>
+              <thead><tr><th>#</th><th>Product</th><th>SKU</th><th className="r">Qty</th><th className="r">Unit cost</th>{printHasDiscount && <th className="r">Item discount</th>}{printHasTax && <th className="r">Tax</th>}<th className="r">Total</th></tr></thead>
               <tbody>
                 {printing.items.map((i, n) => (
-                  <tr key={i.id}><td>{n + 1}</td><td>{i.productName}</td><td>{i.sku}</td><td className="r">{i.quantity}</td><td className="r">{money(i.unitCost)}</td><td className="r">{money(i.discount)}</td><td className="r">{i.taxPercent ? `${i.taxPercent}%` : '-'}</td><td className="r">{money(i.totalCost)}</td></tr>
+                  <tr key={i.id}><td>{n + 1}</td><td>{i.productName}</td><td>{i.sku}</td><td className="r">{i.quantity}</td><td className="r">{money(i.unitCost)}</td>{printHasDiscount && <td className="r">{money(i.discount)}</td>}{printHasTax && <td className="r">{i.taxPercent ? `${i.taxPercent}%` : '-'}</td>}<td className="r">{money(i.totalCost)}</td></tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr><td colSpan={7} className="r">Subtotal</td><td className="r">{money(printing.subTotal)}</td></tr>
+                <tr><td colSpan={printLabelCols} className="r">Subtotal</td><td className="r">{money(printing.subTotal)}</td></tr>
                 {printing.taxes && printing.taxes.length > 0
-                  ? printing.taxes.map((t, n) => <tr key={n}><td colSpan={7} className="r">{t.taxName} ({t.percent}%)</td><td className="r">{money(t.amount)}</td></tr>)
-                  : printing.orderTax > 0 && <tr><td colSpan={7} className="r">Order tax</td><td className="r">{money(printing.orderTax)}</td></tr>}
-                {printing.shipping > 0 && <tr><td colSpan={7} className="r">Shipping</td><td className="r">{money(printing.shipping)}</td></tr>}
-                {printing.discount > 0 && <tr><td colSpan={7} className="r">Discount</td><td className="r">- {money(printing.discount)}</td></tr>}
-                <tr><th colSpan={7} className="r" style={{ fontSize: 17 }}>Total</th><th className="r" style={{ fontSize: 19, whiteSpace: 'nowrap' }}>{money(printing.total)}</th></tr>
+                  ? printing.taxes.map((t, n) => <tr key={n}><td colSpan={printLabelCols} className="r">{t.taxName} ({t.percent}%)</td><td className="r">{money(t.amount)}</td></tr>)
+                  : printing.orderTax > 0 && <tr><td colSpan={printLabelCols} className="r">Order tax</td><td className="r">{money(printing.orderTax)}</td></tr>}
+                {printing.shipping > 0 && <tr><td colSpan={printLabelCols} className="r">Shipping</td><td className="r">{money(printing.shipping)}</td></tr>}
+                {printing.discount > 0 && <tr><td colSpan={printLabelCols} className="r">Overall discount</td><td className="r">- {money(printing.discount)}</td></tr>}
+                <tr><th colSpan={printLabelCols} className="r" style={{ fontSize: 17 }}>Total</th><th className="r" style={{ fontSize: 19, whiteSpace: 'nowrap' }}>{money(printing.total)}</th></tr>
               </tfoot>
             </table>
             {printing.notes && <p style={{ marginTop: 14 }}><strong>Notes:</strong> {printing.notes}</p>}

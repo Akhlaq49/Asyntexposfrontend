@@ -24,11 +24,12 @@ const AddProduct: React.FC = () => {
 
   // Form state
   const [taxes, setTaxes] = useState<AppliedTax[]>([]);
+  const [discountOn, setDiscountOn] = useState(false);
   const [form, setForm] = useState({
     productName: '',
     slug: '',
     sku: '',
-    sellingType: '',
+    sellingType: 'pos', // new products are sold in the shop by default
     category: '',
     brand: '',
     color: '',
@@ -36,7 +37,7 @@ const AddProduct: React.FC = () => {
     unit: '',
     description: '',
     productType: 'single' as 'single' | 'variable',
-    quantity: '',
+    quantity: '0', // new products start with 0 stock (stock usually arrives through purchase orders)
     price: '',
     taxType: '',
     tax: '',
@@ -162,9 +163,10 @@ const AddProduct: React.FC = () => {
     try {
       await createProduct({
         ...form,
-        quantity: Number(form.quantity) || 0,
+        quantity: Math.max(0, Math.floor(Number(form.quantity) || 0)),
         price: Number(form.price) || 0,
-        discountValue: Number(form.discountValue) || 0,
+        discountType: discountOn ? (form.discountType || 'fixed') : '',
+        discountValue: discountOn ? Number(form.discountValue) || 0 : 0,
         quantityAlert: Number(form.quantityAlert) || 0,
         // taxes go as a JSON list; the backend works out the amounts on the price
         taxesJson: JSON.stringify(cleanTaxes(taxes, Number(form.price) || 0)),
@@ -189,10 +191,6 @@ const AddProduct: React.FC = () => {
   const sellingTypes = [
     { value: 'online', label: 'Online' },
     { value: 'pos', label: 'POS' },
-  ];
-  const discountTypes = [
-    { value: 'percentage', label: 'Percentage' },
-    { value: 'fixed', label: 'Fixed' },
   ];
   return (
     <>
@@ -464,7 +462,7 @@ const AddProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Quantity</label>
-                              <input type="number" className="form-control" name="quantity" value={form.quantity || ''} onChange={handleChange} />
+                              <input type="number" min={0} step={1} className="form-control" name="quantity" placeholder="0" value={form.quantity} onChange={handleChange} />
                             </div>
                           </div>
                           )}
@@ -484,24 +482,44 @@ const AddProduct: React.FC = () => {
                             )}
                           </div>
                           )}
-                          {isVisible('discountType') && (
-                          <div className="col-lg-4 col-sm-6 col-12">
+                          {(isVisible('discountType') || isVisible('discountValue')) && (
+                          <div className="col-lg-8 col-12">
                             <div className="mb-3">
-                              <label className="form-label">Discount Type</label>
-                              <select className="form-select" name="discountType" value={form.discountType} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {discountTypes.map((dt) => (
-                                  <option key={dt.value} value={dt.value}>{dt.label}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                          )}
-                          {isVisible('discountValue') && (
-                          <div className="col-lg-4 col-sm-6 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Discount Value</label>
-                              <input className="form-control" type="number" step="0.01" name="discountValue" value={form.discountValue || ''} onChange={handleChange} />
+                              <label className="form-label">Discount</label>
+                              {/* No = no discount; Yes = Fixed (Rs) or Percentage, whole numbers */}
+                              <div className="d-flex align-items-center flex-wrap gap-3" style={{ minHeight: 38 }}>
+                                <div className="form-check form-check-inline mb-0 me-0">
+                                  <input className="form-check-input" type="radio" id="prod-disc-no" checked={!discountOn}
+                                    onChange={() => { setDiscountOn(false); setForm((f) => ({ ...f, discountType: '', discountValue: '' })); }} />
+                                  <label className="form-check-label" htmlFor="prod-disc-no">No</label>
+                                </div>
+                                <div className="form-check form-check-inline mb-0 me-0">
+                                  <input className="form-check-input" type="radio" id="prod-disc-yes" checked={discountOn}
+                                    onChange={() => { setDiscountOn(true); setForm((f) => ({ ...f, discountType: f.discountType || 'fixed' })); }} />
+                                  <label className="form-check-label" htmlFor="prod-disc-yes">Yes</label>
+                                </div>
+                                {discountOn && (
+                                  <>
+                                    <select className="form-select" style={{ width: 170 }} name="discountType" value={form.discountType || 'fixed'}
+                                      onChange={(e) => setForm((f) => ({ ...f, discountType: e.target.value, discountValue: '' }))}>
+                                      <option value="fixed">Fixed (Rs)</option>
+                                      <option value="percentage">Percentage (%)</option>
+                                    </select>
+                                    <div className="input-group" style={{ width: 180 }}>
+                                      {form.discountType !== 'percentage' && <span className="input-group-text">Rs</span>}
+                                      <input type="number" min={0} step={1} inputMode="numeric" className="form-control" name="discountValue" placeholder="e.g. 100"
+                                        value={form.discountValue}
+                                        onKeyDown={(e) => { if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) e.preventDefault(); }}
+                                        onChange={(e) => {
+                                          const digits = e.target.value.replace(/\D/g, '');
+                                          const max = form.discountType === 'percentage' ? 100 : Math.floor(Number(form.price) || 0) || Infinity;
+                                          setForm((f) => ({ ...f, discountValue: digits === '' ? '' : String(Math.min(parseInt(digits, 10), max)) }));
+                                        }} />
+                                      {form.discountType === 'percentage' && <span className="input-group-text">%</span>}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                           )}

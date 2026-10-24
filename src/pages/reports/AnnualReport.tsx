@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getAnnualReport, AnnualReportDto } from '../../services/reportService';
 
 const fmt = (v: number) => v.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -25,9 +26,9 @@ const AnnualReport: React.FC = () => {
   const months = data?.months ?? [];
   const totals = data?.totals;
 
-  const cols = [t('reports.month'), t('reports.sales'), t('reports.purchases'), t('reports.returns'), t('reports.profit')];
-  const rows = months.map(m => [m.month, fmt(m.sales), fmt(m.purchases), fmt(m.returns), fmt(m.profit)]);
-  if (totals) rows.push([t('common.total'), fmt(totals.sales), fmt(totals.purchases), fmt(totals.returns), fmt(totals.profit)]);
+  const cols = [t('reports.month'), t('reports.sales'), t('reports.purchases'), 'Expenses', t('reports.returns'), t('reports.profit')];
+  const rows = months.map(m => [m.month, fmt(m.sales), fmt(m.purchases), fmt(m.expenses), fmt(m.returns), fmt(m.profit)]);
+  if (totals) rows.push([t('common.total'), fmt(totals.sales), fmt(totals.purchases), fmt(totals.expenses), fmt(totals.returns), fmt(totals.profit)]);
 
   const years = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i);
 
@@ -43,7 +44,8 @@ const AnnualReport: React.FC = () => {
             <button className="btn btn-primary btn-sm" onClick={load}>{t('reports.apply')}</button>
           </div>
           <ExportButtons onExportExcel={() => exportToExcel(cols, rows, `annual-report-${year}`)}
-            onExportPDF={() => exportToPDF(cols, rows, `annual-report-${year}`, t('reports.annual_report_year', { year }))} />
+            onExportPDF={() => exportToPDF(cols, rows, `annual-report-${year}`, t('reports.annual_report_year', { year }))}
+              onPrint={() => printReport(cols, rows, `annual-report-${year}`, t('reports.annual_report_year', { year }))} />
         </div>
         <div className="card-body">
           {loading ? <div className="text-center py-5"><div className="spinner-border text-primary"></div></div> : months.length === 0 ? (
@@ -52,19 +54,19 @@ const AnnualReport: React.FC = () => {
             <div className="table-responsive">
               <table className="table table-bordered table-hover">
                 <thead className="table-light">
-                  <tr><th>{t('reports.month')}</th><th>{t('reports.sales')}</th><th>{t('reports.purchases')}</th><th>{t('reports.returns')}</th><th>{t('reports.profit')}</th></tr>
+                  <tr><th>{t('reports.month')}</th><th>{t('reports.sales')}</th><th>{t('reports.purchases')}</th><th>Expenses</th><th>{t('reports.returns')}</th><th>{t('reports.profit')}</th></tr>
                 </thead>
                 <tbody>
                   {months.map(m => (
                     <tr key={m.month}>
-                      <td>{m.month}</td><td>{fmt(m.sales)}</td><td>{fmt(m.purchases)}</td>
+                      <td>{m.month}</td><td>{fmt(m.sales)}</td><td>{fmt(m.purchases)}</td><td>{fmt(m.expenses)}</td>
                       <td>{fmt(m.returns)}</td>
                       <td className={m.profit >= 0 ? 'text-success' : 'text-danger'}>{fmt(m.profit)}</td>
                     </tr>
                   ))}
                   {totals && (
                     <tr className="table-primary fw-bold">
-                      <td>{t('common.total')}</td><td>{fmt(totals.sales)}</td><td>{fmt(totals.purchases)}</td>
+                      <td>{t('common.total')}</td><td>{fmt(totals.sales)}</td><td>{fmt(totals.purchases)}</td><td>{fmt(totals.expenses)}</td>
                       <td>{fmt(totals.returns)}</td>
                       <td className={totals.profit >= 0 ? 'text-success' : 'text-danger'}>{fmt(totals.profit)}</td>
                     </tr>

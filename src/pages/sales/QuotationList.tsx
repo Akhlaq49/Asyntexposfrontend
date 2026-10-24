@@ -23,6 +23,13 @@ interface QuotationDto {
   taxes?: AppliedTax[];
   /** Terms edited for this quotation (null = standard terms) */
   termsContent?: string | null;
+  /** Revisions: original id (null on the original), 0 = original / 1 = _R1 ..., newer version that replaced this one */
+  rootQuotationId?: number | null;
+  revisionNo?: number;
+  supersededById?: number | null;
+  /** number of product lines and their names (the list has no line items) */
+  itemCount?: number;
+  productNames?: string[];
   customerImage: string | null; productId: number | null; productName: string;
   productImage: string | null; orderTax: number; discount: number; shipping: number;
   grandTotal: number; status: string; description: string | null;
@@ -69,6 +76,7 @@ const QuotationList: React.FC = () => {
   const [quotations, setQuotations] = useState<QuotationDto[]>([]);
   const [taxes, setTaxes] = useState<AppliedTax[]>([]);
   const [discountOn, setDiscountOn] = useState(false);
+  const [shippingOn, setShippingOn] = useState(false);
   /* terms & conditions step on submit */
   const [quotationTerms, setQuotationTerms] = useState<string | null>(null);   // the quotation's own terms (null = standard)
   const [termsStep, setTermsStep] = useState<null | 'ask' | 'edit'>(null);
@@ -120,6 +128,11 @@ const QuotationList: React.FC = () => {
   const [convertNotes, setConvertNotes] = useState('');
   const [convertError, setConvertError] = useState('');
   const [converting, setConverting] = useState(false);
+  /* revisions */
+  const [reviseFromId, setReviseFromId] = useState<number | null>(null);   // set while the form is creating a new revision
+  const [showOldVersions, setShowOldVersions] = useState(true);   // every version is listed (grouped) by default
+  const [versions, setVersions] = useState<QuotationDto[] | null>(null);
+  const [saveError, setSaveError] = useState('');
   const [notice, setNotice] = useState<{ type: 'success' | 'danger'; text: string; saleRef?: string } | null>(null);
 
   /* delete modal */
@@ -129,16 +142,15 @@ const QuotationList: React.FC = () => {
   /* ---- Fetch ---- */
   const fetchData = useCallback(async () => {
     setLoading(true);
-    try {
-      const [qRes, cRes, pRes] = await Promise.all([
-        api.get<QuotationDto[]>('/quotations'),
-        api.get<CustomerResult[]>('/customers'),
-        api.get<ProductResult[]>('/products'),
-      ]);
-      setQuotations(qRes.data);
-      setCustomers(cRes.data);
-      setProducts(pRes.data);
-    } catch { /* ignore */ }
+    // loaded independently: a failing customers / products call must not stop the quotation list from refreshing
+    const [qRes, cRes, pRes] = await Promise.allSettled([
+      api.get<QuotationDto[]>('/quotations'),
+      api.get<CustomerResult[]>('/customers'),
+      api.get<ProductResult[]>('/products'),
+    ]);
+    if (qRes.status === 'fulfilled') setQuotations(qRes.value.data);
+    if (cRes.status === 'fulfilled') setCustomers(cRes.value.data);
+    if (pRes.status === 'fulfilled') setProducts(pRes.value.data);
     setLoading(false);
   }, []);
 
@@ -159,8 +171,24 @@ const QuotationList: React.FC = () => {
   const productNames = [...new Set(quotations.map(q => q.productName).filter(Boolean))];
   const customerNames = [...new Set(quotations.map(q => q.customerName).filter(Boolean))];
 
+  /* ---- Revisions: QT-005 (original) -> QT-005_R1 -> QT-005_R2 ---- */
+  const familyId = (q: QuotationDto) => q.rootQuotationId ?? q.id;
+  const familyOf = (q: QuotationDto) => quotations.filter(x => familyId(x) === familyId(q));
+  const baseReference = (q: QuotationDto) => {
+    const root = quotations.find(x => x.id === familyId(q));
+    return root?.reference?.trim() || `QT-${familyId(q)}`;
+  };
+  const nextRevisionNo = (q: QuotationDto) => Math.max(0, ...familyOf(q).map(x => x.revisionNo || 0)) + 1;
+  const versionLabel = (q: QuotationDto) => (q.revisionNo ? `R${q.revisionNo}` : 'Original');
+  const referenceOf = (id?: number | null) => quotations.find(x => x.id === id)?.reference || '';
+  /** The version of this quotation that was converted to a sale, if any (only one version can be) */
+  const convertedVersion = (q: QuotationDto) => familyOf(q).find(x => x.saleId);
+  /** Convert / revise are open on every version until one version is converted */
+  const familyOpen = (q: QuotationDto) => !convertedVersion(q);
+
   const filtered = quotations
     .filter((q) => {
+      if (!showOldVersions && q.supersededById) return false;   // older versions are history; shown on request
       const s = searchTerm.toLowerCase();
       const matchSearch = !searchTerm || q.reference.toLowerCase().includes(s) || q.customerName.toLowerCase().includes(s) || q.productName.toLowerCase().includes(s);
       const matchProduct = !filterProduct || q.productName === filterProduct;
@@ -173,12 +201,14 @@ const QuotationList: React.FC = () => {
     .sort((a, b) => {
       if (sortBy === 'asc') return a.grandTotal - b.grandTotal;
       if (sortBy === 'desc') return b.grandTotal - a.grandTotal;
-      return 0;
+      const latestA = Math.max(...familyOf(a).map(x => x.id)), latestB = Math.max(...familyOf(b).map(x => x.id));
+      if (latestA !== latestB) return latestB - latestA;
+      return (b.revisionNo || 0) - (a.revisionNo || 0);
     });
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
   // back to page 1 when the customer / date filter changes
-  useEffect(() => { setCurrentPage(1); }, [filterCustomer, dateFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setCurrentPage(1); }, [filterCustomer, dateFilter, showOldVersions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => { setSelectAll(checked); setSelectedIds(checked ? new Set(filtered.map(q => q.id)) : new Set()); };
@@ -237,22 +267,27 @@ const QuotationList: React.FC = () => {
     setItems([]);
     setTaxes([]);
     setDiscountOn(false);
+    setShippingOn(false);
     setQuotationTerms(null);
+    setReviseFromId(null);
     setCustomerSearchTerm('');
     setProductSearchTerm('');
     setShowModal(true);
   };
 
-  const openEditModal = async (q: QuotationDto) => {
+  /** revise = open the form as a new revision (…_R1, _R2 …) of this quotation instead of editing it in place */
+  const openEditModal = async (q: QuotationDto, revise = false) => {
     // Fetch full detail with items
     try {
       const res = await api.get<QuotationDto>(`/quotations/${q.id}`);
       const full = res.data;
-      setEditingId(full.id);
+      setEditingId(revise ? null : full.id);
+      setReviseFromId(revise ? full.id : null);
+      setSaveError('');
       setForm({
         customerId: full.customerId, customerName: full.customerName, customerImage: full.customerImage || '',
         productId: full.productId, productName: full.productName, productImage: full.productImage || '',
-        reference: full.reference, status: full.status, orderTax: full.orderTax, discount: full.discount, shipping: full.shipping,
+        reference: revise ? `${baseReference(full)}_R${nextRevisionNo(full)}` : full.reference, status: full.status, orderTax: full.orderTax, discount: full.discount, shipping: full.shipping,
         description: full.description || '', quotationDate: new Date().toISOString().slice(0, 10),
       });
       setItems(full.items.map(i => ({
@@ -263,6 +298,7 @@ const QuotationList: React.FC = () => {
       })));
       setTaxes(full.taxes || []);
       setDiscountOn((full.discount || 0) > 0);
+      setShippingOn((full.shipping || 0) > 0);
       setQuotationTerms(full.termsContent ?? null);
       setCustomerSearchTerm(full.customerName);
       setProductSearchTerm('');
@@ -307,20 +343,47 @@ const QuotationList: React.FC = () => {
         taxAmount: i.taxAmount, unitCost: i.unitCost, totalCost: i.totalCost,
       })),
     };
+    setSaveError('');
     try {
-      if (editingId) await api.put(`/quotations/${editingId}`, payload);
+      if (reviseFromId) {
+        // new version; the current one is kept unchanged as history
+        const { data: rev } = await api.post<QuotationDto>(`/quotations/${reviseFromId}/revise`, payload);
+        setNotice({ type: 'success', text: `Revision ${rev.reference} saved. ${referenceOf(reviseFromId) || 'The previous version'} is kept as history.` });
+      } else if (editingId) await api.put(`/quotations/${editingId}`, payload);
       else await api.post('/quotations', payload);
       setShowModal(false);
       setTermsStep(null);
+      setReviseFromId(null);
       fetchData();
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      setSaveError(err?.response?.data?.message || 'Could not save the quotation.');
+    }
     setSavingQuotation(false);
   };
 
   /* ---- Delete ---- */
   const confirmDelete = async () => {
     if (!deleteId) return;
-    await api.delete(`/quotations/${deleteId}`); setShowDeleteModal(false); setDeleteId(null); fetchData();
+    const id = deleteId;
+    const ref = quotations.find(q => q.id === id)?.reference;
+    try {
+      await api.delete(`/quotations/${id}`);
+      // take the row off straight away, then reload (the previous version of a deleted revision becomes current again)
+      setQuotations(list => list.filter(q => q.id !== id));
+      setSelectedIds(sel => { const next = new Set(sel); next.delete(id); return next; });
+      setNotice({ type: 'success', text: `Quotation ${ref || '#' + id} deleted.` });
+    } catch (err: any) {
+      setNotice({ type: 'danger', text: err?.response?.data?.message || 'Could not delete the quotation.' });
+    }
+    setShowDeleteModal(false); setDeleteId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });   // the result message is shown at the top of the page
+    fetchData();
+  };
+
+  /** All versions of the quotation (original first) */
+  const openVersions = async (q: QuotationDto) => {
+    try { setVersions((await api.get<QuotationDto[]>(`/quotations/${q.id}/revisions`)).data); }
+    catch { setNotice({ type: 'danger', text: 'Could not load the versions.' }); }
   };
 
   /* ====================== CONVERT TO SALE ====================== */
@@ -384,21 +447,25 @@ const QuotationList: React.FC = () => {
     q = full;
     const lines = quotationLines(q);
     const subTotal = lines.reduce((sum, l) => sum + (l.totalCost || 0), 0);
+    // columns with nothing in them are left out of the printed quotation
+    const hasDiscount = lines.some((l) => l.discount > 0);
+    const hasTax = lines.some((l) => l.taxPercent > 0);
+    const labelCols = 4 + (hasDiscount ? 1 : 0) + (hasTax ? 1 : 0);
     const rows = lines.map((l, i) => `<tr><td class="c">${i + 1}</td><td>${esc(l.productName)}</td><td class="r">${l.quantity}</td>
-      <td class="r">${printMoney(l.purchasePrice)}</td><td class="r">${printMoney(l.discount)}</td>
-      <td class="r">${l.taxPercent ? esc(l.taxPercent) + '%' : '-'}</td><td class="r">${printMoney(l.totalCost)}</td></tr>`).join('');
-    const extra = (label: string, v: number, minus = false) => (v ? `<tr><td colspan="6" class="r">${label}</td><td class="r">${minus ? '- ' : ''}${printMoney(v)}</td></tr>` : '');
+      <td class="r">${printMoney(l.purchasePrice)}</td>${hasDiscount ? `<td class="r">${l.discount ? printMoney(l.discount) : '-'}</td>` : ''}
+      ${hasTax ? `<td class="r">${l.taxPercent ? esc(l.taxPercent) + '%' : '-'}</td>` : ''}<td class="r">${printMoney(l.totalCost)}</td></tr>`).join('');
+    const extra = (label: string, v: number, minus = false) => (v ? `<tr><td colspan="${labelCols}" class="r">${label}</td><td class="r">${minus ? '- ' : ''}${printMoney(v)}</td></tr>` : '');
     printDocument(`Quotation ${q.reference || q.id}`, 'QUOTATION', q.reference || `#${q.id}`, `
       <table class="info" style="margin-bottom:14px"><tbody>
         <tr><th>Customer</th><td>${esc(q.customerName)}</td><th>Date</th><td>${esc(q.quotationDate)}</td></tr>
         <tr><th>Reference</th><td>${esc(q.reference || '-')}</td><th>Status</th><td>${esc(q.status)}</td></tr>
       </tbody></table>
-      <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Discount</th><th class="r">Tax</th><th class="r">Total</th></tr></thead>
+      <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th><th class="r">Qty</th><th class="r">Unit price</th>${hasDiscount ? '<th class="r">Item discount<br><small>(per unit)</small></th>' : ''}${hasTax ? '<th class="r">Tax</th>' : ''}<th class="r">Total</th></tr></thead>
         <tbody>${rows}</tbody>
         <tfoot>
-          <tr><td colspan="6" class="r">Subtotal</td><td class="r">${printMoney(subTotal)}</td></tr>
-          ${extra('Discount', q.discount, true)}${q.taxes && q.taxes.length > 0 ? q.taxes.map((tx) => extra(`${esc(tx.taxName)} (${tx.percent}%)`, tx.amount)).join('') : extra('Order tax', q.orderTax)}${extra('Shipping', q.shipping)}
-          <tr class="total"><th colspan="6" class="r">Grand total</th><th class="r">${printMoney(q.grandTotal)}</th></tr>
+          <tr><td colspan="${labelCols}" class="r">Subtotal</td><td class="r">${printMoney(subTotal)}</td></tr>
+          ${extra('Overall discount', q.discount, true)}${q.taxes && q.taxes.length > 0 ? q.taxes.map((tx) => extra(`${esc(tx.taxName)} (${tx.percent}%)`, tx.amount)).join('') : extra('Order tax', q.orderTax)}${extra('Shipping', q.shipping)}
+          <tr class="total"><th colspan="${labelCols}" class="r">Grand total</th><th class="r">${printMoney(q.grandTotal)}</th></tr>
         </tfoot></table>
       ${q.description ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(q.description)}</p>` : ''}
       <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
@@ -514,7 +581,13 @@ const QuotationList: React.FC = () => {
           {/* Date: a month, or a From / To range */}
           <div className="w-100 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <DateFilters value={dateFilter} onChange={setDateFilter} />
-            <small className="text-muted">{filtered.length} of {quotations.length} quotation(s)</small>
+            <div className="d-flex align-items-center gap-3">
+              <div className="form-check form-switch mb-0">
+                <input className="form-check-input" type="checkbox" id="show-old-versions" checked={showOldVersions} onChange={e => setShowOldVersions(e.target.checked)} />
+                <label className="form-check-label" htmlFor="show-old-versions">Show all versions</label>
+              </div>
+              <small className="text-muted">{filtered.length} of {quotations.length} quotation(s)</small>
+            </div>
           </div>
         </div>
 
@@ -551,7 +624,18 @@ const QuotationList: React.FC = () => {
                           <a href="#" className="avatar avatar-md me-2">
                             <img src={q.productImage ? mediaUrl(q.productImage) : '/assets/img/products/product1.png'} alt="product" />
                           </a>
-                          <a href="#">{q.productName || 'N/A'}</a>
+                          {(() => {
+                            // first product, then "…" + "+N more" when the quotation has more products (all names on hover)
+                            const names = q.productNames && q.productNames.length ? q.productNames : (q.productName ? [q.productName] : []);
+                            const more = Math.max(0, (q.itemCount ?? names.length) - 1);
+                            return (
+                              <div title={names.length > 1 ? names.join('\n') : undefined}>
+                                <a href="#" onClick={e => { e.preventDefault(); openDetail(q); }}>{names[0] || 'N/A'}</a>
+                                {more > 0 && <span className="fw-bold ms-1" style={{ letterSpacing: 1 }}>…</span>}
+                                {more > 0 && <div><small className="text-muted" style={{ borderBottom: '1px dotted #999' }}>+{more} more product{more > 1 ? 's' : ''}</small></div>}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </td>
                       <td>
@@ -562,11 +646,21 @@ const QuotationList: React.FC = () => {
                           <a href="#">{q.customerName}</a>
                         </div>
                       </td>
-                      <td>{q.reference || '-'}</td>
+                      <td>
+                        <div className="fw-semibold">{q.reference || '-'}</div>
+                        {familyOf(q).length > 1 && (
+                          <div className="d-flex align-items-center gap-1 mt-1">
+                            <span className={`badge ${q.supersededById ? 'badge-secondary' : 'badge-info'}`} title={q.supersededById ? 'Earlier version' : 'Latest version'}>{versionLabel(q)}</span>
+                            <a href="#" className="small" title="See all versions" onClick={e => { e.preventDefault(); openVersions(q); }}>{familyOf(q).length} versions</a>
+                          </div>
+                        )}
+                      </td>
                       <td className="text-nowrap">{q.quotationDate}</td>
                       <td>
                         <span className={`badge ${statusBadge(q.status)}`}>{q.status}</span>
                         {q.saleReference && <div><small className="text-muted">Sale {q.saleReference}</small></div>}
+                        {!q.saleId && convertedVersion(q) && <div><small className="text-muted">Not chosen ({convertedVersion(q)!.reference} was converted)</small></div>}
+                        {!convertedVersion(q) && q.supersededById && <div><small className="text-muted">Earlier version (newer: {referenceOf(q.supersededById) || 'later revision'})</small></div>}
                       </td>
                       <td>{fmt(q.grandTotal)}</td>
                       <td>
@@ -574,7 +668,7 @@ const QuotationList: React.FC = () => {
                           <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); openDetail(q); }}>
                             <i data-feather="eye" className="action-eye"></i>
                           </a>
-                          {!q.saleId && (
+                          {familyOpen(q) && (
                             <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-success" href="#" title="Convert to sale" onClick={e => { e.preventDefault(); openConvert(q); }}>
                               <i className="ti ti-shopping-cart-check"></i>
                             </a>
@@ -582,14 +676,21 @@ const QuotationList: React.FC = () => {
                           <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" title="Print quotation" onClick={e => { e.preventDefault(); printQuotation(q); }}>
                             <i className="ti ti-printer"></i>
                           </a>
-                          {!q.saleId && (
-                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); openEditModal(q); }}>
+                          {familyOpen(q) && (
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-primary" href="#" title={`Revise: save a new version (${baseReference(q)}_R${nextRevisionNo(q)})`} onClick={e => { e.preventDefault(); openEditModal(q, true); }}>
+                              <i className="ti ti-versions"></i>
+                            </a>
+                          )}
+                          {familyOpen(q) && !q.supersededById && (
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" title="Edit this version" onClick={e => { e.preventDefault(); openEditModal(q); }}>
                               <i data-feather="edit" className="feather-edit"></i>
                             </a>
                           )}
-                          <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); setDeleteId(q.id); setShowDeleteModal(true); }}>
-                            <i data-feather="trash-2" className="feather-trash-2"></i>
-                          </a>
+                          {!q.supersededById && (
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" title="Delete" onClick={e => { e.preventDefault(); setDeleteId(q.id); setShowDeleteModal(true); }}>
+                              <i data-feather="trash-2" className="feather-trash-2"></i>
+                            </a>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -607,7 +708,8 @@ const QuotationList: React.FC = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">{editingId ? t('quotations.edit_quotation') : t('quotations.add_quotation')}</h4>
+                <h4 className="modal-title">{reviseFromId ? `New revision ${form.reference}` : editingId ? t('quotations.edit_quotation') : t('quotations.add_quotation')}</h4>
+                {reviseFromId && <small className="text-muted ms-3">{referenceOf(reviseFromId)} will be kept unchanged as history</small>}
                 <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
               </div>
               <div className="card border-0 mb-0">
@@ -640,7 +742,8 @@ const QuotationList: React.FC = () => {
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3">
                         <label className="form-label">{t('common.reference')}</label>
-                        <input type="text" className="form-control" placeholder={t('quotations.enter_reference')} value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
+                        <input type="text" className="form-control" placeholder={editingId ? t('quotations.enter_reference') : 'Automatic (QT-0001 ...) if left empty'} value={form.reference} readOnly={!!reviseFromId}
+                          title={reviseFromId ? 'Revision references are numbered automatically' : undefined} onChange={e => setForm({ ...form, reference: e.target.value })} />
                       </div>
                     </div>
                     <div className="col-lg-12 col-sm-12 col-12">
@@ -672,7 +775,7 @@ const QuotationList: React.FC = () => {
                             <th>{t('quotations.product')}</th>
                             <th>{t('quotations.qty')}</th>
                             <th>{t('sales.purchase_price')}</th>
-                            <th>{t('sales.discount_amt')}</th>
+                            <th title="Rupees off each unit of this product">Item Discount<br /><small className="text-muted fw-normal">per unit (Rs)</small></th>
                             <th>{t('sales.unit_cost')}</th>
                             <th>{t('sales.total_cost')}</th>
                             <th></th>
@@ -703,7 +806,7 @@ const QuotationList: React.FC = () => {
                                   </div>
                                   {item.discountOn && (
                                     <input type="number" min={0} step={1} inputMode="numeric" className="form-control form-control-sm" style={{ width: 90 }} placeholder="Rs" autoFocus
-                                      title="Whole rupees off each unit" value={item.discount || ''} onKeyDown={blockNonDigits}
+                                      title="Item discount: whole rupees off each unit of this product" value={item.discount || ''} onKeyDown={blockNonDigits}
                                       onChange={e => updateItemField(idx, 'discount', Math.min(wholeRupees(e.target.value), Math.floor(item.purchasePrice)))} />
                                   )}
                                 </div>
@@ -722,7 +825,7 @@ const QuotationList: React.FC = () => {
                   <div className="row">
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3">
-                        <label className="form-label">{t('quotations.discount')}</label>
+                        <label className="form-label" title="Rupees off the whole quotation">Overall Discount <small className="text-muted">(whole quotation, Rs)</small></label>
                         {/* Apply discount? No = no discount; Yes = a whole-rupee amount (not a percentage) */}
                         <div className="d-flex align-items-center gap-3" style={{ minHeight: 38 }}>
                           <div className="form-check form-check-inline mb-0">
@@ -754,7 +857,27 @@ const QuotationList: React.FC = () => {
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3">
                         <label className="form-label">{t('quotations.shipping')}</label>
-                        <input type="number" className="form-control" value={form.shipping || ''} onChange={e => setForm({ ...form, shipping: parseFloat(e.target.value) || 0 })} />
+                        {/* Add shipping? No = no shipping charge; Yes = a whole-rupee amount */}
+                        <div className="d-flex align-items-center gap-3" style={{ minHeight: 38 }}>
+                          <div className="form-check form-check-inline mb-0">
+                            <input className="form-check-input" type="radio" id="ship-no" checked={!shippingOn}
+                              onChange={() => { setShippingOn(false); setForm({ ...form, shipping: 0 }); }} />
+                            <label className="form-check-label" htmlFor="ship-no">No</label>
+                          </div>
+                          <div className="form-check form-check-inline mb-0">
+                            <input className="form-check-input" type="radio" id="ship-yes" checked={shippingOn} onChange={() => setShippingOn(true)} />
+                            <label className="form-check-label" htmlFor="ship-yes">Yes</label>
+                          </div>
+                          {shippingOn && (
+                            <div className="input-group">
+                              <span className="input-group-text">Rs</span>
+                              <input type="number" min={0} step={1} inputMode="numeric" className="form-control" placeholder="e.g. 300" autoFocus
+                                value={form.shipping || ''} onKeyDown={blockNonDigits}
+                                onChange={e => setForm({ ...form, shipping: wholeRupees(e.target.value) })} />
+                            </div>
+                          )}
+                        </div>
+                        {shippingOn && <small className="text-muted">Whole rupees, added to the total.</small>}
                       </div>
                     </div>
                     <div className="col-lg-4 col-sm-6 col-12">
@@ -783,7 +906,7 @@ const QuotationList: React.FC = () => {
                   {/* Grand Total */}
                   <div className="row mb-3">
                     <div className="col-12 text-end">
-                      <div className="text-muted">Subtotal: {fmt(itemsTotal)}{form.discount > 0 && <> &nbsp;- Discount: {fmt(form.discount)}</>}{taxAmount > 0 && <> &nbsp;+ Tax: {fmt(taxAmount)}</>}{form.shipping > 0 && <> &nbsp;+ Shipping: {fmt(form.shipping)}</>}</div>
+                      <div className="text-muted">Subtotal: {fmt(itemsTotal)}{form.discount > 0 && <> &nbsp;- Overall discount: {fmt(form.discount)}</>}{taxAmount > 0 && <> &nbsp;+ Tax: {fmt(taxAmount)}</>}{form.shipping > 0 && <> &nbsp;+ Shipping: {fmt(form.shipping)}</>}</div>
                       <h5 className="mt-1">{t('common.grand_total')}: {fmt(grandTotal)}</h5>
                     </div>
                   </div>
@@ -791,7 +914,7 @@ const QuotationList: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary me-2" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
-                <button type="button" className="btn btn-primary" onClick={askTerms}>{editingId ? t('common.update') : t('common.submit')}</button>
+                <button type="button" className="btn btn-primary" onClick={askTerms}>{reviseFromId ? `Save revision R${form.reference.split('_R').pop()}` : editingId ? t('common.update') : t('common.submit')}</button>
               </div>
             </div>
           </div>
@@ -811,6 +934,7 @@ const QuotationList: React.FC = () => {
                 <>
                   <div className="modal-body">
                     <p className="mb-2" style={{ fontSize: 16 }}>Do you want to edit the terms &amp; conditions for this quotation?</p>
+                    {saveError && <div className="alert alert-danger py-2">{saveError}</div>}
                     <small className="text-muted">
                       {quotationTerms
                         ? 'This quotation already has its own edited terms. "No" keeps them.'
@@ -832,6 +956,7 @@ const QuotationList: React.FC = () => {
                       These terms are printed on this quotation only (also after it is converted to a sale). Your standard terms are not changed.
                       One item per line: start a line with <code>- </code> for a bullet, <code>1: Payment</code> for a numbered heading.
                     </p>
+                    {saveError && <div className="alert alert-danger py-2">{saveError}</div>}
                     <textarea className="form-control" rows={20} style={{ fontSize: 13, lineHeight: 1.45 }} value={termsDraft} onChange={e => setTermsDraft(e.target.value)} />
                   </div>
                   <div className="modal-footer">
@@ -844,6 +969,55 @@ const QuotationList: React.FC = () => {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== Versions (revision history) ===================== */}
+      {versions && (
+        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h4 className="modal-title">Versions of {versions[0]?.reference || 'this quotation'}</h4>
+                <button type="button" className="btn-close" onClick={() => setVersions(null)} />
+              </div>
+              <div className="modal-body">
+                <p className="text-muted mb-2">Every version is kept. Convert whichever version the customer accepts - only one version can be converted.</p>
+                <table className="table table-sm align-middle">
+                  <thead className="thead-light"><tr><th>Version</th><th>Reference</th><th>Saved on</th><th className="text-end">Total</th><th>State</th><th /></tr></thead>
+                  <tbody>
+                    {versions.map(v => (
+                      <tr key={v.id} className={v.supersededById ? '' : 'table-success'}>
+                        <td>{versionLabel(v)}</td>
+                        <td className="fw-semibold">{v.reference}</td>
+                        <td className="text-nowrap">{v.createdAt}</td>
+                        <td className="text-end">{fmt(v.grandTotal)}</td>
+                        <td>
+                          {v.saleReference ? <span className="badge badge-primary">Converted ({v.saleReference})</span>
+                            : versions.some(x => x.saleId) ? <span className="badge badge-secondary">Not chosen</span>
+                            : v.supersededById ? <span className="badge badge-secondary">Earlier version</span>
+                            : <span className="badge badge-success">Latest</span>}
+                        </td>
+                        <td className="text-end text-nowrap">
+                          <button type="button" className="btn btn-sm btn-outline-secondary me-1" title="View" onClick={() => { setVersions(null); openDetail(v); }}><i className="ti ti-eye"></i></button>
+                          <button type="button" className="btn btn-sm btn-outline-primary me-1" title="Print this version" onClick={() => printQuotation(v)}><i className="ti ti-printer"></i></button>
+                          {!versions.some(x => x.saleId) && (
+                            <>
+                              <button type="button" className="btn btn-sm btn-outline-info me-1" title={`Revise from ${v.reference}`} onClick={() => { setVersions(null); openEditModal(v, true); }}><i className="ti ti-versions"></i></button>
+                              <button type="button" className="btn btn-sm btn-success" title={`Convert ${v.reference} to a sale`} onClick={() => { setVersions(null); openConvert(v); }}><i className="ti ti-shopping-cart-check"></i></button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setVersions(null)}>Close</button>
+              </div>
             </div>
           </div>
         </div>
@@ -869,8 +1043,14 @@ const QuotationList: React.FC = () => {
                     <p className="mb-1"><strong>{t('common.status')}:</strong> <span className={`badge ${statusBadge(detailQuotation.status)}`}>{detailQuotation.status}</span></p>
                     <p className="mb-1"><strong>{t('common.grand_total')}:</strong> {fmt(detailQuotation.grandTotal)}</p>
                     {detailQuotation.saleReference && <p className="mb-1 text-primary"><strong>Converted to sale:</strong> {detailQuotation.saleReference}</p>}
+                    {(detailQuotation.revisionNo || detailQuotation.supersededById) ? (
+                      <p className="mb-1"><strong>Version:</strong> {versionLabel(detailQuotation)} <a href="#" className="ms-1" onClick={e => { e.preventDefault(); openVersions(detailQuotation); }}>all versions</a></p>
+                    ) : null}
                   </div>
                 </div>
+                {detailQuotation.supersededById && (
+                  <div className="alert alert-secondary py-2">This is an earlier version (the newest is <strong>{referenceOf(familyOf(detailQuotation).find(x => !x.supersededById)?.id) || 'a later revision'}</strong>). It is kept unchanged{familyOpen(detailQuotation) ? ' and can still be converted to a sale if the customer chooses it' : ''}.</div>
+                )}
                 {detailQuotation.description && <p className="mb-3"><strong>{t('common.description')}:</strong> {detailQuotation.description}</p>}
 
                 {detailQuotation.items.length > 0 && (
@@ -881,9 +1061,9 @@ const QuotationList: React.FC = () => {
                           <th>{t('quotations.product')}</th>
                           <th>{t('quotations.qty')}</th>
                           <th>{t('sales.purchase_price')}</th>
-                          <th>{t('quotations.discount')}</th>
-                          <th>{t('sales.tax_pct')}</th>
-                          <th>{t('sales.tax_amount')}</th>
+                          {detailQuotation.items.some(i => i.discount > 0) && <th>Item discount (per unit)</th>}
+                          {detailQuotation.items.some(i => i.taxPercent > 0) && <th>{t('sales.tax_pct')}</th>}
+                          {detailQuotation.items.some(i => i.taxPercent > 0) && <th>{t('sales.tax_amount')}</th>}
                           <th>{t('sales.unit_cost')}</th>
                           <th>{t('sales.total_cost')}</th>
                         </tr>
@@ -894,9 +1074,9 @@ const QuotationList: React.FC = () => {
                             <td>{i.productName}</td>
                             <td>{i.quantity}</td>
                             <td>{fmt(i.purchasePrice)}</td>
-                            <td>{fmt(i.discount)}</td>
-                            <td>{i.taxPercent.toFixed(2)}%</td>
-                            <td>{fmt(i.taxAmount)}</td>
+                            {detailQuotation.items.some(x => x.discount > 0) && <td>{fmt(i.discount)}</td>}
+                            {detailQuotation.items.some(x => x.taxPercent > 0) && <td>{i.taxPercent.toFixed(2)}%</td>}
+                            {detailQuotation.items.some(x => x.taxPercent > 0) && <td>{fmt(i.taxAmount)}</td>}
                             <td>{fmt(i.unitCost)}</td>
                             <td>{fmt(i.totalCost)}</td>
                           </tr>
@@ -911,9 +1091,9 @@ const QuotationList: React.FC = () => {
                     <ul className="list-group">
                       {detailQuotation.taxes && detailQuotation.taxes.length > 0
                         ? detailQuotation.taxes.map((tx, n) => <li key={n} className="list-group-item d-flex justify-content-between"><span>{tx.taxName} ({tx.percent}%)</span><span>{fmt(tx.amount)}</span></li>)
-                        : <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.order_tax')}</span><span>{fmt(detailQuotation.orderTax)}</span></li>}
-                      <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.discount')}</span><span>{fmt(detailQuotation.discount)}</span></li>
-                      <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.shipping')}</span><span>{fmt(detailQuotation.shipping)}</span></li>
+                        : detailQuotation.orderTax > 0 && <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.order_tax')}</span><span>{fmt(detailQuotation.orderTax)}</span></li>}
+                      {detailQuotation.discount > 0 && <li className="list-group-item d-flex justify-content-between"><span>Overall discount</span><span>- {fmt(detailQuotation.discount)}</span></li>}
+                      {detailQuotation.shipping > 0 && <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.shipping')}</span><span>{fmt(detailQuotation.shipping)}</span></li>}
                       <li className="list-group-item d-flex justify-content-between"><strong>{t('common.grand_total')}</strong><strong>{fmt(detailQuotation.grandTotal)}</strong></li>
                     </ul>
                   </div>
@@ -921,8 +1101,8 @@ const QuotationList: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-primary" onClick={() => printQuotation(detailQuotation)}><i className="ti ti-printer me-1"></i>Print quotation</button>
-                {!detailQuotation.saleId && <button type="button" className="btn btn-success me-auto" onClick={() => openConvert(detailQuotation)}><i className="ti ti-shopping-cart-check me-1"></i>Convert to sale</button>}
-                {detailQuotation.saleId && <span className="me-auto" />}
+                {familyOpen(detailQuotation) && <button type="button" className="btn btn-success me-auto" onClick={() => openConvert(detailQuotation)}><i className="ti ti-shopping-cart-check me-1"></i>Convert to sale</button>}
+                {!familyOpen(detailQuotation) && <span className="me-auto" />}
                 <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>{t('common.close')}</button>
               </div>
             </div>

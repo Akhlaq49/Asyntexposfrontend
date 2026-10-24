@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getPurchaseReport, PurchaseReportItemDto } from '../../services/reportService';
 import { mediaUrl } from '../../services/api';
 import Pagination from '../../components/common/Pagination';
@@ -51,7 +52,8 @@ const PurchaseReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2">
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'purchase-report')}
-              onExportPDF={() => exportToPDF(pdfCols, pdfRows, 'purchase-report', t('reports.purchase_report'), undefined, pdfImages)} />
+              onExportPDF={() => exportToPDF(pdfCols, pdfRows, 'purchase-report', t('reports.purchase_report'), undefined, pdfImages)}
+              onPrint={() => printReport(pdfCols, pdfRows, 'purchase-report', t('reports.purchase_report'), undefined, pdfImages)} />
           </div>
         </div>
         <div className="card-body">

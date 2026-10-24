@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getIncomeReport, IncomeReportItemDto } from '../../services/reportService';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -48,6 +49,9 @@ const IncomeReport: React.FC = () => {
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'income-report')}
               onExportPDF={() => exportToPDF(cols, rows, 'income-report', t('reports.income_report'), [
+                { label: t('reports.total_income'), value: `Rs ${totalIncome.toFixed(2)}` },
+              ])}
+              onPrint={() => printReport(cols, rows, 'income-report', t('reports.income_report'), [
                 { label: t('reports.total_income'), value: `Rs ${totalIncome.toFixed(2)}` },
               ])} />
           </div>

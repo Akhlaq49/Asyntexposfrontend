@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { printExpense } from '../../utils/documentPrints';
 import { useTranslation } from 'react-i18next';
 import { getExpenses, createExpense, updateExpense, deleteExpense, getExpenseCategories, Expense, ExpenseCategory } from '../../services/financeService';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
@@ -135,6 +136,7 @@ const ExpenseList: React.FC = () => {
                       <td>Rs {exp.amount.toFixed(2)}</td>
                       <td><span className={`badge fw-medium fs-10 ${exp.status === 'active' ? 'bg-success' : 'bg-danger'}`}>{exp.status === 'active' ? 'Active' : 'Inactive'}</span></td>
                       <td className="action-table-data"><div className="edit-delete-action">
+                        <a className="me-2 p-2" href="#" title="Print voucher" onClick={e => { e.preventDefault(); printExpense(exp); }}><i className="ti ti-printer"></i></a>
                         <a className="me-2 p-2" href="#" onClick={e => { e.preventDefault(); openEditModal(exp); }}><i data-feather="edit" className="feather-edit"></i></a>
                         <a className="p-2" href="#" onClick={e => { e.preventDefault(); openDeleteModal(exp.id); }}><i data-feather="trash-2" className="feather-trash-2"></i></a>
                       </div></td>

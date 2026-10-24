@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getDpdReport, DpdReport, DpdCustomerItem } from '../../services/reportService';
 import { getCustomers, Customer } from '../../services/customerService';
 import Pagination from '../../components/common/Pagination';
@@ -160,6 +161,13 @@ const DpdReportPage: React.FC = () => {
               [{ label: 'Total Due Amount', value: fmt(summary.totalDueAmount) }]
             )}
               onExportPDF={() => exportToPDF(
+                cols,
+                rows,
+                'dpd-report',
+                'DPD Report',
+                [{ label: 'Total Due Amount', value: fmt(summary.totalDueAmount) }]
+              )}
+              onPrint={() => printReport(
                 cols,
                 rows,
                 'dpd-report',

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getInventoryReport, InventoryReportItemDto } from '../../services/reportService';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -42,7 +43,8 @@ const InventoryReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2">
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'inventory-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'inventory-report', t('reports.inventory_report'))} />
+              onExportPDF={() => exportToPDF(cols, rows, 'inventory-report', t('reports.inventory_report'))}
+              onPrint={() => printReport(cols, rows, 'inventory-report', t('reports.inventory_report'))} />
           </div>
         </div>
         <div className="card-body">

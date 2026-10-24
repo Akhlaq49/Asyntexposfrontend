@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getCustomerDueReport, CustomerDueReportItemDto } from '../../services/reportService';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -55,7 +56,8 @@ const CustomerDueReport: React.FC = () => {
           <div className="d-flex align-items-center gap-2">
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'customer-due-report')}
-              onExportPDF={() => exportToPDF(cols, rows, 'customer-due-report', t('reports.customer_due_report'))} />
+              onExportPDF={() => exportToPDF(cols, rows, 'customer-due-report', t('reports.customer_due_report'))}
+              onPrint={() => printReport(cols, rows, 'customer-due-report', t('reports.customer_due_report'))} />
           </div>
         </div>
         <div className="card-body">

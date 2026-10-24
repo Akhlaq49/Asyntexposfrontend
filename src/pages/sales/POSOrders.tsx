@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import api, { mediaUrl } from '../../services/api';
+import { printSaleInvoice } from '../../utils/documentPrints';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -98,8 +99,8 @@ const POSOrders: React.FC = () => {
   const [products, setProducts] = useState<ProductResult[]>([]);
 
   /* filters */
-  const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterCustomer, setFilterCustomer] = useState('');
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
   const [sortBy, setSortBy] = useState('recent');
 
@@ -189,16 +190,17 @@ const POSOrders: React.FC = () => {
 
   /* ---- Filters ----
    * List view uses `filtered` (includes payment-status filter + sort).
-   * By-customer cards use `groupingCandidates` only (search + order status) so paid rows stay visible
+   * By-customer cards use `groupingCandidates` only (customer + order status) so paid rows stay visible
    * with up-to-date Paid/Due/Payment status; payment filter still narrows the table only. */
   const groupingCandidates = useMemo(() => {
-    const q = searchTerm.toLowerCase();
+    const q = filterCustomer.trim().toLowerCase();
     return sales.filter((s) => {
-      const matchSearch = !searchTerm || s.reference.toLowerCase().includes(q) || s.customerName.toLowerCase().includes(q);
       const matchStatus = !filterStatus || s.status === filterStatus;
-      return matchSearch && matchStatus;
+      // customer: typed name, matched anywhere in the name, any case
+      const matchCustomer = !q || (s.customerName || '').toLowerCase().includes(q);
+      return matchStatus && matchCustomer;
     });
-  }, [sales, searchTerm, filterStatus]);
+  }, [sales, filterStatus, filterCustomer]);
 
   const filtered = useMemo(() => {
     const rows = groupingCandidates.filter((s) => !filterPaymentStatus || s.paymentStatus === filterPaymentStatus);
@@ -542,11 +544,15 @@ const POSOrders: React.FC = () => {
       {/* ---- Card ---- */}
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-          <div className="search-set">
-            <div className="search-input">
-              <a href="#" className="btn btn-searchset"><i className="ti ti-search fs-14"></i></a>
-              <input type="text" className="form-control" placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            </div>
+          {/* Customer filter: type a name (suggestions from the orders) */}
+          <div className="position-relative">
+            <i className="ti ti-search position-absolute top-50 translate-middle-y text-muted" style={{ left: 12 }}></i>
+            <input className="form-control" style={{ width: 260, paddingLeft: 34, paddingRight: filterCustomer ? 30 : undefined }} placeholder="Search customer name" list="pos-customers"
+              value={filterCustomer} onChange={(e) => { setFilterCustomer(e.target.value); setCurrentPage(1); }} />
+            <datalist id="pos-customers">{[...new Set(sales.map((s) => s.customerName).filter(Boolean))].map((c) => <option key={c} value={c} />)}</datalist>
+            {filterCustomer && (
+              <button type="button" className="btn btn-sm position-absolute top-50 end-0 translate-middle-y border-0" title="Clear" onClick={() => setFilterCustomer('')}><i className="ti ti-x"></i></button>
+            )}
           </div>
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown me-2">
@@ -643,6 +649,7 @@ const POSOrders: React.FC = () => {
                         </a>
                         <ul className="dropdown-menu">
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}><i data-feather="eye" className="info-img"></i>{t('sales.sale_detail')}</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); printSaleInvoice(s); }}><i className="ti ti-printer info-img me-2"></i>Print invoice</a></li>
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openEditModal(s); }}><i data-feather="edit" className="info-img"></i>{t('sales.edit_sale')}</a></li>
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}><i data-feather="dollar-sign" className="info-img"></i>{t('sales.show_payments')}</a></li>
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}><i data-feather="plus-circle" className="info-img"></i>{t('sales.create_payment')}</a></li>

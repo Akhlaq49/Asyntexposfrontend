@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
+import { printSalesReturn } from '../../utils/documentPrints';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -17,7 +18,12 @@ interface SalesReturnDto {
   grandTotal: number; paid: number; due: number; status: string;
   paymentStatus: string; returnDate: string; createdAt: string;
   items: SalesReturnItemDto[];
+  /** the POS sale this return belongs to */
+  saleId?: number | null; saleReference?: string | null;
 }
+
+interface ReturnableLine { saleItemId: number; productId: number; productName: string; quantity: number; unitPrice: number; returned: number; returnable: number }
+interface SaleLookup { saleId: number; reference: string; customerName: string; saleDate: string; grandTotal: number; paid: number; orderTax: number; discount: number; itemsTotal: number; items: ReturnableLine[]; previousReturns: string[] }
 interface CustomerResult { id: number; name: string; phone?: string; }
 interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; }
 
@@ -90,6 +96,46 @@ const SalesReturns: React.FC = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   /* ---- Fetch ---- */
+  /* return a sale: find it by reference, pick what comes back */
+  const [rsOpen, setRsOpen] = useState(false);
+  const [rsRef, setRsRef] = useState('');
+  const [rsSale, setRsSale] = useState<SaleLookup | null>(null);
+  const [rsQty, setRsQty] = useState<Record<number, number | ''>>({});
+  const [rsRefund, setRsRefund] = useState<number | ''>('');
+  const [rsDate, setRsDate] = useState(new Date().toISOString().slice(0, 10));
+  const [rsError, setRsError] = useState('');
+  const [rsBusy, setRsBusy] = useState(false);
+  const [rsNotice, setRsNotice] = useState('');
+  const openReturnSale = () => { setRsOpen(true); setRsRef(''); setRsSale(null); setRsQty({}); setRsRefund(''); setRsError(''); setRsDate(new Date().toISOString().slice(0, 10)); };
+  const findSale = async () => {
+    if (!rsRef.trim()) { setRsError('Enter the sale reference, e.g. SL001.'); return; }
+    setRsBusy(true); setRsError(''); setRsSale(null);
+    try {
+      const { data } = await api.get<SaleLookup>('/salesreturns/sale-lookup', { params: { reference: rsRef.trim() } });
+      setRsSale(data); setRsQty({}); setRsRefund('');
+    } catch (err: any) { setRsError(err?.response?.data?.message || 'Sale not found.'); }
+    setRsBusy(false);
+  };
+  // value of what comes back: line prices + its share of the sale's order tax and discount (same as the server)
+  const rsLinesValue = rsSale ? rsSale.items.reduce((sum, i) => sum + i.unitPrice * (Number(rsQty[i.saleItemId]) || 0), 0) : 0;
+  const rsShare = rsSale && rsSale.itemsTotal > 0 ? rsLinesValue / rsSale.itemsTotal : 0;
+  const rsTotal = rsSale ? Math.max(0, Math.round((rsLinesValue + rsSale.orderTax * rsShare - rsSale.discount * rsShare) * 100) / 100) : 0;
+  const submitReturnSale = async () => {
+    if (!rsSale) return;
+    const lines = rsSale.items.map(i => ({ saleItemId: i.saleItemId, quantity: Number(rsQty[i.saleItemId]) || 0 })).filter(l => l.quantity > 0);
+    if (lines.length === 0) { setRsError('Enter how many come back for at least one product.'); return; }
+    setRsBusy(true); setRsError('');
+    try {
+      const { data } = await api.post<{ reference: string; grandTotal: number; paid: number }>('/salesreturns/from-sale', {
+        saleId: rsSale.saleId, lines, refund: rsRefund === '' ? rsTotal : Number(rsRefund), returnDate: rsDate,
+      });
+      setRsOpen(false);
+      setRsNotice(`Return ${data.reference} saved for sale ${rsSale.reference}: Rs ${data.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} returned, Rs ${data.paid.toLocaleString('en-US', { minimumFractionDigits: 2 })} refunded. The products are back in stock.`);
+      fetchData();
+    } catch (err: any) { setRsError(err?.response?.data?.message || 'Could not save the return.'); }
+    setRsBusy(false);
+  };
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -180,15 +226,7 @@ const SalesReturns: React.FC = () => {
     setShowCustomerDropdown(false);
   };
 
-  /* ---- Open add/edit modal ---- */
-  const openAddModal = () => {
-    setEditingId(null);
-    setForm({ customerId: null, customerName: '', customerImage: '', productId: null, productName: '', productImage: '', reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, returnDate: new Date().toISOString().slice(0, 10) });
-    setItems([]);
-    setCustomerSearchTerm('');
-    setProductSearchTerm('');
-    setShowModal(true);
-  };
+  /* ---- Open edit modal (new returns are made with "Return a sale") ---- */
 
   const openEditModal = (ret: SalesReturnDto) => {
     setEditingId(ret.id);
@@ -248,14 +286,19 @@ const SalesReturns: React.FC = () => {
             <h6>{t('sales_returns.subtitle')}</h6>
           </div>
         </div>
-        <div className="page-btn">
-          <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}>
-            <i className="ti ti-circle-plus me-1"></i>{t('sales_returns.add_return')}
+        <div className="page-btn d-flex gap-2">
+          <a href="#" className="btn btn-success" onClick={e => { e.preventDefault(); openReturnSale(); }}>
+            <i className="ti ti-receipt-refund me-1"></i>Return a sale
           </a>
         </div>
       </div>
 
       {/* ---- Card ---- */}
+      {rsNotice && (
+        <div className="alert alert-success d-flex justify-content-between align-items-center py-2">
+          <span>{rsNotice}</span><button type="button" className="btn-close" onClick={() => setRsNotice('')} />
+        </div>
+      )}
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <div className="search-set">
@@ -350,7 +393,10 @@ const SalesReturns: React.FC = () => {
                           <a href="#" className="avatar avatar-md me-2">
                             <img src={r.productImage ? mediaUrl(r.productImage) : '/assets/img/products/product1.png'} alt="" />
                           </a>
-                          <a href="#">{r.productName || 'N/A'}</a>
+                          <div>
+                            <a href="#">{r.productName || 'N/A'}</a>
+                            <div><small className="text-muted">{r.reference}{r.saleReference ? ` - return of sale ${r.saleReference}` : ''}</small></div>
+                          </div>
                         </div>
                       </td>
                       <td>{r.returnDate}</td>
@@ -376,7 +422,8 @@ const SalesReturns: React.FC = () => {
                           <i className="fa fa-ellipsis-v" aria-hidden="true"></i>
                         </a>
                         <ul className="dropdown-menu">
-                          <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(r); }}><i data-feather="edit" className="info-img"></i>{t('sales_returns.edit_return')}</a></li>
+                          <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); printSalesReturn(r); }}><i className="ti ti-printer info-img me-2"></i>Print return</a></li>
+                          {!r.saleId && <li><a className="dropdown-item" href="#" onClick={e => { e.preventDefault(); openEditModal(r); }}><i data-feather="edit" className="info-img"></i>{t('sales_returns.edit_return')}</a></li>}
                           <li><a className="dropdown-item mb-0" href="#" onClick={e => { e.preventDefault(); setDeleteId(r.id); setShowDeleteModal(true); }}><i data-feather="trash-2" className="info-img"></i>{t('sales_returns.delete_return')}</a></li>
                         </ul>
                       </td>
@@ -553,6 +600,70 @@ const SalesReturns: React.FC = () => {
 
       {/* ===================== Delete Modal ===================== */}
       <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+      {/* ===================== Return a sale ===================== */}
+      {rsOpen && (
+        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h4 className="modal-title">Return a sale</h4>
+                <button type="button" className="btn-close" onClick={() => setRsOpen(false)} disabled={rsBusy} />
+              </div>
+              <div className="modal-body">
+                <label className="form-label">Sale reference</label>
+                <div className="input-group mb-3" style={{ maxWidth: 380 }}>
+                  <input className="form-control" placeholder="e.g. SL001" value={rsRef} autoFocus
+                    onChange={e => setRsRef(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); findSale(); } }} />
+                  <button className="btn btn-primary" onClick={findSale} disabled={rsBusy}><i className="ti ti-search me-1"></i>Find</button>
+                </div>
+                {rsSale && (
+                  <>
+                    <div className="d-flex flex-wrap gap-4 p-2 mb-3 bg-light rounded">
+                      <span><small className="text-muted d-block">Sale</small><strong>{rsSale.reference}</strong></span>
+                      <span><small className="text-muted d-block">Customer</small>{rsSale.customerName}</span>
+                      <span><small className="text-muted d-block">Date</small>{new Date(rsSale.saleDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      <span><small className="text-muted d-block">Sale total</small>Rs {rsSale.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                      {rsSale.previousReturns.length > 0 && <span><small className="text-muted d-block">Earlier returns</small>{rsSale.previousReturns.join(', ')}</span>}
+                    </div>
+                    <table className="table table-sm align-middle">
+                      <thead className="thead-light"><tr><th>Product</th><th className="text-end">Sold</th><th className="text-end">Returned</th><th className="text-end">Unit price</th><th style={{ width: 130 }}>Returning now</th></tr></thead>
+                      <tbody>{rsSale.items.map(i => (
+                        <tr key={i.saleItemId} className={i.returnable === 0 ? 'text-muted' : ''}>
+                          <td>{i.productName}</td><td className="text-end">{i.quantity}</td><td className="text-end">{i.returned}</td>
+                          <td className="text-end">Rs {i.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                          <td>
+                            <input type="number" min={0} max={i.returnable} step={1} className="form-control form-control-sm" disabled={i.returnable === 0}
+                              placeholder={i.returnable === 0 ? 'all returned' : `max ${i.returnable}`} value={rsQty[i.saleItemId] ?? ''}
+                              onKeyDown={e => { if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) e.preventDefault(); }}
+                              onChange={e => { const v = e.target.value === '' ? '' : Math.min(i.returnable, Math.max(0, parseInt(e.target.value, 10) || 0)); setRsQty({ ...rsQty, [i.saleItemId]: v }); }} />
+                          </td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                    <div className="row align-items-end">
+                      <div className="col-md-4 mb-3"><label className="form-label">Return date</label><input type="date" className="form-control" value={rsDate} onChange={e => setRsDate(e.target.value)} /></div>
+                      <div className="col-md-4 mb-3">
+                        <label className="form-label">Refund to customer (Rs)</label>
+                        <input type="number" min={0} step="any" className="form-control" placeholder={String(rsTotal)} value={rsRefund}
+                          onChange={e => setRsRefund(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))} />
+                        <small className="text-muted">Empty = refund the full value</small>
+                      </div>
+                      <div className="col-md-4 mb-3 text-end"><small className="text-muted d-block">Value returned</small><span className="fw-bold" style={{ fontSize: 22 }}>Rs {rsTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span></div>
+                    </div>
+                    <small className="text-muted">The products go back into stock. The value includes this part's share of the sale's order tax and discount.</small>
+                  </>
+                )}
+                {rsError && <div className="alert alert-danger py-2 mt-3 mb-0">{rsError}</div>}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setRsOpen(false)} disabled={rsBusy}>Cancel</button>
+                {rsSale && <button className="btn btn-success" onClick={submitReturnSale} disabled={rsBusy || rsTotal <= 0}><i className="ti ti-receipt-refund me-1"></i>{rsBusy ? 'Saving...' : 'Save return'}</button>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AdminDeleteModal show={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteId(null); }} onConfirm={confirmDelete} />
     </>
   );

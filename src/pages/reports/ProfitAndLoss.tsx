@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getProfitAndLoss, ProfitAndLossDto } from '../../services/reportService';
 
 const fmt = (v: number) => v.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -32,6 +33,7 @@ const ProfitAndLoss: React.FC = () => {
   const expenseRows = [
     { label: t('reports.purchase_expense'), key: 'purchaseExpense' as const },
     { label: t('reports.sales_return'), key: 'salesReturn' as const },
+    { label: 'Expenses', key: 'otherExpense' as const },
   ];
 
   const exportCols = [t('reports.category'), ...months.map(m => m.month)];
@@ -56,7 +58,8 @@ const ProfitAndLoss: React.FC = () => {
             <button className="btn btn-primary btn-sm" onClick={load}>{t('reports.apply')}</button>
           </div>
           <ExportButtons onExportExcel={() => exportToExcel(exportCols, exportRows, 'profit-and-loss')}
-            onExportPDF={() => exportToPDF(exportCols, exportRows, 'profit-and-loss', t('reports.profit_and_loss_report'))} />
+            onExportPDF={() => exportToPDF(exportCols, exportRows, 'profit-and-loss', t('reports.profit_and_loss_report'))}
+              onPrint={() => printReport(exportCols, exportRows, 'profit-and-loss', t('reports.profit_and_loss_report'))} />
         </div>
         <div className="card-body">
           {loading ? <div className="text-center py-5"><div className="spinner-border text-primary"></div></div> : months.length === 0 ? (

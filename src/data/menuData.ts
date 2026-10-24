@@ -131,15 +131,9 @@ const menuData: MenuSection[] = [
   {
     header: 'Sales',
     items: [
-      {
-        title: 'Sales',
-        icon: 'ti-layout-grid',
-        iconType: 'tabler',
-        children: [
-          { title: 'POS Orders', path: '/pos-orders' },
-        ],
-      },
-      { title: 'Invoices', icon: 'ti-file-invoice', iconType: 'tabler', path: '/invoice' },
+      // permission key "Sales/POS Orders" (was "Sales/Sales" when it sat under a Sales dropdown)
+      { title: 'POS Orders', icon: 'ti-layout-grid', iconType: 'tabler', path: '/pos-orders' },
+      // Invoices removed from Sales (sales print their own invoice from POS Orders)
       { title: 'Sales Return', icon: 'ti-receipt-refund', iconType: 'tabler', path: '/sales-returns' },
       { title: 'Quotation', icon: 'ti-files', iconType: 'tabler', path: '/quotation-list' },
       // Hidden from the sidebar (opened from the header POS button); kept here so the Sales/POS permission still applies
@@ -166,6 +160,7 @@ const menuData: MenuSection[] = [
           { title: 'Expense Category', path: '/expense-category' },
         ],
       },
+      { title: 'Transactions', icon: 'ti-arrows-exchange', iconType: 'tabler', path: '/transactions' },
     ],
   },
   {
@@ -223,7 +218,7 @@ const menuData: MenuSection[] = [
         iconType: 'tabler',
         children: [
           { title: 'Product Report', path: '/product-report' },
-          { title: 'Product Expiry Report', path: '/product-expiry-report' },
+          // Product Expiry Report removed: products no longer have expiry dates
           { title: 'Product Quantity Alert', path: '/product-quantity-alert' },
         ],
       },

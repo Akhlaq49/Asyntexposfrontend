@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getProductQtyAlertReport, ProductQtyAlertItemDto } from '../../services/reportService';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -50,7 +51,8 @@ const ProductQuantityAlert: React.FC = () => {
           <div className="d-flex align-items-center gap-2">
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'product-qty-alert')}
-              onExportPDF={() => exportToPDF(cols, rows, 'product-qty-alert', t('reports.quantity_alert'))} />
+              onExportPDF={() => exportToPDF(cols, rows, 'product-qty-alert', t('reports.quantity_alert'))}
+              onPrint={() => printReport(cols, rows, 'product-qty-alert', t('reports.quantity_alert'))} />
           </div>
         </div>
         <div className="card-body">

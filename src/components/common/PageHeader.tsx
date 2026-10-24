@@ -29,27 +29,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, breadcrumbs: _
           {actions}
         </div>
       )}
+      {/* only the working collapse toggle: the theme's PDF / Excel / Print / Refresh icons here had no action (pages add their own working buttons) */}
       <ul className="table-top-head">
-        <li>
-          <a data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.pdf')} href="#">
-            <img src="/assets/img/icons/pdf.svg" alt="pdf" />
-          </a>
-        </li>
-        <li>
-          <a data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} href="#">
-            <img src="/assets/img/icons/excel.svg" alt="excel" />
-          </a>
-        </li>
-        <li>
-          <a data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.print')} href="#">
-            <i data-feather="printer" className="feather-rotate-ccw"></i>
-          </a>
-        </li>
-        <li>
-          <a data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} href="#">
-            <i data-feather="rotate-ccw" className="feather-rotate-ccw"></i>
-          </a>
-        </li>
         <li>
           <a data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.collapse')} href="#" id="collapse-header">
             <i data-feather="chevron-up" className="feather-chevron-up"></i>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { printReport } from '../../utils/printReport';
 import { getSalesReport, SalesReportDto } from '../../services/reportService';
 import { mediaUrl } from '../../services/api';
 import Pagination from '../../components/common/Pagination';
@@ -74,6 +75,9 @@ const SalesReport: React.FC = () => {
             <input type="text" className="form-control form-control-sm" placeholder={t('common.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)} style={{ width: 200 }} />
             <ExportButtons onExportExcel={() => exportToExcel(cols, rows, 'sales-report')}
               onExportPDF={() => exportToPDF(pdfCols, pdfRows, 'sales-report', t('reports.sales_report'), [
+                { label: t('reports.total_amount'), value: fmt(data?.totalAmount ?? 0) }, { label: t('reports.total_paid'), value: fmt(data?.totalPaid ?? 0) },
+              ], pdfImages)}
+              onPrint={() => printReport(pdfCols, pdfRows, 'sales-report', t('reports.sales_report'), [
                 { label: t('reports.total_amount'), value: fmt(data?.totalAmount ?? 0) }, { label: t('reports.total_paid'), value: fmt(data?.totalPaid ?? 0) },
               ], pdfImages)} />
           </div>

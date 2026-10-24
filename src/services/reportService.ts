@@ -458,13 +458,13 @@ export interface IncomeReportItemDto {
 
 export interface ProfitAndLossMonthDto {
   month: string; sales: number; service: number; purchaseReturn: number;
-  grossProfit: number; purchaseExpense: number; salesReturn: number;
+  grossProfit: number; purchaseExpense: number; salesReturn: number; otherExpense: number;
   totalExpense: number; netProfit: number;
 }
 export interface ProfitAndLossDto { months: ProfitAndLossMonthDto[]; }
 
 export interface AnnualReportMonthDto {
-  month: string; sales: number; purchases: number; returns: number; profit: number;
+  month: string; sales: number; purchases: number; expenses: number; returns: number; profit: number;
 }
 export interface AnnualReportDto {
   year: number; months: AnnualReportMonthDto[]; totals: AnnualReportMonthDto;

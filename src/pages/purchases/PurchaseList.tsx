@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { printPurchase } from '../../utils/documentPrints';
 import { useTranslation } from 'react-i18next';
 import { 
   getPurchases, 
@@ -500,7 +501,8 @@ const PurchaseList: React.FC = () => {
                       <td>{fmt(purchase.paid)}</td>
                       <td>{fmt(purchase.total - purchase.paid)}</td>
                       <td>{getPaymentStatusBadge(purchase.paymentStatus)}</td>
-                      <td className="text-center">
+                      <td className="text-center text-nowrap">
+                        <a href="#" className="me-2 text-dark" title="Print purchase" onClick={e => { e.preventDefault(); printPurchase(purchase); }}><i className="ti ti-printer"></i></a>
                         {purchase.purchaseOrderId ? (
                           <Link to="/purchase-orders" className="text-muted" title="Managed from Purchase Orders"><i className="ti ti-lock"></i></Link>
                         ) : (<>
