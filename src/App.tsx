@@ -49,6 +49,7 @@ const PurchaseReturns = lazy(() => import('./pages/purchases/PurchaseReturns'))
 // Finance
 const ExpenseList = lazy(() => import('./pages/finance/ExpenseList'))
 const Transactions = lazy(() => import('./pages/finance/Transactions'))
+const Letterhead = lazy(() => import('./pages/misc/Letterhead'))
 const ExpenseCategory = lazy(() => import('./pages/finance/ExpenseCategory'))
 
 // People
@@ -324,6 +325,7 @@ function App() {
           {/* Finance */}
           <Route path="/expense-list" element={<ExpenseList />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/letterhead" element={<Letterhead />} />
           <Route path="/expense-category" element={<ExpenseCategory />} />
 
           {/* People */}

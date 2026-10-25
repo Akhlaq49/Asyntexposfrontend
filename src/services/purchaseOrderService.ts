@@ -138,13 +138,6 @@ export const receivePurchaseOrder = async (id: number, payload: ReceivePurchaseO
 export const cancelPurchaseOrder = async (id: number) =>
   (await api.post<PurchaseOrder>(`/purchase-orders/${id}/cancel`)).data;
 
-/** New version PO-0001_R1, _R2 ... from this version (every version is kept) */
-export const revisePurchaseOrder = async (id: number, payload: SavePurchaseOrderPayload) =>
-  (await api.post<PurchaseOrder>(`/purchase-orders/${id}/revise`, payload)).data;
-
-export const getPurchaseOrderRevisions = async (id: number) =>
-  (await api.get<PurchaseOrder[]>(`/purchase-orders/${id}/revisions`)).data;
-
 /** Pay the supplier more, or record money the supplier gave back, against one receipt */
 export const addPurchasePayment = async (purchaseId: number, payload: SavePurchasePaymentPayload) =>
   (await api.post<{ purchaseId: number; total: number; paid: number; due: number; paymentStatus: string; payments: PurchasePayment[] }>(`/purchases/${purchaseId}/payments`, payload)).data;

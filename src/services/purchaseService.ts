@@ -20,7 +20,7 @@ export interface Purchase {
   reference: string;
   date: string;
   status: 'Ordered' | 'Received' | 'Pending' | 'Cancelled';
-  paymentStatus: 'Paid' | 'Unpaid' | 'Overdue' | 'Partial';
+  paymentStatus: 'Paid' | 'Unpaid' | 'Overdue' | 'Partial' | 'Overpaid';
   orderTax: number;
   discount: number;
   shipping: number;

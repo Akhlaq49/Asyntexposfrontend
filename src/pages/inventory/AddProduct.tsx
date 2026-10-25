@@ -10,6 +10,7 @@ import {
 } from '../../services/productService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 import TaxSelector, { AppliedTax, cleanTaxes, taxTotal } from '../../components/common/TaxSelector';
+import VariantBuilder, { VariantRow, variantLabel, resolveVariantSku } from '../../components/products/VariantBuilder';
 
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ const AddProduct: React.FC = () => {
   // Form state
   const [taxes, setTaxes] = useState<AppliedTax[]>([]);
   const [discountOn, setDiscountOn] = useState(false);
+  // variable product: one row per variant (each is saved as its own product)
+  const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
   const [form, setForm] = useState({
     productName: '',
     slug: '',
@@ -161,13 +164,54 @@ const AddProduct: React.FC = () => {
     setSuccess(false);
 
     try {
+      if (form.productType === 'variable') {
+        if (!form.productName.trim()) throw new Error('Enter the product name.');
+        if (variantRows.length === 0) throw new Error('Tick at least one variant value (or choose Single Product).');
+        const skus = variantRows.map((r) => resolveVariantSku(r, form.sku).toLowerCase());
+        const dup = skus.find((k, i) => skus.indexOf(k) !== i);
+        if (dup) throw new Error(`Two variants have the same SKU (${dup.toUpperCase()}) - give each its own SKU.`);
+        const created: string[] = [];
+        for (const r of variantRows) {
+          const price = r.price.trim() !== '' ? Number(r.price) || 0 : Number(form.price) || 0;
+          const colorPart = r.parts.find((p) => /^colou?r$/i.test(p.attribute));
+          const modelPart = r.parts.find((p) => /^model$/i.test(p.attribute));
+          try {
+            await createProduct({
+              ...form,
+              productName: `${form.productName.trim()} - ${variantLabel(r)}`,
+              slug: form.slug ? `${form.slug}-${resolveVariantSku(r, '').toLowerCase()}` : '',
+              sku: resolveVariantSku(r, form.sku),
+              color: colorPart ? colorPart.value : form.color,
+              model: modelPart ? modelPart.value : form.model,
+              description: [form.description, r.parts.map((p) => `${p.attribute}: ${p.value}`).join(', ')].filter(Boolean).join('\n'),
+              productType: 'single',
+              quantity: Math.max(0, Math.floor(Number(r.quantity) || 0)),
+              price,
+              discountType: discountOn ? (form.discountType || 'fixed') : '',
+              discountValue: discountOn ? Number(form.discountValue) || 0 : 0,
+              quantityAlert: Math.max(0, Math.floor(Number(form.quantityAlert) || 0)),
+              taxesJson: JSON.stringify(cleanTaxes(taxes, price)),
+              images: imageFiles,
+            });
+            created.push(variantLabel(r));
+          } catch (err: any) {
+            const why = err.response?.data?.message || err.message || 'failed';
+            throw new Error(created.length
+              ? `Saved ${created.length} variant(s) (${created.join(', ')}), but "${variantLabel(r)}" failed: ${why}`
+              : `"${variantLabel(r)}" could not be saved: ${why}`);
+          }
+        }
+        setSuccess(true);
+        setTimeout(() => navigate('/product-list'), 1500);
+        return;
+      }
       await createProduct({
         ...form,
         quantity: Math.max(0, Math.floor(Number(form.quantity) || 0)),
         price: Number(form.price) || 0,
         discountType: discountOn ? (form.discountType || 'fixed') : '',
         discountValue: discountOn ? Number(form.discountValue) || 0 : 0,
-        quantityAlert: Number(form.quantityAlert) || 0,
+        quantityAlert: Math.max(0, Math.floor(Number(form.quantityAlert) || 0)),
         // taxes go as a JSON list; the backend works out the amounts on the price
         taxesJson: JSON.stringify(cleanTaxes(taxes, Number(form.price) || 0)),
         images: imageFiles,
@@ -455,10 +499,11 @@ const AddProduct: React.FC = () => {
                     </div>
 
                     {/* Single Product Fields */}
-                    {form.productType === 'single' && (
+                    {/* Price, tax, discount and alert apply to a single product or to every variant */}
+                    {(
                       <div className="single-product">
                         <div className="row">
-                          {isVisible('quantity') && (
+                          {isVisible('quantity') && form.productType === 'single' && (
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Quantity</label>
@@ -469,7 +514,7 @@ const AddProduct: React.FC = () => {
                           {isVisible('price') && (
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
-                              <label className="form-label">Price</label>
+                              <label className="form-label">{form.productType === 'variable' ? 'Price (all variants)' : 'Price'}</label>
                               <input type="number" step="0.01" className="form-control" name="price" value={form.price || ''} onChange={handleChange} />
                             </div>
                           </div>
@@ -527,7 +572,9 @@ const AddProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Quantity Alert</label>
-                              <input type="number" className="form-control" name="quantityAlert" value={form.quantityAlert || ''} onChange={handleChange} />
+                              <input type="number" className="form-control" name="quantityAlert" min={0} step={1} placeholder="0" value={form.quantityAlert || ''}
+                                onKeyDown={(e) => { if (['-', '+', '.', ',', 'e', 'E'].includes(e.key)) e.preventDefault(); }}
+                                onChange={(e) => setForm({ ...form, quantityAlert: e.target.value.replace(/\D/g, '') })} />
                             </div>
                           </div>
                           )}
@@ -535,54 +582,9 @@ const AddProduct: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Variable Product Fields */}
+                    {/* Variable Product: variants from Inventory > Variant Attributes */}
                     {form.productType === 'variable' && (
-                      <div className="row select-color-add">
-                        <div className="col-lg-6 col-sm-6 col-12">
-                          <div className="mb-3">
-                            <label className="form-label">Variant Attribute</label>
-                            <select className="form-select" defaultValue="">
-                              <option value="">Choose</option>
-                              <option value="color">Color</option>
-                              <option value="red">Red</option>
-                              <option value="black">Black</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="col-12">
-                          <div className="modal-body-table border">
-                            <div className="table-responsive">
-                              <table className="table border">
-                                <thead>
-                                  <tr>
-                                    <th>Variation</th>
-                                    <th>Variant Value</th>
-                                    <th>SKU</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <td><input type="text" className="form-control" defaultValue="color" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="red" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="1234" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="2" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="50000" /></td>
-                                  </tr>
-                                  <tr>
-                                    <td><input type="text" className="form-control" defaultValue="color" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="black" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="2345" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="3" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="50000" /></td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <VariantBuilder baseSku={form.sku} basePrice={form.price} rows={variantRows} onChange={setVariantRows} />
                     )}
                   </div>
                 </div>

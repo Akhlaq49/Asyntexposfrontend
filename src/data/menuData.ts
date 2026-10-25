@@ -164,6 +164,12 @@ const menuData: MenuSection[] = [
     ],
   },
   {
+    header: 'Documents',
+    items: [
+      { title: 'Letterhead', icon: 'ti-file-text', iconType: 'tabler', path: '/letterhead' },
+    ],
+  },
+  {
     header: 'Peoples',
     items: [
       { title: 'Customers', icon: 'ti-users-group', iconType: 'tabler', path: '/customers' },

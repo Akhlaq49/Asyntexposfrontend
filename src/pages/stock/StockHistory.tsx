@@ -11,8 +11,8 @@ import { printReport } from '../../utils/printReport';
 interface Movement { date: string; productId: number; productName: string; sku?: string | null; type: string; reference?: string | null; party?: string | null; qtyIn: number; qtyOut: number }
 interface StockProduct { id: number; name: string; sku?: string | null; currentStock: number }
 
-const TYPES = ['Opening stock', 'Purchase', 'Goods received', 'Stock added', 'Sale', 'Sale return'];
-const TYPE_BADGE: Record<string, string> = { 'Opening stock': 'bg-secondary', Purchase: 'bg-info', 'Goods received': 'bg-primary', 'Stock added': 'bg-success', Sale: 'bg-danger', 'Sale return': 'bg-warning' };
+const TYPES = ['Opening stock', 'Purchase', 'Goods received', 'Stock added', 'Sale', 'Sale return', 'Purchase return'];
+const TYPE_BADGE: Record<string, string> = { 'Opening stock': 'bg-secondary', Purchase: 'bg-info', 'Goods received': 'bg-primary', 'Stock added': 'bg-success', Sale: 'bg-danger', 'Sale return': 'bg-warning', 'Purchase return': 'bg-dark' };
 const showDate = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
 /** Stock > Stock History: every movement in and out of stock, per product */

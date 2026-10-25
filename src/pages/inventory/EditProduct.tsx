@@ -219,7 +219,7 @@ const EditProduct: React.FC = () => {
         price: Number(form.price) || 0,
         discountType: discountOn ? (form.discountType || 'fixed') : '',
         discountValue: discountOn ? Number(form.discountValue) || 0 : 0,
-        quantityAlert: Number(form.quantityAlert) || 0,
+        quantityAlert: Math.max(0, Math.floor(Number(form.quantityAlert) || 0)),
         // taxes go as a JSON list; the backend works out the amounts on the price
         taxesJson: JSON.stringify(cleanTaxes(taxes, Number(form.price) || 0)),
         images: imageFiles,
@@ -497,22 +497,12 @@ const EditProduct: React.FC = () => {
                               <span className="checkmark"></span> Single Product
                             </span>
                           </li>
-                          <li className="nav-item" role="presentation">
-                            <span
-                              className={`custom_radio me-2 mb-0 ${form.productType === 'variable' ? 'active' : ''}`}
-                              onClick={() => setForm((prev) => ({ ...prev, productType: 'variable' }))}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              <input type="radio" className="form-control" name="productType" checked={form.productType === 'variable'} readOnly />
-                              <span className="checkmark"></span> Variable Product
-                            </span>
-                          </li>
                         </ul>
                       </div>
                     </div>
 
                     {/* Single Product Fields */}
-                    {form.productType === 'single' && (
+                    {(
                       <div className="single-product">
                         <div className="row">
                           {isVisible('quantity') && (
@@ -584,7 +574,9 @@ const EditProduct: React.FC = () => {
                           <div className="col-lg-4 col-sm-6 col-12">
                             <div className="mb-3">
                               <label className="form-label">Quantity Alert</label>
-                              <input type="number" className="form-control" name="quantityAlert" value={form.quantityAlert || ''} onChange={handleChange} />
+                              <input type="number" className="form-control" name="quantityAlert" min={0} step={1} placeholder="0" value={form.quantityAlert || ''}
+                                onKeyDown={(e) => { if (['-', '+', '.', ',', 'e', 'E'].includes(e.key)) e.preventDefault(); }}
+                                onChange={(e) => setForm({ ...form, quantityAlert: e.target.value.replace(/\D/g, '') })} />
                             </div>
                           </div>
                           )}
@@ -592,55 +584,6 @@ const EditProduct: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Variable Product Fields */}
-                    {form.productType === 'variable' && (
-                      <div className="row select-color-add">
-                        <div className="col-lg-6 col-sm-6 col-12">
-                          <div className="mb-3">
-                            <label className="form-label">Variant Attribute</label>
-                            <select className="form-select" defaultValue="">
-                              <option value="">Choose</option>
-                              <option value="color">Color</option>
-                              <option value="red">Red</option>
-                              <option value="black">Black</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="col-12">
-                          <div className="modal-body-table border">
-                            <div className="table-responsive">
-                              <table className="table border">
-                                <thead>
-                                  <tr>
-                                    <th>Variation</th>
-                                    <th>Variant Value</th>
-                                    <th>SKU</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <td><input type="text" className="form-control" defaultValue="color" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="red" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="1234" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="2" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="50000" /></td>
-                                  </tr>
-                                  <tr>
-                                    <td><input type="text" className="form-control" defaultValue="color" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="black" /></td>
-                                    <td><input type="text" className="form-control" defaultValue="2345" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="3" /></td>
-                                    <td><input type="number" className="form-control" defaultValue="50000" /></td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

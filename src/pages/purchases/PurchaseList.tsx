@@ -14,6 +14,12 @@ import { getParties } from '../../services/partyService';
 import { Link } from 'react-router-dom';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import PurchasePaymentModal from '../../components/purchases/PurchasePaymentModal';
+import api from '../../services/api';
+
+/** Goods sent back from one purchase (from Purchase Returns) */
+interface ReturnedInfo { refs: string[]; units: number }
+const RETURN_STATUSES = ['Returned', 'Partly returned'];
 
 const PurchaseList: React.FC = () => {
   const { t } = useTranslation();
@@ -28,6 +34,8 @@ const PurchaseList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('');
+  // purchase id -> its returns (PR-0001 ...) and how many units went back
+  const [returned, setReturned] = useState<Record<number, ReturnedInfo>>({});
   const [sortBy, setSortBy] = useState<'recent' | 'asc' | 'desc'>('recent');
   const [selectAll, setSelectAll] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -76,6 +84,8 @@ const PurchaseList: React.FC = () => {
 
   // Delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // purchase being paid (pay later / in parts, or money back from the supplier)
+  const [payPurchase, setPayPurchase] = useState<Purchase | null>(null);
   const [deletePurchaseId, setDeletePurchaseId] = useState<number | null>(null);
 
   // Real suppliers (People > Suppliers)
@@ -83,7 +93,7 @@ const PurchaseList: React.FC = () => {
   useEffect(() => {
     getParties('Supplier').then((list) => setSuppliers(list.map((p) => p.fullName))).catch(() => setSuppliers([]));
   }, []);
-  const statuses = ['Received', 'Pending', 'Ordered', 'Cancelled'];
+  const statuses = ['Received', 'Pending', 'Ordered', 'Cancelled', ...RETURN_STATUSES];
 
   // Fetch purchases and products on mount
   useEffect(() => {
@@ -94,12 +104,22 @@ const PurchaseList: React.FC = () => {
   // Filter purchases when search or status filter changes
   useEffect(() => {
     applyFilters();
-  }, [purchases, searchQuery, paymentStatusFilter, statusFilter, sortBy]);
+  }, [purchases, searchQuery, paymentStatusFilter, statusFilter, sortBy, returned]);
 
   const loadPurchases = async () => {
     setLoading(true);
     try {
-      const data = await getPurchases();
+      const [data, returns] = await Promise.all([
+        getPurchases(),
+        api.get<{ purchaseId: number; reference: string; items: { quantity: number }[] }[]>('/purchase-returns').then((r) => r.data).catch(() => []),
+      ]);
+      const map: Record<number, ReturnedInfo> = {};
+      for (const r of returns) {
+        const m = (map[r.purchaseId] ??= { refs: [], units: 0 });
+        m.refs.push(r.reference);
+        m.units += r.items.reduce((n, i) => n + i.quantity, 0);
+      }
+      setReturned(map);
       setPurchases(data);
     } catch (error) {
       showError('Failed to load purchases');
@@ -131,7 +151,8 @@ const PurchaseList: React.FC = () => {
       filtered = filtered.filter(
         (p) =>
           p.supplierName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.reference.toLowerCase().includes(searchQuery.toLowerCase())
+          p.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (returned[p.id]?.refs || []).some((r) => r.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -140,7 +161,9 @@ const PurchaseList: React.FC = () => {
     }
 
     if (statusFilter) {
-      filtered = filtered.filter((p) => p.status === statusFilter);
+      filtered = RETURN_STATUSES.includes(statusFilter)
+        ? filtered.filter((p) => returnState(p) === statusFilter)
+        : filtered.filter((p) => p.status === statusFilter);
     }
 
     if (sortBy === 'asc') {
@@ -169,11 +192,6 @@ const PurchaseList: React.FC = () => {
   };
 
   const fmt = (v: number) => `Rs ${v.toFixed(2)}`;
-
-  const handleAddPurchase = () => {
-    resetForm();
-    setShowAddModal(true);
-  };
 
   const handleEditPurchase = (purchase: Purchase) => {
     setSelectedPurchase(purchase);
@@ -341,12 +359,21 @@ const PurchaseList: React.FC = () => {
       Unpaid: 'bg-danger',
       Partial: 'bg-warning',
       Overdue: 'bg-info',
+      Overpaid: 'bg-primary',
     };
     return (
       <span className={`badge ${cls[status] || 'bg-secondary'} shadow-none badge-xs`}>
         <i className="ti ti-point-filled me-1"></i>{status}
       </span>
     );
+  };
+
+  /** "Returned" when every unit went back to the supplier, "Partly returned" when some did */
+  const returnState = (p: Purchase): string | null => {
+    const r = returned[p.id];
+    if (!r || r.units <= 0) return null;
+    const bought = (p.items || []).reduce((n, i) => n + Number(i.quantity || 0), 0);
+    return bought > 0 && r.units >= bought ? 'Returned' : 'Partly returned';
   };
 
   const getStatusBadge = (status: string) => {
@@ -396,11 +423,7 @@ const PurchaseList: React.FC = () => {
             <h6>{t('purchases.subtitle')}</h6>
           </div>
         </div>
-        <div className="page-btn">
-          <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); handleAddPurchase(); }}>
-            <i className="ti ti-circle-plus me-1"></i>{t('purchases.add_purchase')}
-          </a>
-        </div>
+        {/* no "Add Purchase" here: stock is bought through Purchase Orders (receiving one creates the purchase) */}
       </div>
 
       {/* ---- Card ---- */}
@@ -496,13 +519,29 @@ const PurchaseList: React.FC = () => {
                         )}
                       </td>
                       <td>{new Date(purchase.date).toLocaleDateString()}</td>
-                      <td>{getStatusBadge(purchase.status)}</td>
+                      <td>
+                        {getStatusBadge(purchase.status)}
+                        {returnState(purchase) && (
+                          <Link to="/purchase-returns" className={`badge ${returnState(purchase) === 'Returned' ? 'badge-danger' : 'badge-warning'} ms-1`} style={{ fontSize: 11, padding: '4px 8px', fontWeight: 600 }}
+                            title={`Goods sent back to the supplier: ${returned[purchase.id].refs.join(', ')} (${returned[purchase.id].units} item(s))`}>
+                            <i className="ti ti-truck-return me-1"></i>{returnState(purchase)}
+                          </Link>
+                        )}
+                      </td>
                       <td>{fmt(purchase.total)}</td>
                       <td>{fmt(purchase.paid)}</td>
                       <td>{fmt(purchase.total - purchase.paid)}</td>
                       <td>{getPaymentStatusBadge(purchase.paymentStatus)}</td>
                       <td className="text-center text-nowrap">
+                        {purchase.total - purchase.paid > 0.004 ? (
+                          <button type="button" className="btn btn-sm btn-success me-2 py-0 px-2" title="Pay the supplier" onClick={() => setPayPurchase(purchase)}><i className="ti ti-cash me-1"></i>Pay</button>
+                        ) : (
+                          <a href="#" className="me-2 text-dark" title="Payments" onClick={e => { e.preventDefault(); setPayPurchase(purchase); }}><i className="ti ti-cash"></i></a>
+                        )}
                         <a href="#" className="me-2 text-dark" title="Print purchase" onClick={e => { e.preventDefault(); printPurchase(purchase); }}><i className="ti ti-printer"></i></a>
+                        {purchase.status === 'Received' && (
+                          <Link to={`/purchase-returns?ref=${encodeURIComponent(purchase.reference)}`} className="me-2 text-dark" title="Return goods to the supplier"><i className="ti ti-truck-return"></i></Link>
+                        )}
                         {purchase.purchaseOrderId ? (
                           <Link to="/purchase-orders" className="text-muted" title="Managed from Purchase Orders"><i className="ti ti-lock"></i></Link>
                         ) : (<>
@@ -1187,6 +1226,10 @@ const PurchaseList: React.FC = () => {
         </div>
         )}
 
+      {payPurchase && (
+        <PurchasePaymentModal purchase={payPurchase} onClose={() => { setPayPurchase(null); loadPurchases(); }}
+          onSaved={(r) => setPurchases((list) => list.map((p) => (p.id === payPurchase.id ? { ...p, paid: r.paid, paymentStatus: r.paymentStatus as Purchase['paymentStatus'] } : p)))} />
+      )}
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={confirmDeletePurchase} />
     </>
   );

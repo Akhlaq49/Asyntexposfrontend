@@ -13,14 +13,20 @@ import {
   PurchaseOrder, PurchaseOrderStatus, SavePurchaseOrderPayload, apiError,
   getPurchaseOrders, createPurchaseOrder, updatePurchaseOrder, markPurchaseOrderOrdered,
   receivePurchaseOrder, cancelPurchaseOrder, deletePurchaseOrder,
-  PurchaseOrderReceipt, PAYMENT_METHODS, revisePurchaseOrder, getPurchaseOrderRevisions, addPurchasePayment, getPurchaseOrder,
+  PurchaseOrderReceipt, PAYMENT_METHODS, addPurchasePayment, getPurchaseOrder,
 } from '../../services/purchaseOrderService';
 
 /* ────────────────────────── helpers ────────────────────────── */
 
 const money = (n: number) => `Rs ${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dateOnly = (d?: string | null) => (d ? d.slice(0, 10) : '');
+/** days past the expected date for an order still waiting for its goods (0 = not late) */
+const daysLate = (po: { expectedDate?: string | null; supersededById?: number | null; status: string }) => {
+  if (!po.expectedDate || po.supersededById || (po.status !== 'Ordered' && po.status !== 'PartiallyReceived')) return 0;
+  const diff = Math.round((new Date(today() + 'T00:00:00').getTime() - new Date(dateOnly(po.expectedDate) + 'T00:00:00').getTime()) / 86400000);
+  return diff > 0 ? diff : 0;
+};
 const showDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-');
 
 const STATUS: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
@@ -37,9 +43,7 @@ const canDelete = (po: PurchaseOrder) => po.receivedUnits === 0 && po.receipts.l
 
 interface FormLine { productId: number; productName: string; sku?: string; image?: string; quantity: number | ''; unitCost: number | ''; discount: number | ''; taxPercent: number | ''; /** Item discount: Yes ticked (UI only) */ discountOn?: boolean }
 interface FormState {
-  id?: number; supplierId: number | ''; supplierName: string; orderDate: string; expectedDate: string;
-  /** set when the form saves a new revision of this order instead of editing it */
-  reviseFromId?: number; revisionNo?: string;
+  id?: number; supplierId: number | ''; supplierName: string; orderDate: string; expectedDate: string; originalExpected?: string;
   orderTax: number | ''; shipping: number | ''; discount: number | ''; notes: string; lines: FormLine[];
   taxes: AppliedTax[];
   /** Overall discount / shipping: Yes ticked (UI only) */
@@ -110,9 +114,6 @@ const PurchaseOrders: React.FC = () => {
   const [receiveError, setReceiveError] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [receiveMethod, setReceiveMethod] = useState('Cash');
-  /* revisions */
-  const [showAllVersions, setShowAllVersions] = useState(true);
-  const [versions, setVersions] = useState<PurchaseOrder[] | null>(null);
   /* payments / refunds on a receipt */
   const [payTarget, setPayTarget] = useState<{ po: PurchaseOrder; receipt: PurchaseOrderReceipt; type: 'Payment' | 'Refund' } | null>(null);
   const [payForm, setPayForm] = useState({ amount: '' as number | '', method: 'Cash', date: today(), reference: '', notes: '' });
@@ -151,35 +152,23 @@ const PurchaseOrders: React.FC = () => {
   };
 
   /* ── list ── */
-  /* ── revisions: PO-0001 -> PO-0001_R1 -> PO-0001_R2 (every version kept) ── */
+  /* Revisions are switched off. Orders revised earlier (PO-0001 / PO-0001_R1) are listed as normal orders,
+     but only one of them can still be received, and the replaced one can't be edited. */
   const familyId = (po: PurchaseOrder) => po.rootPurchaseOrderId ?? po.id;
   const familyOf = (po: PurchaseOrder) => orders.filter((o) => familyId(o) === familyId(po));
-  const versionLabel = (po: PurchaseOrder) => (po.revisionNo ? `R${po.revisionNo}` : 'Original');
-  const baseNumber = (po: PurchaseOrder) => orders.find((o) => o.id === familyId(po))?.poNumber || po.poNumber.replace(/_R\d+$/, '');
-  const nextRevisionNo = (po: PurchaseOrder) => Math.max(0, ...familyOf(po).map((o) => o.revisionNo || 0)) + 1;
   /** the version of this order that goods were received against (only one version can be) */
   const receivedVersion = (po: PurchaseOrder) => familyOf(po).find((o) => o.receivedUnits > 0 || o.receipts.length > 0);
   const familyOpen = (po: PurchaseOrder) => !receivedVersion(po);
   const mayEdit = (po: PurchaseOrder) => canEdit(po) && !po.supersededById && familyOpen(po);
   const mayReceive = (po: PurchaseOrder) => canReceive(po) && (!receivedVersion(po) || receivedVersion(po)!.id === po.id);
   const mayDelete = (po: PurchaseOrder) => canDelete(po) && !po.supersededById;
-  const mayRevise = (po: PurchaseOrder) => familyOpen(po);
-  const showVersions = async (po: PurchaseOrder) => {
-    try { setVersions(await getPurchaseOrderRevisions(po.id)); } catch (e) { flash('danger', apiError(e, 'Could not load the versions')); }
-  };
 
   const filtered = useMemo(() => orders.filter((o) => {
     const q = search.trim().toLowerCase();
-    if (!showAllVersions && o.supersededById) return false;
-    return (!statusFilter || o.status === statusFilter) &&
+    return (!statusFilter || (statusFilter === 'Late' ? daysLate(o) > 0 : o.status === statusFilter)) &&
       matchesDateFilter(o.orderDate, dateFilter) &&   // by order date
       (!q || o.poNumber.toLowerCase().includes(q) || o.supplierName.toLowerCase().includes(q) || o.items.some((i) => i.productName.toLowerCase().includes(q)));
-  }).sort((a, b) => {
-    // versions of one order stay together: newest order first, then R2 above R1 above the original
-    const fa = Math.max(...orders.filter((o) => (o.rootPurchaseOrderId ?? o.id) === (a.rootPurchaseOrderId ?? a.id)).map((o) => o.id));
-    const fb = Math.max(...orders.filter((o) => (o.rootPurchaseOrderId ?? o.id) === (b.rootPurchaseOrderId ?? b.id)).map((o) => o.id));
-    return fa !== fb ? fb - fa : (b.revisionNo || 0) - (a.revisionNo || 0);
-  }), [orders, search, statusFilter, dateFilter, showAllVersions]);
+  }).sort((a, b) => b.id - a.id), [orders, search, statusFilter, dateFilter]);   // newest first
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
   useEffect(() => { setCurrentPage(1); }, [dateFilter]); // eslint-disable-line react-hooks/exhaustive-deps
   const counts = useMemo(() => {
@@ -191,13 +180,11 @@ const PurchaseOrders: React.FC = () => {
 
   /* ── create / edit ── */
   const openCreate = () => { loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null); setForm(emptyForm()); };
-  const openEdit = (po: PurchaseOrder, revise = false) => {
+  const openEdit = (po: PurchaseOrder) => {
     loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null);
     setForm({
-      id: revise ? undefined : po.id,
-      reviseFromId: revise ? po.id : undefined,
-      revisionNo: revise ? `${baseNumber(po)}_R${nextRevisionNo(po)}` : undefined,
-      supplierId: po.supplierId ?? '', supplierName: po.supplierName, orderDate: dateOnly(po.orderDate), expectedDate: dateOnly(po.expectedDate),
+      id: po.id,
+      supplierId: po.supplierId ?? '', supplierName: po.supplierName, orderDate: dateOnly(po.orderDate), expectedDate: dateOnly(po.expectedDate), originalExpected: dateOnly(po.expectedDate),
       orderTax: po.orderTax || '', shipping: po.shipping || '', discount: po.discount || '', notes: po.notes || '',
       discountOn: (po.discount || 0) > 0, shippingOn: (po.shipping || 0) > 0,
       taxes: po.taxes || [],
@@ -262,6 +249,7 @@ const PurchaseOrders: React.FC = () => {
     if (form.lines.length === 0) { setFormError('Add at least one product.'); return; }
     const bad = form.lines.find((l) => num(l.quantity) < 1 || !Number.isInteger(num(l.quantity)));
     if (bad) { setFormError(`${bad.productName}: enter a whole quantity of at least 1.`); return; }
+    if (form.expectedDate && form.expectedDate < today() && form.expectedDate !== form.originalExpected) { setFormError('The expected delivery date can\'t be in the past - choose today or a later date.'); return; }
     const payload: SavePurchaseOrderPayload = {
       supplierId: supplier ? supplier.id : null,
       supplierName: supplier ? supplier.fullName : form.supplierName.trim(),
@@ -276,14 +264,6 @@ const PurchaseOrders: React.FC = () => {
     };
     setSaving(true); setFormError('');
     try {
-      if (form.reviseFromId) {
-        const po = await revisePurchaseOrder(form.reviseFromId, payload);
-        setForm(null);
-        await load();   // the version it replaced is marked as an earlier version
-        flash('success', `Revision ${po.poNumber} saved${status === 'Ordered' ? ' and marked as ordered' : ' as a draft'}. Earlier versions are kept unchanged.`);
-        setSaving(false);
-        return;
-      }
       const po = form.id ? await updatePurchaseOrder(form.id, payload) : await createPurchaseOrder(payload);
       upsert(po);
       setForm(null);
@@ -418,6 +398,9 @@ const PurchaseOrders: React.FC = () => {
 
   /* ────────────────────────── render ────────────────────────── */
 
+  const lateBadge = (po: PurchaseOrder) => daysLate(po) > 0 && (
+    <span className="badge bg-danger ms-1" title={`Expected ${showDate(po.expectedDate)} - not received yet`}><i className="ti ti-clock-exclamation me-1" />Late</span>
+  );
   const statusBadge = (s: PurchaseOrderStatus) => <span className={`badge ${STATUS[s]?.cls || 'bg-secondary'}`}>{STATUS[s]?.label || s}</span>;
   const progress = (po: PurchaseOrder) => {
     const pct = po.orderedUnits ? Math.round((po.receivedUnits / po.orderedUnits) * 100) : 0;
@@ -433,7 +416,6 @@ const PurchaseOrders: React.FC = () => {
       {!inDetail && <button className="btn btn-sm btn-outline-secondary" title="View" onClick={() => setDetail(po)}><i className="ti ti-eye" /></button>}
       {mayReceive(po) && <button className="btn btn-sm btn-success" title="Receive goods" onClick={() => openReceive(po)}><i className="ti ti-truck-delivery me-1" />Receive</button>}
       {po.status === 'Draft' && <button className="btn btn-sm btn-outline-info" title="Mark as ordered" onClick={() => doAction(() => markPurchaseOrderOrdered(po.id), 'marked as ordered')}><i className="ti ti-send" /></button>}
-      {mayRevise(po) && <button className="btn btn-sm btn-outline-info" title={`Revise: save a new version (${baseNumber(po)}_R${nextRevisionNo(po)})`} onClick={() => openEdit(po, true)}><i className="ti ti-versions" /></button>}
       {mayEdit(po) && <button className="btn btn-sm btn-outline-primary" title="Edit" onClick={() => openEdit(po)}><i className="ti ti-edit" /></button>}
       <button className="btn btn-sm btn-outline-dark" title="Print" onClick={() => setPrinting(po)}><i className="ti ti-printer" /></button>
       {canCancel(po) && <button className="btn btn-sm btn-outline-warning" title={po.receivedUnits ? 'Cancel the remaining quantity' : 'Cancel order'} onClick={() => { if (window.confirm(`Cancel ${po.poNumber}?${po.receivedUnits ? ' Goods already received stay in stock.' : ''}`)) doAction(() => cancelPurchaseOrder(po.id), 'cancelled'); }}><i className="ti ti-ban" /></button>}
@@ -453,10 +435,11 @@ const PurchaseOrders: React.FC = () => {
         {[
           { label: 'Drafts', value: counts.Draft || 0, icon: 'ti-file-pencil', cls: 'secondary', status: 'Draft' },
           { label: 'Awaiting delivery', value: (counts.Ordered || 0) + (counts.PartiallyReceived || 0), icon: 'ti-truck', cls: 'info', status: 'Ordered' },
+          { label: 'Late', value: orders.filter((o) => daysLate(o) > 0).length, icon: 'ti-clock-exclamation', cls: 'danger', status: 'Late' },
           { label: 'Received', value: counts.Received || 0, icon: 'ti-package-import', cls: 'success', status: 'Received' },
           { label: 'Still to receive (value)', value: money(openValue), icon: 'ti-cash', cls: 'warning', status: '' },
         ].map((c) => (
-          <div className="col-sm-6 col-xl-3" key={c.label}>
+          <div className="col-sm-6 col-xl" key={c.label}>
             <div className="card mb-0" role={c.status ? 'button' : undefined} onClick={() => c.status && setStatusFilter(c.status)}>
               <div className="card-body d-flex align-items-center">
                 <span className={`avatar avatar-lg bg-${c.cls}-transparent text-${c.cls} me-3`}><i className={`ti ${c.icon} fs-20`} /></span>
@@ -473,15 +456,12 @@ const PurchaseOrders: React.FC = () => {
           <select className="form-select" style={{ maxWidth: 220 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All statuses</option>
             {(Object.keys(STATUS) as PurchaseOrderStatus[]).map((s) => <option key={s} value={s}>{STATUS[s].label}</option>)}
+            <option value="Late">Late (expected date passed)</option>
           </select>
           {/* Order date: a month, or a From / To range */}
           <div className="w-100 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <DateFilters value={dateFilter} onChange={setDateFilter} />
             <div className="d-flex align-items-center gap-3">
-              <div className="form-check form-switch mb-0">
-                <input className="form-check-input" type="checkbox" id="po-all-versions" checked={showAllVersions} onChange={(e) => setShowAllVersions(e.target.checked)} />
-                <label className="form-check-label" htmlFor="po-all-versions">Show all versions</label>
-              </div>
               <small className="text-muted">{filtered.length} of {orders.length} purchase order(s){describeDateFilter(dateFilter) ? ` - ${describeDateFilter(dateFilter)}` : ''}</small>
             </div>
           </div>
@@ -500,22 +480,17 @@ const PurchaseOrders: React.FC = () => {
                     <tr key={po.id}>
                       <td>
                         <a href="#" className="fw-semibold" onClick={(e) => { e.preventDefault(); setDetail(po); }}>{po.poNumber}</a>
-                        {familyOf(po).length > 1 && (
-                          <div className="d-flex align-items-center gap-1 mt-1">
-                            <span className={`badge ${po.supersededById ? 'bg-secondary' : 'bg-info'}`}>{versionLabel(po)}</span>
-                            <a href="#" className="small" onClick={(e) => { e.preventDefault(); showVersions(po); }}>{familyOf(po).length} versions</a>
-                          </div>
-                        )}
                       </td>
                       <td>{po.supplierName}</td>
                       <td>{showDate(po.orderDate)}</td>
-                      <td>{showDate(po.expectedDate)}</td>
+                      <td>
+                        {showDate(po.expectedDate)}
+                        {daysLate(po) > 0 && <div><small className="text-danger fw-semibold">{daysLate(po)} day{daysLate(po) > 1 ? 's' : ''} late</small></div>}
+                      </td>
                       <td>{progress(po)}</td>
                       <td className="text-end">{money(po.total)}</td>
                       <td>
-                        {statusBadge(po.status)}
-                        {receivedVersion(po) && receivedVersion(po)!.id !== po.id && <div><small className="text-muted">Not chosen ({receivedVersion(po)!.poNumber} received)</small></div>}
-                        {!receivedVersion(po) && po.supersededById && <div><small className="text-muted">Earlier version</small></div>}
+                        {statusBadge(po.status)}{lateBadge(po)}
                       </td>
                       <td>{actionButtons(po)}</td>
                     </tr>
@@ -534,8 +509,7 @@ const PurchaseOrders: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="mb-0">{form.reviseFromId ? `New revision ${form.revisionNo}` : form.id ? 'Edit Purchase Order' : 'New Purchase Order'}</h4>
-                {form.reviseFromId && <small className="text-muted ms-3">{orders.find((o) => o.id === form.reviseFromId)?.poNumber} will be kept unchanged</small>}
+                <h4 className="mb-0">{form.id ? 'Edit Purchase Order' : 'New Purchase Order'}</h4>
                 <button type="button" className="btn-close" onClick={() => setForm(null)} />
               </div>
               <div className="modal-body">
@@ -556,7 +530,9 @@ const PurchaseOrders: React.FC = () => {
                   </div>
                   <div className="col-md-4 col-6 mb-3">
                     <label className="form-label">Expected delivery</label>
-                    <input type="date" className="form-control" value={form.expectedDate} onChange={(e) => setForm({ ...form, expectedDate: e.target.value })} />
+                    <input type="date" className="form-control" min={today()} value={form.expectedDate}
+                      onChange={(e) => setForm({ ...form, expectedDate: e.target.value && e.target.value < today() && e.target.value !== form.originalExpected ? today() : e.target.value })} />
+                    <small className="text-muted">Today or later</small>
                   </div>
                 </div>
 
@@ -692,8 +668,7 @@ const PurchaseOrders: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="mb-0 me-2">{detail.poNumber}</h4>{statusBadge(detail.status)}
-                {familyOf(detail).length > 1 && <a href="#" className="ms-3 small" onClick={(e) => { e.preventDefault(); showVersions(detail); }}>{versionLabel(detail)} - all {familyOf(detail).length} versions</a>}
+                <h4 className="mb-0 me-2">{detail.poNumber}</h4>{statusBadge(detail.status)}{lateBadge(detail)}
                 <button type="button" className="btn-close ms-auto" onClick={() => setDetail(null)} />
               </div>
               <div className="modal-body">
@@ -842,36 +817,6 @@ const PurchaseOrders: React.FC = () => {
         </div>
       )}
 
-      {/* ───────────── versions of an order ───────────── */}
-      {versions && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1065 }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h4 className="mb-0">Versions of {versions[0]?.poNumber}</h4>
-                <button type="button" className="btn-close" onClick={() => setVersions(null)} />
-              </div>
-              <div className="modal-body">
-                <p className="text-muted mb-2">Every version is kept. Any version can be ordered, received or cancelled - once goods are received against one version, the others can't be received.</p>
-                <table className="table table-sm align-middle">
-                  <thead className="thead-light"><tr><th>Version</th><th>PO No.</th><th>Order date</th><th className="text-end">Total</th><th>Status</th><th /></tr></thead>
-                  <tbody>{versions.map((v) => {
-                    const listed = orders.find((o) => o.id === v.id) || v;
-                    return (
-                      <tr key={v.id} className={v.supersededById ? '' : 'table-success'}>
-                        <td>{versionLabel(v)}</td><td className="fw-semibold">{v.poNumber}</td><td>{showDate(v.orderDate)}</td>
-                        <td className="text-end">{money(v.total)}</td><td>{statusBadge(v.status)}</td>
-                        <td className="text-end"><button className="btn btn-sm btn-outline-secondary" onClick={() => { setVersions(null); setDetail(listed); }}><i className="ti ti-eye me-1" />Open</button></td>
-                      </tr>
-                    );
-                  })}</tbody>
-                </table>
-              </div>
-              <div className="modal-footer"><button className="btn btn-secondary" onClick={() => setVersions(null)}>Close</button></div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ───────────── pay the supplier / refund from the supplier ───────────── */}
       {payTarget && (
