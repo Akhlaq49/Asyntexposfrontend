@@ -9,6 +9,10 @@ export interface Customer {
   email: string;
   address: string;
   city: string;
+  /** the customer's building: House / Villa / Apartment ..., size (10 Marla, 2 BHK ...), construction stage */
+  buildingType?: string;
+  buildingSpace?: string;
+  buildingStage?: string;
   picture?: string;
   status: 'active' | 'inactive';
   miscBalance?: number;

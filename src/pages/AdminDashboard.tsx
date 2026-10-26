@@ -96,7 +96,7 @@ const AdminDashboard: React.FC = () => {
       <div className="row">
         {[
           { label: t('admin_dashboard.total_customers'), value: fmtInt(data.totalCustomers), sub: `+${fmtInt(data.customersThisMonth)} ${t('common.this_month')}`, icon: 'ti-users', bg: 'info' },
-          { label: t('admin_dashboard.total_products'), value: fmtInt(data.totalProducts), sub: `${fmtInt(data.lowStockProducts)} ${t('admin_dashboard.low_stock')}`, icon: 'ti-package', bg: 'secondary' },
+          { label: t('admin_dashboard.total_products'), value: fmtInt(data.totalProducts), icon: 'ti-package', bg: 'secondary' },
           { label: t('admin_dashboard.sales_this_month'), value: fmtInt(data.salesCountThisMonth), sub: `Rs ${fmt(data.salesThisMonth)}`, icon: 'ti-chart-bar', bg: 'primary' },
           { label: t('admin_dashboard.total_profit'), value: `Rs ${fmt(data.totalProfit)}`, sub: `${t('admin_dashboard.due')}: Rs ${fmt(data.totalSalesDue)}`, icon: 'ti-coin', bg: 'success' },
         ].map((s, i) => (

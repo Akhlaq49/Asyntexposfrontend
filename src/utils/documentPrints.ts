@@ -18,6 +18,8 @@ export interface PrintableSale {
   id: number; reference: string; customerName: string; biller?: string; saleDate: string;
   status?: string; paymentStatus?: string; notes?: string | null;
   orderTax: number; discount: number; shipping: number; grandTotal: number; paid: number; due: number;
+  /** installation, testing and commissioning (sales made from a quotation) */
+  installationCharges?: number;
   items: { productName: string; quantity: number; purchasePrice: number; discount: number; unitCost: number; totalCost: number }[];
   payments: { reference: string; payingAmount: number; paymentType: string; paymentDate: string; description?: string | null }[];
   taxes?: { taxName: string; percent: number; amount: number }[];
@@ -49,7 +51,7 @@ export async function printSaleInvoice(sale: PrintableSale) {
       <tbody>${items}</tbody>
       <tfoot>
         ${row('Subtotal', subTotal, { cols: saleCols })}
-        ${s.discount ? row('Overall discount', s.discount, { cols: saleCols, minus: true }) : ''}${taxRows}${s.shipping ? row('Shipping', s.shipping, { cols: saleCols }) : ''}
+        ${s.discount ? row('Overall discount', s.discount, { cols: saleCols, minus: true }) : ''}${taxRows}${s.shipping ? row('Shipping', s.shipping, { cols: saleCols }) : ''}${s.installationCharges ? row('Installation, Testing and Commissioning', s.installationCharges, { cols: saleCols }) : ''}
         ${row('Grand total', s.grandTotal, { cols: saleCols, total: true })}
         ${row('Paid', s.paid, { cols: saleCols })}
         ${row(s.due > 0 ? 'Balance due' : 'Balance', Math.max(0, s.due), { cols: saleCols, total: true })}

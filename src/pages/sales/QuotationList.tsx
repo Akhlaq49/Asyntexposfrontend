@@ -1,15 +1,18 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
-import { printDocument, openPrintWindow, esc, printMoney } from '../../utils/printDocument';
-import { loadTermsPrintHtml, loadTermsContent } from '../../utils/termsConditions';
+import { printDocument, esc, printMoney } from '../../utils/printDocument';
+import { loadTermsContent, termsToHtml } from '../../utils/termsConditions';
 import DateFilters, { DateFilterValue, EMPTY_DATE_FILTER, matchesDateFilter, describeDateFilter } from '../../components/common/DateFilters';
 import TaxSelector, { AppliedTax, cleanTaxes, taxTotal } from '../../components/common/TaxSelector';
+import { useAuth } from '../../context/AuthContext';
+import SendForApprovalModal from '../../components/quotations/SendForApprovalModal';
+import { printQuotation as printQuotationDoc } from '../../utils/quotationPrint';
 
 /* ---------- Types ---------- */
 interface QuotationItemDto {
@@ -27,16 +30,22 @@ interface QuotationDto {
   rootQuotationId?: number | null;
   revisionNo?: number;
   supersededById?: number | null;
+  /** staff approval before converting to a sale: null (not sent), Pending, Approved, Discarded */
+  /** who made it (staff only see their own) */
+  createdById?: number | null; createdByName?: string | null;
+  approvalStatus?: string | null; approvalSentTo?: string | null; approvalBy?: string | null; approvalAt?: string | null; approvalNote?: string | null;
   /** number of product lines and their names (the list has no line items) */
   itemCount?: number;
   productNames?: string[];
   customerImage: string | null; productId: number | null; productName: string;
   productImage: string | null; orderTax: number; discount: number; shipping: number;
+  /** installation, testing and commissioning charge (added to the total) */
+  installationCharges?: number;
   grandTotal: number; status: string; description: string | null;
   quotationDate: string; createdAt: string; items: QuotationItemDto[];
 }
 interface CustomerResult { id: number; name: string; phone?: string; }
-interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; quantity?: number; }
+interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; quantity?: number; description?: string; model?: string; }
 
 interface LocalItem {
   productId: number; productName: string; quantity: number; purchasePrice: number;
@@ -73,6 +82,17 @@ const fmt = (n: number) => `Rs ${n.toLocaleString(undefined, { minimumFractionDi
 /* ======================== Component ======================== */
 const QuotationList: React.FC = () => {
   const { t } = useTranslation();
+  // Admin / Super Admin convert directly; other staff need an admin's approval first
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'SuperAdmin' || user?.role === 'Admin';
+  const [approvalFor, setApprovalFor] = useState<QuotationDto | null>(null);
+  const [approvalNotice, setApprovalNotice] = useState('');
+  const [waitingForMe, setWaitingForMe] = useState(0);
+  const needsApproval = (q: QuotationDto) => !isAdmin && q.approvalStatus !== 'Approved';
+  /** staff can print a quotation only once it is approved (admins always) */
+  const canPrint = (q: QuotationDto) => !needsApproval(q);
+  // terms & conditions shown in the quotation view (its own edited terms, else the company's standard ones)
+  const [detailTerms, setDetailTerms] = useState('');
   const [quotations, setQuotations] = useState<QuotationDto[]>([]);
   const [taxes, setTaxes] = useState<AppliedTax[]>([]);
   const [discountOn, setDiscountOn] = useState(false);
@@ -105,7 +125,7 @@ const QuotationList: React.FC = () => {
   const [form, setForm] = useState({
     customerId: null as number | null, customerName: '', customerImage: '',
     productId: null as number | null, productName: '', productImage: '',
-    reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0,
+    reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, installationCharges: 0,
     description: '', quotationDate: new Date().toISOString().slice(0, 10),
   });
   const [items, setItems] = useState<LocalItem[]>([]);
@@ -138,23 +158,42 @@ const QuotationList: React.FC = () => {
   /* delete modal */
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  // quotation id -> purchase orders raised to buy its goods
+  const [linkedOrders, setLinkedOrders] = useState<Record<number, { poNumber: string; status: string }[]>>({});
+  const navigate = useNavigate();
+
+  /** The product's description and model, shown and printed on quotations (instead of the SKU) */
+  const productInfo = (productId: number) => {
+    const p = products.find((x) => Number(x.id) === Number(productId));
+    return { description: (p?.description || '').trim(), model: (p?.model || '').trim() };
+  };
 
   /* ---- Fetch ---- */
   const fetchData = useCallback(async () => {
     setLoading(true);
     // loaded independently: a failing customers / products call must not stop the quotation list from refreshing
-    const [qRes, cRes, pRes] = await Promise.allSettled([
+    const [qRes, cRes, pRes, poRes] = await Promise.allSettled([
       api.get<QuotationDto[]>('/quotations'),
       api.get<CustomerResult[]>('/customers'),
       api.get<ProductResult[]>('/products'),
+      api.get<{ id: number; poNumber: string; status: string; quotationId?: number | null }[]>('/purchase-orders'),
     ]);
     if (qRes.status === 'fulfilled') setQuotations(qRes.value.data);
+    if (poRes.status === 'fulfilled') {
+      const byQuotation: Record<number, { poNumber: string; status: string }[]> = {};
+      poRes.value.data.filter((o) => o.quotationId).forEach((o) => (byQuotation[o.quotationId!] ??= []).push({ poNumber: o.poNumber, status: o.status }));
+      setLinkedOrders(byQuotation);
+    }
     if (cRes.status === 'fulfilled') setCustomers(cRes.value.data);
     if (pRes.status === 'fulfilled') setProducts(pRes.value.data);
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.get<{ count: number }>('/quotation-approvals/pending-count').then((r) => setWaitingForMe(r.data.count)).catch(() => {});
+  }, [isAdmin, quotations]);
   useEffect(() => { if (typeof (window as any).feather !== 'undefined') (window as any).feather.replace(); });
 
   /* ---- Click-away ---- */
@@ -247,7 +286,7 @@ const QuotationList: React.FC = () => {
   const itemsTotal = items.reduce((sum, i) => sum + i.totalCost, 0);
   const taxBase = Math.max(0, itemsTotal - form.discount);   // taxes are worked out on the subtotal after discount
   const taxAmount = taxTotal(taxes);
-  const grandTotal = Math.max(0, itemsTotal - form.discount + taxAmount + form.shipping);
+  const grandTotal = Math.max(0, itemsTotal - form.discount + taxAmount + form.shipping + (form.installationCharges || 0));
 
   /* ---- Customer search ---- */
   const filteredCustomers = customerSearchTerm.trim().length > 0
@@ -263,7 +302,7 @@ const QuotationList: React.FC = () => {
   /* ---- Open add/edit modal ---- */
   const openAddModal = () => {
     setEditingId(null);
-    setForm({ customerId: null, customerName: '', customerImage: '', productId: null, productName: '', productImage: '', reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, description: '', quotationDate: new Date().toISOString().slice(0, 10) });
+    setForm({ customerId: null, customerName: '', customerImage: '', productId: null, productName: '', productImage: '', reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, installationCharges: 0, description: '', quotationDate: new Date().toISOString().slice(0, 10) });
     setItems([]);
     setTaxes([]);
     setDiscountOn(false);
@@ -287,7 +326,7 @@ const QuotationList: React.FC = () => {
       setForm({
         customerId: full.customerId, customerName: full.customerName, customerImage: full.customerImage || '',
         productId: full.productId, productName: full.productName, productImage: full.productImage || '',
-        reference: revise ? `${baseReference(full)}_R${nextRevisionNo(full)}` : full.reference, status: full.status, orderTax: full.orderTax, discount: full.discount, shipping: full.shipping,
+        reference: revise ? `${baseReference(full)}_R${nextRevisionNo(full)}` : full.reference, status: full.status, orderTax: full.orderTax, discount: full.discount, shipping: full.shipping, installationCharges: full.installationCharges || 0,
         description: full.description || '', quotationDate: new Date().toISOString().slice(0, 10),
       });
       setItems(full.items.map(i => ({
@@ -311,7 +350,9 @@ const QuotationList: React.FC = () => {
     try {
       const res = await api.get<QuotationDto>(`/quotations/${q.id}`);
       setDetailQuotation(res.data);
+      setDetailTerms(res.data.termsContent?.trim() || '');
       setShowDetailModal(true);
+      if (!res.data.termsContent?.trim()) loadTermsContent().then(setDetailTerms);
     } catch { /* ignore */ }
   };
 
@@ -333,7 +374,7 @@ const QuotationList: React.FC = () => {
       reference: form.reference,
       customerId: form.customerId, customerName: form.customerName, customerImage: form.customerImage || null,
       productId: form.productId, productName: form.productName, productImage: form.productImage || null,
-      orderTax: taxAmount, discount: form.discount, shipping: form.shipping,
+      orderTax: taxAmount, discount: form.discount, shipping: form.shipping, installationCharges: form.installationCharges || 0,
       taxes: cleanTaxes(taxes, taxBase),
       grandTotal, status: form.status, description: form.description || null,
       quotationDate: form.quotationDate,
@@ -388,6 +429,7 @@ const QuotationList: React.FC = () => {
 
   /* ====================== CONVERT TO SALE ====================== */
   const openConvert = async (summary: QuotationDto) => {
+    if (needsApproval(summary)) { setApprovalFor(summary); return; }
     setConvertError(''); setConvertNotes(''); setConvertPaymentType('Cash');
     try {
       const [full, prods] = await Promise.all([
@@ -435,42 +477,8 @@ const QuotationList: React.FC = () => {
       ? q.items
       : [{ id: 0, productId: q.productId ?? 0, productName: q.productName || '-', quantity: 1, purchasePrice: q.grandTotal, discount: 0, taxPercent: 0, taxAmount: 0, unitCost: q.grandTotal, totalCost: q.grandTotal }];
 
-  /** One quotation as a customer document on the letterhead */
-  const printQuotation = async (summary: QuotationDto) => {
-    // The list has no line items, so load the full quotation (and the terms & conditions) first.
-    // The window is opened right away (inside the click) so the browser doesn't block it as a pop-up.
-    const win = openPrintWindow();
-    let q = summary;
-    // always load the full quotation: it has the line items and its own terms & conditions (if they were edited)
-    const full = await api.get<QuotationDto>(`/quotations/${summary.id}`).then(r => r.data).catch(() => summary);
-    const termsHtml = await loadTermsPrintHtml(full.termsContent);
-    q = full;
-    const lines = quotationLines(q);
-    const subTotal = lines.reduce((sum, l) => sum + (l.totalCost || 0), 0);
-    // columns with nothing in them are left out of the printed quotation
-    const hasDiscount = lines.some((l) => l.discount > 0);
-    const hasTax = lines.some((l) => l.taxPercent > 0);
-    const labelCols = 4 + (hasDiscount ? 1 : 0) + (hasTax ? 1 : 0);
-    const rows = lines.map((l, i) => `<tr><td class="c">${i + 1}</td><td>${esc(l.productName)}</td><td class="r">${l.quantity}</td>
-      <td class="r">${printMoney(l.purchasePrice)}</td>${hasDiscount ? `<td class="r">${l.discount ? printMoney(l.discount) : '-'}</td>` : ''}
-      ${hasTax ? `<td class="r">${l.taxPercent ? esc(l.taxPercent) + '%' : '-'}</td>` : ''}<td class="r">${printMoney(l.totalCost)}</td></tr>`).join('');
-    const extra = (label: string, v: number, minus = false) => (v ? `<tr><td colspan="${labelCols}" class="r">${label}</td><td class="r">${minus ? '- ' : ''}${printMoney(v)}</td></tr>` : '');
-    printDocument(`Quotation ${q.reference || q.id}`, 'QUOTATION', q.reference || `#${q.id}`, `
-      <table class="info" style="margin-bottom:14px"><tbody>
-        <tr><th>Customer</th><td>${esc(q.customerName)}</td><th>Date</th><td>${esc(q.quotationDate)}</td></tr>
-        <tr><th>Reference</th><td>${esc(q.reference || '-')}</td><th>Status</th><td>${esc(q.status)}</td></tr>
-      </tbody></table>
-      <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th><th class="r">Qty</th><th class="r">Unit price</th>${hasDiscount ? '<th class="r">Item discount<br><small>(per unit)</small></th>' : ''}${hasTax ? '<th class="r">Tax</th>' : ''}<th class="r">Total</th></tr></thead>
-        <tbody>${rows}</tbody>
-        <tfoot>
-          <tr><td colspan="${labelCols}" class="r">Subtotal</td><td class="r">${printMoney(subTotal)}</td></tr>
-          ${extra('Overall discount', q.discount, true)}${q.taxes && q.taxes.length > 0 ? q.taxes.map((tx) => extra(`${esc(tx.taxName)} (${tx.percent}%)`, tx.amount)).join('') : extra('Order tax', q.orderTax)}${extra('Shipping', q.shipping)}
-          <tr class="total"><th colspan="${labelCols}" class="r">Grand total</th><th class="r">${printMoney(q.grandTotal)}</th></tr>
-        </tfoot></table>
-      ${q.description ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(q.description)}</p>` : ''}
-      <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
-      ${termsHtml}`, win);
-  };
+  /** One quotation as a customer document on the letterhead (shared with Staff Approvals) */
+  const printQuotation = (summary: QuotationDto) => printQuotationDoc(summary.id, products);
 
   /** The quotations list (current search / filters) */
   const listColumns = ['Reference', 'Date', 'Customer', 'Products', 'Status', 'Grand total'];
@@ -521,6 +529,15 @@ const QuotationList: React.FC = () => {
           <span>{notice.text} {notice.saleRef && <Link to="/pos-orders" className="fw-semibold ms-1">View in POS Orders</Link>}</span>
           <button type="button" className="btn-close" onClick={() => setNotice(null)} />
         </div>
+      )}
+
+      {approvalNotice && <div className="alert alert-success py-2 d-flex justify-content-between">{approvalNotice}<button type="button" className="btn-close" onClick={() => setApprovalNotice('')} /></div>}
+      {isAdmin && waitingForMe > 0 && (
+        <div className="alert alert-warning py-2"><i className="ti ti-bell me-1" />{waitingForMe} quotation{waitingForMe > 1 ? 's are' : ' is'} waiting for your approval - <Link to="/staff-approvals">open Staff Approvals</Link>.</div>
+      )}
+      {approvalFor && (
+        <SendForApprovalModal quotation={{ ...approvalFor, reference: approvalFor.reference || `#${approvalFor.id}` }} onClose={() => setApprovalFor(null)}
+          onDone={(text) => { setApprovalFor(null); setApprovalNotice(text); fetchData(); }} />
       )}
 
       {/* ---- Card ---- */}
@@ -648,6 +665,7 @@ const QuotationList: React.FC = () => {
                       </td>
                       <td>
                         <div className="fw-semibold">{q.reference || '-'}</div>
+                        {isAdmin && q.createdByName && <div><small className="text-muted" title="Made by"><i className="ti ti-user me-1" />{q.createdByName}</small></div>}
                         {familyOf(q).length > 1 && (
                           <div className="d-flex align-items-center gap-1 mt-1">
                             <span className={`badge ${q.supersededById ? 'badge-secondary' : 'badge-info'}`} title={q.supersededById ? 'Earlier version' : 'Latest version'}>{versionLabel(q)}</span>
@@ -659,6 +677,10 @@ const QuotationList: React.FC = () => {
                       <td>
                         <span className={`badge ${statusBadge(q.status)}`}>{q.status}</span>
                         {q.saleReference && <div><small className="text-muted">Sale {q.saleReference}</small></div>}
+                        {!q.saleId && q.approvalStatus === 'Pending' && <div><span className="badge bg-warning mt-1" title={`Sent by ${q.approvalBy}`}><i className="ti ti-clock me-1" />Awaiting approval</span><div><small className="text-muted">to {q.approvalSentTo}</small></div></div>}
+                        {!q.saleId && q.approvalStatus === 'Approved' && <div><span className="badge bg-success mt-1" title={q.approvalNote || ''}><i className="ti ti-check me-1" />Approved</span><div><small className="text-muted">by {q.approvalBy}</small></div></div>}
+                        {!q.saleId && q.approvalStatus === 'Discarded' && <div><span className="badge bg-danger mt-1"><i className="ti ti-x me-1" />Discarded</span><div><small className="text-danger">{q.approvalBy}: {q.approvalNote}</small></div></div>}
+                        {(linkedOrders[q.id] || []).filter((o) => o.status !== 'Cancelled').map((o) => <div key={o.poNumber}><small><a href="#" title="Purchase order for this quotation" onClick={e => { e.preventDefault(); navigate(`/purchase-orders?fromQuotation=${q.id}`); }}><i className="ti ti-truck me-1" />{o.poNumber}</a></small></div>)}
                         {!q.saleId && convertedVersion(q) && <div><small className="text-muted">Not chosen ({convertedVersion(q)!.reference} was converted)</small></div>}
                         {!convertedVersion(q) && q.supersededById && <div><small className="text-muted">Earlier version (newer: {referenceOf(q.supersededById) || 'later revision'})</small></div>}
                       </td>
@@ -668,14 +690,35 @@ const QuotationList: React.FC = () => {
                           <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); openDetail(q); }}>
                             <i data-feather="eye" className="action-eye"></i>
                           </a>
-                          {familyOpen(q) && (
+                          {familyOpen(q) && (needsApproval(q) ? (
+                            <span className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-muted" style={{ opacity: 0.45, cursor: 'not-allowed' }}
+                              title={q.approvalStatus === 'Pending' ? `Convert to sale: waiting for approval from ${q.approvalSentTo}` : 'Convert to sale: needs an admin\'s approval first'}>
+                              <i className="ti ti-shopping-cart-check"></i>
+                            </span>
+                          ) : (
                             <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-success" href="#" title="Convert to sale" onClick={e => { e.preventDefault(); openConvert(q); }}>
                               <i className="ti ti-shopping-cart-check"></i>
                             </a>
+                          ))}
+                          {familyOpen(q) && !q.supersededById && needsApproval(q) && (
+                            <a className={`me-2 p-2 mb-0 d-flex align-items-center border rounded ${q.approvalStatus === 'Pending' ? 'text-warning' : 'text-primary'}`} href="#"
+                              title={q.approvalStatus === 'Pending' ? `Waiting for ${q.approvalSentTo} - send again or take back` : 'Send to Admin / Super Admin for approval'}
+                              onClick={e => { e.preventDefault(); setApprovalFor(q); }}>
+                              <i className={`ti ${q.approvalStatus === 'Pending' ? 'ti-clock-share' : 'ti-send'}`}></i>
+                            </a>
                           )}
-                          <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" title="Print quotation" onClick={e => { e.preventDefault(); printQuotation(q); }}>
-                            <i className="ti ti-printer"></i>
-                          </a>
+                          {q.saleId && (
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-info" href="#"
+                              title={(linkedOrders[q.id] || []).some((o) => o.status !== 'Cancelled') ? `Open purchase order ${(linkedOrders[q.id] || []).find((o) => o.status !== 'Cancelled')!.poNumber}` : 'Create purchase order - buy the goods for this order from the supplier'}
+                              onClick={e => { e.preventDefault(); navigate(`/purchase-orders?fromQuotation=${q.id}`); }}>
+                              <i className="ti ti-truck-delivery"></i>
+                            </a>
+                          )}
+                          {canPrint(q) && (
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" title="Print quotation" onClick={e => { e.preventDefault(); printQuotation(q); }}>
+                              <i className="ti ti-printer"></i>
+                            </a>
+                          )}
                           {familyOpen(q) && (
                             <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-primary" href="#" title={`Revise: save a new version (${baseReference(q)}_R${nextRevisionNo(q)})`} onClick={e => { e.preventDefault(); openEditModal(q, true); }}>
                               <i className="ti ti-versions"></i>
@@ -757,7 +800,8 @@ const QuotationList: React.FC = () => {
                             {searchProducts(productSearchTerm).map(p => (
                               <li key={p.id} className="list-group-item list-group-item-action d-flex align-items-center" style={{ cursor: 'pointer' }} onClick={() => handleProductSelect(p)}>
                                 <img src={p.images?.[0] ? mediaUrl(p.images[0]) : '/assets/img/products/product1.png'} alt="" className="me-2" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4 }} />
-                                <span>{p.productName} <small className="text-muted ms-1">({p.sku})</small></span>
+                                <span>{p.productName}{p.model && <small className="text-muted ms-1">- {p.model}</small>}
+                                  {p.description && <small className="d-block text-muted text-truncate" style={{ maxWidth: 420 }}>{p.description}</small>}</span>
                               </li>
                             ))}
                           </ul>
@@ -784,7 +828,9 @@ const QuotationList: React.FC = () => {
                         <tbody>
                           {items.map((item, idx) => (
                             <tr key={item.productId}>
-                              <td>{item.productName}</td>
+                              <td>{item.productName}
+                                {productInfo(item.productId).model && <div><small className="text-muted">Model: {productInfo(item.productId).model}</small></div>}
+                                {productInfo(item.productId).description && <div><small className="text-muted d-inline-block text-truncate" style={{ maxWidth: 260 }}>{productInfo(item.productId).description}</small></div>}</td>
                               <td>
                                 <div className="product-quantity d-flex align-items-center">
                                   <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', Math.max(1, item.quantity - 1))}><i data-feather="minus-circle"></i></span>
@@ -903,10 +949,26 @@ const QuotationList: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Installation, testing and commissioning: editable amount, added to the total */}
+                  <div className="row">
+                    <div className="col-lg-6 col-md-8 col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Installation, Testing and Commissioning</label>
+                        <div className="input-group">
+                          <span className="input-group-text">Rs</span>
+                          <input type="number" min={0} step={1} inputMode="numeric" className="form-control" placeholder="0"
+                            value={form.installationCharges || ''} onKeyDown={blockNonDigits}
+                            onChange={e => setForm({ ...form, installationCharges: wholeRupees(e.target.value) })} />
+                        </div>
+                        <small className="text-muted">Whole rupees, added to the quotation total. Leave empty if not charged.</small>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Grand Total */}
                   <div className="row mb-3">
                     <div className="col-12 text-end">
-                      <div className="text-muted">Subtotal: {fmt(itemsTotal)}{form.discount > 0 && <> &nbsp;- Overall discount: {fmt(form.discount)}</>}{taxAmount > 0 && <> &nbsp;+ Tax: {fmt(taxAmount)}</>}{form.shipping > 0 && <> &nbsp;+ Shipping: {fmt(form.shipping)}</>}</div>
+                      <div className="text-muted">Subtotal: {fmt(itemsTotal)}{form.discount > 0 && <> &nbsp;- Overall discount: {fmt(form.discount)}</>}{taxAmount > 0 && <> &nbsp;+ Tax: {fmt(taxAmount)}</>}{form.shipping > 0 && <> &nbsp;+ Shipping: {fmt(form.shipping)}</>}{(form.installationCharges || 0) > 0 && <> &nbsp;+ Installation, testing &amp; commissioning: {fmt(form.installationCharges)}</>}</div>
                       <h5 className="mt-1">{t('common.grand_total')}: {fmt(grandTotal)}</h5>
                     </div>
                   </div>
@@ -1002,7 +1064,7 @@ const QuotationList: React.FC = () => {
                         </td>
                         <td className="text-end text-nowrap">
                           <button type="button" className="btn btn-sm btn-outline-secondary me-1" title="View" onClick={() => { setVersions(null); openDetail(v); }}><i className="ti ti-eye"></i></button>
-                          <button type="button" className="btn btn-sm btn-outline-primary me-1" title="Print this version" onClick={() => printQuotation(v)}><i className="ti ti-printer"></i></button>
+                          {canPrint(v) && <button type="button" className="btn btn-sm btn-outline-primary me-1" title="Print this version" onClick={() => printQuotation(v)}><i className="ti ti-printer"></i></button>}
                           {!versions.some(x => x.saleId) && (
                             <>
                               <button type="button" className="btn btn-sm btn-outline-info me-1" title={`Revise from ${v.reference}`} onClick={() => { setVersions(null); openEditModal(v, true); }}><i className="ti ti-versions"></i></button>
@@ -1059,6 +1121,8 @@ const QuotationList: React.FC = () => {
                       <thead>
                         <tr>
                           <th>{t('quotations.product')}</th>
+                          {detailQuotation.items.some(i => productInfo(i.productId).description) && <th>Description</th>}
+                          {detailQuotation.items.some(i => productInfo(i.productId).model) && <th>Model</th>}
                           <th>{t('quotations.qty')}</th>
                           <th>{t('sales.purchase_price')}</th>
                           {detailQuotation.items.some(i => i.discount > 0) && <th>Item discount (per unit)</th>}
@@ -1072,6 +1136,8 @@ const QuotationList: React.FC = () => {
                         {detailQuotation.items.map(i => (
                           <tr key={i.id}>
                             <td>{i.productName}</td>
+                            {detailQuotation.items.some(x => productInfo(x.productId).description) && <td style={{ maxWidth: 260, whiteSpace: 'pre-line' }}><small>{productInfo(i.productId).description || '-'}</small></td>}
+                            {detailQuotation.items.some(x => productInfo(x.productId).model) && <td>{productInfo(i.productId).model || '-'}</td>}
                             <td>{i.quantity}</td>
                             <td>{fmt(i.purchasePrice)}</td>
                             {detailQuotation.items.some(x => x.discount > 0) && <td>{fmt(i.discount)}</td>}
@@ -1094,14 +1160,27 @@ const QuotationList: React.FC = () => {
                         : detailQuotation.orderTax > 0 && <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.order_tax')}</span><span>{fmt(detailQuotation.orderTax)}</span></li>}
                       {detailQuotation.discount > 0 && <li className="list-group-item d-flex justify-content-between"><span>Overall discount</span><span>- {fmt(detailQuotation.discount)}</span></li>}
                       {detailQuotation.shipping > 0 && <li className="list-group-item d-flex justify-content-between"><span>{t('quotations.shipping')}</span><span>{fmt(detailQuotation.shipping)}</span></li>}
+                      {(detailQuotation.installationCharges || 0) > 0 && <li className="list-group-item d-flex justify-content-between"><span>Installation, Testing and Commissioning</span><span>{fmt(detailQuotation.installationCharges || 0)}</span></li>}
                       <li className="list-group-item d-flex justify-content-between"><strong>{t('common.grand_total')}</strong><strong>{fmt(detailQuotation.grandTotal)}</strong></li>
                     </ul>
                   </div>
                 </div>
+                {detailTerms && (
+                  <div className="mt-4">
+                    <h5 className="mb-2">Terms &amp; Conditions {detailQuotation.termsContent?.trim() && <small className="text-muted fw-normal">(edited for this quotation)</small>}</h5>
+                    {/* termsToHtml escapes the text */}
+                    <div className="border rounded p-3 bg-light quotation-terms" style={{ maxHeight: 360, overflowY: 'auto', fontSize: 13 }} dangerouslySetInnerHTML={{ __html: termsToHtml(detailTerms) }} />
+                    <style>{'.quotation-terms h3{font-size:14px;font-weight:600;margin:10px 0 4px;border-bottom:1px solid #ccc;padding-bottom:2px}.quotation-terms h4{font-size:13px;font-weight:600;margin:8px 0 2px}.quotation-terms p{margin:2px 0}.quotation-terms ul{margin:2px 0 4px;padding-left:18px}'}</style>
+                  </div>
+                )}
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-primary" onClick={() => printQuotation(detailQuotation)}><i className="ti ti-printer me-1"></i>Print quotation</button>
-                {familyOpen(detailQuotation) && <button type="button" className="btn btn-success me-auto" onClick={() => openConvert(detailQuotation)}><i className="ti ti-shopping-cart-check me-1"></i>Convert to sale</button>}
+                {canPrint(detailQuotation)
+                  ? <button type="button" className="btn btn-primary" onClick={() => printQuotation(detailQuotation)}><i className="ti ti-printer me-1"></i>Print quotation</button>
+                  : <small className="text-muted"><i className="ti ti-lock me-1" />Printing is available once an admin approves it.</small>}
+                {familyOpen(detailQuotation) && (needsApproval(detailQuotation)
+                  ? <button type="button" className="btn btn-primary me-auto" onClick={() => setApprovalFor(detailQuotation)}><i className="ti ti-send me-1"></i>{detailQuotation.approvalStatus === 'Pending' ? 'Awaiting approval' : 'Send for approval'}</button>
+                  : <button type="button" className="btn btn-success me-auto" onClick={() => openConvert(detailQuotation)}><i className="ti ti-shopping-cart-check me-1"></i>Convert to sale</button>)}
                 {!familyOpen(detailQuotation) && <span className="me-auto" />}
                 <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>{t('common.close')}</button>
               </div>

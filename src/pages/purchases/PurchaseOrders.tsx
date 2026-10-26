@@ -14,7 +14,9 @@ import {
   getPurchaseOrders, createPurchaseOrder, updatePurchaseOrder, markPurchaseOrderOrdered,
   receivePurchaseOrder, cancelPurchaseOrder, deletePurchaseOrder,
   PurchaseOrderReceipt, PAYMENT_METHODS, addPurchasePayment, getPurchaseOrder,
+  getQuotationPurchasePlan, QuotationPurchasePlan,
 } from '../../services/purchaseOrderService';
+import { useSearchParams, Link } from 'react-router-dom';
 
 /* ────────────────────────── helpers ────────────────────────── */
 
@@ -48,6 +50,8 @@ interface FormState {
   taxes: AppliedTax[];
   /** Overall discount / shipping: Yes ticked (UI only) */
   discountOn?: boolean; shippingOn?: boolean;
+  /** buying the goods for a converted quotation (create only) */
+  quotationId?: number; plan?: QuotationPurchasePlan;
 }
 const emptyForm = (): FormState => ({ supplierId: '', supplierName: '', orderDate: today(), expectedDate: '', orderTax: '', shipping: '', discount: '', notes: '', lines: [], taxes: [] });
 const num = (v: number | '') => (v === '' ? 0 : Number(v));
@@ -93,7 +97,7 @@ const PurchaseOrders: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [dateFilter, setDateFilter] = useState<DateFilterValue>(EMPTY_DATE_FILTER);
-  const [toast, setToast] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'danger' | 'info'; text: string } | null>(null);
 
   const [form, setForm] = useState<FormState | null>(null);
   const [formError, setFormError] = useState('');
@@ -123,7 +127,7 @@ const PurchaseOrders: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const toastTimer = useRef<number>();
-  const flash = (type: 'success' | 'danger', text: string) => {
+  const flash = (type: 'success' | 'danger' | 'info', text: string) => {
     window.clearTimeout(toastTimer.current); // a newer message must not be hidden by an older one's timer
     setToast({ type, text });
     toastTimer.current = window.setTimeout(() => setToast(null), 5000);
@@ -144,6 +148,29 @@ const PurchaseOrders: React.FC = () => {
     getUnits().then(setUnits).catch(() => setUnits([]));
   }, []);
   useEffect(() => { loadLookups(); }, [loadLookups]);
+
+  /* ── opened from a converted quotation: /purchase-orders?fromQuotation=12 ── */
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const qid = Number(params.get('fromQuotation'));
+    if (!qid) return;
+    params.delete('fromQuotation'); setParams(params, { replace: true });
+    getQuotationPurchasePlan(qid).then(async (plan) => {
+      // one purchase order per quotation: if it already has one (not cancelled), open that order instead
+      const existing = plan.purchaseOrders.find((o) => o.status !== 'Cancelled');
+      if (existing) {
+        flash('info', `${plan.reference} already has purchase order ${existing.poNumber} - opened it.`);
+        setDetail(await getPurchaseOrder(existing.id));
+        return;
+      }
+      const lines = plan.lines.filter((l) => !plan.missingProducts.includes(l.productName) && l.suggested > 0)
+        .map((l) => ({ productId: l.productId, productName: l.productName, sku: l.sku || undefined, quantity: l.suggested as number | '',
+          unitCost: (l.lastCost || '') as number | '', discount: '' as number | '', taxPercent: '' as number | '' }));
+      loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null);
+      // the link to the quotation is kept on the order itself; the supplier notes stay free (they print for the supplier)
+      setForm({ ...emptyForm(), quotationId: plan.quotationId, plan, lines });
+    }).catch((e) => flash('danger', apiError(e, 'Could not load the quotation')));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** replace one order in the list (and in the open detail view) after an action */
   const upsert = (po: PurchaseOrder) => {
@@ -167,7 +194,8 @@ const PurchaseOrders: React.FC = () => {
     const q = search.trim().toLowerCase();
     return (!statusFilter || (statusFilter === 'Late' ? daysLate(o) > 0 : o.status === statusFilter)) &&
       matchesDateFilter(o.orderDate, dateFilter) &&   // by order date
-      (!q || o.poNumber.toLowerCase().includes(q) || o.supplierName.toLowerCase().includes(q) || o.items.some((i) => i.productName.toLowerCase().includes(q)));
+      (!q || o.poNumber.toLowerCase().includes(q) || o.supplierName.toLowerCase().includes(q) || o.items.some((i) => i.productName.toLowerCase().includes(q)) ||
+        (o.quotationReference || '').toLowerCase().includes(q) || (o.saleReference || '').toLowerCase().includes(q));
   }).sort((a, b) => b.id - a.id), [orders, search, statusFilter, dateFilter]);   // newest first
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
   useEffect(() => { setCurrentPage(1); }, [dateFilter]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -260,6 +288,7 @@ const PurchaseOrders: React.FC = () => {
       orderTax: formTax, shipping: num(form.shipping), discount: num(form.discount),
       taxes: cleanTaxes(form.taxes, formTaxBase),
       notes: form.notes || undefined,
+      quotationId: form.id ? undefined : form.quotationId,
       items: form.lines.map((l) => ({ productId: l.productId, quantity: num(l.quantity), unitCost: num(l.unitCost), discount: num(l.discount), taxPercent: num(l.taxPercent) })),
     };
     setSaving(true); setFormError('');
@@ -480,6 +509,7 @@ const PurchaseOrders: React.FC = () => {
                     <tr key={po.id}>
                       <td>
                         <a href="#" className="fw-semibold" onClick={(e) => { e.preventDefault(); setDetail(po); }}>{po.poNumber}</a>
+                        {po.quotationReference && <div><small className="badge bg-light text-dark border" title="Bought for this customer order"><i className="ti ti-file-invoice me-1" />For {po.quotationReference}{po.saleReference ? ` / ${po.saleReference}` : ''}</small></div>}
                       </td>
                       <td>{po.supplierName}</td>
                       <td>{showDate(po.orderDate)}</td>
@@ -509,10 +539,23 @@ const PurchaseOrders: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="mb-0">{form.id ? 'Edit Purchase Order' : 'New Purchase Order'}</h4>
+                <h4 className="mb-0">{form.id ? 'Edit Purchase Order' : form.plan ? `New Purchase Order for ${form.plan.reference}` : 'New Purchase Order'}</h4>
                 <button type="button" className="btn-close" onClick={() => setForm(null)} />
               </div>
               <div className="modal-body">
+                {form.plan && (
+                  <div className="alert alert-info py-2">
+                    <div className="mb-1"><i className="ti ti-file-invoice me-1" />Buying the goods for <strong>{form.plan.customerName}</strong> - quotation <strong>{form.plan.reference}</strong>{form.plan.saleReference && <> (sale <strong>{form.plan.saleReference}</strong>)</>}. Choose the supplier and check the costs.</div>
+                    <table className="table table-sm table-borderless mb-0 small bg-transparent">
+                      <thead><tr><th>Product</th><th className="text-end">Sold</th><th className="text-end">In stock now</th>{form.plan.lines.some((l) => l.alreadyOrdered > 0) && <th className="text-end">Already delivered</th>}<th className="text-end">To order</th></tr></thead>
+                      <tbody>{form.plan.lines.map((l) => (
+                        <tr key={l.productId}><td>{l.productName}</td><td className="text-end">{l.quoted}</td><td className={`text-end ${l.inStock < 0 ? 'text-danger' : ''}`}>{l.inStock}</td>{form.plan!.lines.some((x) => x.alreadyOrdered > 0) && <td className="text-end">{l.alreadyOrdered || '-'}</td>}<td className="text-end fw-semibold">{l.suggested}</td></tr>
+                      ))}</tbody>
+                    </table>
+                    {form.plan.purchaseOrders.length > 0 && <div className="mt-1 small">Cancelled earlier: {form.plan.purchaseOrders.map((o) => o.poNumber).join(', ')}{form.plan.lines.some((l) => l.alreadyOrdered > 0) ? ' (what it delivered is left out)' : ''}</div>}
+                    {form.plan.missingProducts.length > 0 && <div className="mt-1 small text-danger">No longer in the product list (left out): {form.plan.missingProducts.join(', ')}</div>}
+                  </div>
+                )}
                 <div className="row">
                   <div className="col-md-5 mb-3">
                     <label className="form-label">Supplier<span className="text-danger ms-1">*</span></label>
@@ -669,6 +712,7 @@ const PurchaseOrders: React.FC = () => {
             <div className="modal-content">
               <div className="modal-header">
                 <h4 className="mb-0 me-2">{detail.poNumber}</h4>{statusBadge(detail.status)}{lateBadge(detail)}
+                {detail.quotationReference && <span className="ms-3 small text-muted">For customer order <Link to="/quotation-list">{detail.quotationReference}</Link>{detail.saleReference ? ` (sale ${detail.saleReference})` : ''}</span>}
                 <button type="button" className="btn-close ms-auto" onClick={() => setDetail(null)} />
               </div>
               <div className="modal-body">

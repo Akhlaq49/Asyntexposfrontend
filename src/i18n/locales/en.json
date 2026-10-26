@@ -784,6 +784,7 @@
   },
 
   "quotations": {
+    "customer": "Customer",
     "title": "Quotation List",
     "subtitle": "Manage Your Quotation",
     "add_quotation": "Add Quotation",

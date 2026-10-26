@@ -9,7 +9,7 @@ import {
   type DropdownOption,
 } from '../../services/productService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
-import TaxSelector, { AppliedTax, cleanTaxes, taxTotal } from '../../components/common/TaxSelector';
+import { AppliedTax, cleanTaxes } from '../../components/common/TaxSelector';
 import VariantBuilder, { VariantRow, variantLabel, resolveVariantSku } from '../../components/products/VariantBuilder';
 
 const AddProduct: React.FC = () => {
@@ -24,8 +24,9 @@ const AddProduct: React.FC = () => {
   const [warranties, setWarranties] = useState<DropdownOption[]>([]);
 
   // Form state
-  const [taxes, setTaxes] = useState<AppliedTax[]>([]);
-  const [discountOn, setDiscountOn] = useState(false);
+  // tax and discount are no longer entered on products: new products have none
+  const taxes: AppliedTax[] = [];
+  const discountOn = false;
   // variable product: one row per variant (each is saved as its own product)
   const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
   const [form, setForm] = useState({
@@ -516,65 +517,6 @@ const AddProduct: React.FC = () => {
                             <div className="mb-3">
                               <label className="form-label">{form.productType === 'variable' ? 'Price (all variants)' : 'Price'}</label>
                               <input type="number" step="0.01" className="form-control" name="price" value={form.price || ''} onChange={handleChange} />
-                            </div>
-                          </div>
-                          )}
-                          {isVisible('tax') && (
-                          <div className="col-12">
-                            <TaxSelector base={Number(form.price) || 0} value={taxes} onChange={setTaxes} baseLabel="on the price" />
-                            {taxes.length > 0 && (
-                              <p className="mb-3">Price with tax: <strong style={{ fontSize: 16 }}>Rs {((Number(form.price) || 0) + taxTotal(taxes)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
-                            )}
-                          </div>
-                          )}
-                          {(isVisible('discountType') || isVisible('discountValue')) && (
-                          <div className="col-lg-8 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Discount</label>
-                              {/* No = no discount; Yes = Fixed (Rs) or Percentage, whole numbers */}
-                              <div className="d-flex align-items-center flex-wrap gap-3" style={{ minHeight: 38 }}>
-                                <div className="form-check form-check-inline mb-0 me-0">
-                                  <input className="form-check-input" type="radio" id="prod-disc-no" checked={!discountOn}
-                                    onChange={() => { setDiscountOn(false); setForm((f) => ({ ...f, discountType: '', discountValue: '' })); }} />
-                                  <label className="form-check-label" htmlFor="prod-disc-no">No</label>
-                                </div>
-                                <div className="form-check form-check-inline mb-0 me-0">
-                                  <input className="form-check-input" type="radio" id="prod-disc-yes" checked={discountOn}
-                                    onChange={() => { setDiscountOn(true); setForm((f) => ({ ...f, discountType: f.discountType || 'fixed' })); }} />
-                                  <label className="form-check-label" htmlFor="prod-disc-yes">Yes</label>
-                                </div>
-                                {discountOn && (
-                                  <>
-                                    <select className="form-select" style={{ width: 170 }} name="discountType" value={form.discountType || 'fixed'}
-                                      onChange={(e) => setForm((f) => ({ ...f, discountType: e.target.value, discountValue: '' }))}>
-                                      <option value="fixed">Fixed (Rs)</option>
-                                      <option value="percentage">Percentage (%)</option>
-                                    </select>
-                                    <div className="input-group" style={{ width: 180 }}>
-                                      {form.discountType !== 'percentage' && <span className="input-group-text">Rs</span>}
-                                      <input type="number" min={0} step={1} inputMode="numeric" className="form-control" name="discountValue" placeholder="e.g. 100"
-                                        value={form.discountValue}
-                                        onKeyDown={(e) => { if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) e.preventDefault(); }}
-                                        onChange={(e) => {
-                                          const digits = e.target.value.replace(/\D/g, '');
-                                          const max = form.discountType === 'percentage' ? 100 : Math.floor(Number(form.price) || 0) || Infinity;
-                                          setForm((f) => ({ ...f, discountValue: digits === '' ? '' : String(Math.min(parseInt(digits, 10), max)) }));
-                                        }} />
-                                      {form.discountType === 'percentage' && <span className="input-group-text">%</span>}
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          )}
-                          {isVisible('quantityAlert') && (
-                          <div className="col-lg-4 col-sm-6 col-12">
-                            <div className="mb-3">
-                              <label className="form-label">Quantity Alert</label>
-                              <input type="number" className="form-control" name="quantityAlert" min={0} step={1} placeholder="0" value={form.quantityAlert || ''}
-                                onKeyDown={(e) => { if (['-', '+', '.', ',', 'e', 'E'].includes(e.key)) e.preventDefault(); }}
-                                onChange={(e) => setForm({ ...form, quantityAlert: e.target.value.replace(/\D/g, '') })} />
                             </div>
                           </div>
                           )}

@@ -117,15 +117,8 @@ const menuData: MenuSection[] = [
       { title: 'Brands', icon: 'ti-triangles', iconType: 'tabler', path: '/brand-list' },
       { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
       { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
-      { title: 'Low Stocks', icon: 'ti-trending-up-2', iconType: 'tabler', path: '/low-stocks' },
       { title: 'Variant Attributes', icon: 'ti-checklist', iconType: 'tabler', path: '/variant-attributes' },
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
-    ],
-  },
-  {
-    header: 'Stock',
-    items: [
-      { title: 'Manage Stock', icon: 'ti-stack-3', iconType: 'tabler', path: '/manage-stocks' },
     ],
   },
   {
@@ -136,6 +129,8 @@ const menuData: MenuSection[] = [
       // Invoices removed from Sales (sales print their own invoice from POS Orders)
       { title: 'Sales Return', icon: 'ti-receipt-refund', iconType: 'tabler', path: '/sales-returns' },
       { title: 'Quotation', icon: 'ti-files', iconType: 'tabler', path: '/quotation-list' },
+      // Admin / Super Admin approve staff quotations here (other roles only if given access)
+      { title: 'Staff Approvals', icon: 'ti-checklist', iconType: 'tabler', path: '/staff-approvals' },
       // Hidden from the sidebar (opened from the header POS button); kept here so the Sales/POS permission still applies
       { title: 'POS', icon: 'ti-device-laptop', iconType: 'tabler', path: '/pos', hideInSidebar: true },
     ],
@@ -161,6 +156,7 @@ const menuData: MenuSection[] = [
         ],
       },
       { title: 'Transactions', icon: 'ti-arrows-exchange', iconType: 'tabler', path: '/transactions' },
+      { title: 'Capital & Loans', icon: 'ti-building-bank', iconType: 'tabler', path: '/capital-loans' },
     ],
   },
   {
@@ -224,13 +220,13 @@ const menuData: MenuSection[] = [
         iconType: 'tabler',
         children: [
           { title: 'Product Report', path: '/product-report' },
-          // Product Expiry Report removed: products no longer have expiry dates
-          { title: 'Product Quantity Alert', path: '/product-quantity-alert' },
+          // Product Expiry and Quantity Alert reports removed
         ],
       },
       { title: 'Expense Report', icon: 'ti-file-vector', iconType: 'tabler', path: '/expense-report' },
       { title: 'Tax Report', icon: 'ti-chart-dots-2', iconType: 'tabler', path: '/tax-reports' },
       { title: 'Profit & Loss', icon: 'ti-chart-donut', iconType: 'tabler', path: '/profit-and-loss' },
+      { title: 'Balance Sheet', icon: 'ti-scale', iconType: 'tabler', path: '/balance-sheet' },
       { title: 'Annual Report', icon: 'ti-report-search', iconType: 'tabler', path: '/annual-report' },
     ],
   },

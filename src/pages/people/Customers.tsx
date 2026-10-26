@@ -18,7 +18,27 @@ import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
-const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; status: 'active' | 'inactive' } = { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', status: 'active' };
+const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; buildingType: string; buildingSpace: string; buildingStage: string; status: 'active' | 'inactive' } =
+  { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', buildingType: '', buildingSpace: '', buildingStage: '', status: 'active' };
+
+/* building details: type and space are typed by the user; the stage is picked (or "Other" to type it) */
+const BUILDING_STAGES = ['Initial', 'Grey Structure', 'Finishing', 'Completed', 'Renovation'];
+
+/** A dropdown of the usual answers; "Other..." lets you type something else */
+const ChoiceOrOther: React.FC<{ value: string; options: string[]; placeholder: string; onChange: (v: string) => void }> = ({ value, options, placeholder, onChange }) => {
+  const [other, setOther] = React.useState(!!value && !options.includes(value));
+  return (
+    <>
+      <select className="form-select" value={other ? '__other' : value}
+        onChange={(e) => { if (e.target.value === '__other') { setOther(true); onChange(''); } else { setOther(false); onChange(e.target.value); } }}>
+        <option value="">{placeholder}</option>
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        <option value="__other">Other...</option>
+      </select>
+      {other && <input className="form-control mt-2" maxLength={50} autoFocus placeholder="Type it" value={value} onChange={(e) => onChange(e.target.value)} />}
+    </>
+  );
+};
 
 /** Empty is allowed; non-empty: no whitespace, must contain @ and a dot in the domain (pragmatic check before API). */
 const EMAIL_FORMAT_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -150,7 +170,8 @@ const Customers: React.FC = () => {
 
   const openEdit = (c: Customer) => {
     setEditId(c.id);
-    setForm({ name: c.name, so: c.so || '', cnic: c.cnic || '', phone: c.phone, email: c.email, address: c.address, city: c.city, status: c.status });
+    setForm({ name: c.name, so: c.so || '', cnic: c.cnic || '', phone: c.phone, email: c.email, address: c.address, city: c.city,
+      buildingType: c.buildingType || '', buildingSpace: c.buildingSpace || '', buildingStage: c.buildingStage || '', status: c.status });
     setPictureFile(null);
     setPicturePreview(c.picture ? `${MEDIA_BASE_URL}${c.picture}` : '');
     setShowEditModal(true);
@@ -167,7 +188,7 @@ const Customers: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || !form.phone.trim()) return;   // name and phone are required
     const emailNorm = normalizeCustomerEmail(form.email);
     if (!isOptionalValidEmailNormalized(emailNorm)) {
       Swal.fire({
@@ -198,7 +219,7 @@ const Customers: React.FC = () => {
   };
 
   const handleUpdate = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || !form.phone.trim()) return;   // name and phone are required
     const emailNorm = normalizeCustomerEmail(form.email);
     if (!isOptionalValidEmailNormalized(emailNorm)) {
       Swal.fire({
@@ -301,12 +322,11 @@ const Customers: React.FC = () => {
         <input type="text" className="form-control" placeholder={t('customers.cnic_placeholder')} value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} />
       </div>
       )}
-      {isVisible('phone') && (
+      {/* phone is required, so it is always shown */}
       <div className="col-lg-6 mb-3">
-        <label className="form-label">{t('customers.phone')}</label>
-        <input type="text" className="form-control" placeholder={t('customers.phone_placeholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <label className="form-label">{t('customers.phone')}<span className="text-danger ms-1">*</span></label>
+        <input type="tel" className="form-control" placeholder={t('customers.phone_placeholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
       </div>
-      )}
       {isVisible('email') && (
       <div className="col-lg-6 mb-3">
         <label className="form-label">{t('customers.email')}</label>
@@ -353,12 +373,23 @@ const Customers: React.FC = () => {
         </div>
       </div>
       )}
-      {isVisible('address') && (
+      {/* building details */}
+      <div className="col-lg-4 mb-3">
+        <label className="form-label">Building type</label>
+        <input type="text" className="form-control" maxLength={50} placeholder="e.g. House, Villa, Apartment" value={form.buildingType} onChange={(e) => setForm({ ...form, buildingType: e.target.value })} />
+      </div>
+      <div className="col-lg-4 mb-3">
+        <label className="form-label">Space</label>
+        <input type="text" className="form-control" maxLength={50} placeholder="e.g. 10 Marla, 1 Kanal, 2 BHK" value={form.buildingSpace} onChange={(e) => setForm({ ...form, buildingSpace: e.target.value })} />
+      </div>
+      <div className="col-lg-4 mb-3">
+        <label className="form-label">Stage of the building</label>
+        <ChoiceOrOther value={form.buildingStage} options={BUILDING_STAGES} placeholder="Choose" onChange={(v) => setForm((f) => ({ ...f, buildingStage: v }))} />
+      </div>
       <div className="col-lg-12 mb-0">
         <label className="form-label">{t('customers.address')}</label>
         <textarea className="form-control" rows={2} placeholder={t('customers.address_placeholder')} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
       </div>
-      )}
     </div>
   );
 
@@ -419,6 +450,7 @@ const Customers: React.FC = () => {
                     <th>{t('customers.cnic')}</th>
                     <th>{t('customers.phone')}</th>
                     <th>{t('customers.city')}</th>
+                    <th>Building</th>
                     <th>{t('customers.status')}</th>
                     <th style={{ width: 160 }}>{t('customers.actions')}</th>
                   </tr>
@@ -438,6 +470,7 @@ const Customers: React.FC = () => {
                       <td>{c.cnic || '-'}</td>
                       <td>{c.phone ? <><a href={`tel:${c.phone}`} title="Call" className="text-primary me-1"><i className="ti ti-phone-call"></i></a>{c.phone}</> : '-'}</td>
                       <td>{c.city || '-'}</td>
+                      <td>{[c.buildingType, c.buildingSpace].filter(Boolean).join(', ') || '-'}{c.buildingStage && <div><small className="text-muted">{c.buildingStage}</small></div>}</td>
                       <td>
                         <span className={`badge fw-medium fs-10 ${c.status === 'active' ? 'bg-success' : 'bg-danger'}`}>
                           {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
@@ -473,7 +506,7 @@ const Customers: React.FC = () => {
               <div className="modal-body">{formFields}</div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>{t('common.cancel')}</button>
-                <button type="button" className="btn btn-primary" disabled={!form.name.trim() || saving} onClick={handleSave}>
+                <button type="button" className="btn btn-primary" disabled={!form.name.trim() || !form.phone.trim() || saving} onClick={handleSave}>
                   {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>{t('common.saving')}</> : <><i className="ti ti-check me-1"></i>{t('customers.add_customer')}</>}
                 </button>
               </div>
@@ -494,7 +527,7 @@ const Customers: React.FC = () => {
               <div className="modal-body">{formFields}</div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button>
-                <button type="button" className="btn btn-primary" disabled={!form.name.trim() || saving} onClick={handleUpdate}>
+                <button type="button" className="btn btn-primary" disabled={!form.name.trim() || !form.phone.trim() || saving} onClick={handleUpdate}>
                   {saving ? <><span className="spinner-border spinner-border-sm me-1"></span>{t('common.updating')}</> : <><i className="ti ti-check me-1"></i>{t('customers.update_customer')}</>}
                 </button>
               </div>
@@ -530,6 +563,9 @@ const Customers: React.FC = () => {
                       {viewCustomer.email && <tr><td className="text-muted"><i className="ti ti-mail me-2"></i>{t('customers.email')}</td><td className="text-end fw-medium">{viewCustomer.email}</td></tr>}
                       {viewCustomer.city && <tr><td className="text-muted"><i className="ti ti-building me-2"></i>{t('customers.city')}</td><td className="text-end fw-medium">{viewCustomer.city}</td></tr>}
                       {viewCustomer.address && <tr><td className="text-muted"><i className="ti ti-map-pin me-2"></i>{t('customers.address')}</td><td className="text-end fw-medium">{viewCustomer.address}</td></tr>}
+                      {viewCustomer.buildingType && <tr><td className="text-muted"><i className="ti ti-home me-2"></i>Building type</td><td className="text-end fw-medium">{viewCustomer.buildingType}</td></tr>}
+                      {viewCustomer.buildingSpace && <tr><td className="text-muted"><i className="ti ti-ruler-measure me-2"></i>Space</td><td className="text-end fw-medium">{viewCustomer.buildingSpace}</td></tr>}
+                      {viewCustomer.buildingStage && <tr><td className="text-muted"><i className="ti ti-crane me-2"></i>Stage of the building</td><td className="text-end fw-medium">{viewCustomer.buildingStage}</td></tr>}
                     </tbody>
                   </table>
                 </div>

@@ -4,7 +4,8 @@ import { rolePermissionService } from '../../services/rolePermissionService';
 import { getMenuKeysBySection } from '../../utils/menuKeys';
 import { usePermissions } from '../../context/PermissionContext';
 
-const ROLES = ['Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
+import { useRoles } from '../../services/roleService';
+import ManageRoles from '../../components/users/ManageRoles';
 
 const allSections = getMenuKeysBySection();
 
@@ -12,6 +13,9 @@ const RolesPermissions: React.FC = () => {
   const { t } = useTranslation();
   const { tenantHiddenKeys } = usePermissions();
   const [selectedRole, setSelectedRole] = useState('');
+  // roles from the Roles table; Admin (built in) always has full access, so it isn't listed for permissions
+  const { roles, reload: reloadRoles } = useRoles();
+  const permissionRoles = roles.filter((r) => !r.isSystem).map((r) => r.name);
   const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -112,6 +116,13 @@ const RolesPermissions: React.FC = () => {
         </div>
       </div>
 
+      {/* Add / rename / delete roles */}
+      <ManageRoles roles={roles} onChanged={(c) => {
+        reloadRoles();
+        if (c?.renamedFrom && c.renamedFrom === selectedRole) setSelectedRole(c.renamedTo || '');
+        if (c?.deleted && c.deleted === selectedRole) setSelectedRole('');
+      }} />
+
       {/* Role Selector */}
       <div className="card mb-4">
         <div className="card-body">
@@ -124,7 +135,7 @@ const RolesPermissions: React.FC = () => {
                 onChange={(e) => setSelectedRole(e.target.value)}
               >
                 <option value="">{t('users.choose_role')}</option>
-                {ROLES.map((r) => (
+                {permissionRoles.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>

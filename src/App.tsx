@@ -20,7 +20,6 @@ const ProductList = lazy(() => import('./pages/inventory/ProductList'))
 const AddProduct = lazy(() => import('./pages/inventory/AddProduct'))
 const EditProduct = lazy(() => import('./pages/inventory/EditProduct'))
 const ProductDetails = lazy(() => import('./pages/inventory/ProductDetails'))
-const LowStocks = lazy(() => import('./pages/inventory/LowStocks'))
 const CategoryList = lazy(() => import('./pages/inventory/CategoryList'))
 const BrandList = lazy(() => import('./pages/inventory/BrandList'))
 const Units = lazy(() => import('./pages/inventory/Units'))
@@ -30,7 +29,6 @@ const Warranty = lazy(() => import('./pages/inventory/Warranty'))
 
 
 // Stock
-const ManageStocks = lazy(() => import('./pages/stock/ManageStocks'))
 const StockHistory = lazy(() => import('./pages/stock/StockHistory'))
 const SoldStock = lazy(() => import('./pages/stock/SoldStock'))
 
@@ -38,6 +36,7 @@ const SoldStock = lazy(() => import('./pages/stock/SoldStock'))
 const POSOrders = lazy(() => import('./pages/sales/POSOrders'))
 const SalesReturns = lazy(() => import('./pages/sales/SalesReturns'))
 const QuotationList = lazy(() => import('./pages/sales/QuotationList'))
+const StaffApprovals = lazy(() => import('./pages/sales/StaffApprovals'))
 const POS = lazy(() => import('./pages/sales/POS'))
 
 
@@ -49,6 +48,8 @@ const PurchaseReturns = lazy(() => import('./pages/purchases/PurchaseReturns'))
 // Finance
 const ExpenseList = lazy(() => import('./pages/finance/ExpenseList'))
 const Transactions = lazy(() => import('./pages/finance/Transactions'))
+const BalanceSheet = lazy(() => import('./pages/finance/BalanceSheet'))
+const CapitalLoans = lazy(() => import('./pages/finance/CapitalLoans'))
 const Letterhead = lazy(() => import('./pages/misc/Letterhead'))
 const ExpenseCategory = lazy(() => import('./pages/finance/ExpenseCategory'))
 
@@ -68,7 +69,6 @@ const SupplierDueReport = lazy(() => import('./pages/reports/SupplierDueReport')
 const CustomerReport = lazy(() => import('./pages/reports/CustomerReport'))
 const CustomerDueReport = lazy(() => import('./pages/reports/CustomerDueReport'))
 const ProductReport = lazy(() => import('./pages/reports/ProductReport'))
-const ProductQuantityAlert = lazy(() => import('./pages/reports/ProductQuantityAlert'))
 const ExpenseReport = lazy(() => import('./pages/reports/ExpenseReport'))
 const TaxReports = lazy(() => import('./pages/reports/TaxReports'))
 const ProfitAndLoss = lazy(() => import('./pages/reports/ProfitAndLoss'))
@@ -295,7 +295,6 @@ function App() {
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/edit-product/:id" element={<EditProduct />} />
           <Route path="/product-details" element={<ProductDetails />} />
-          <Route path="/low-stocks" element={<LowStocks />} />
           <Route path="/category-list" element={<CategoryList />} />
           <Route path="/brand-list" element={<BrandList />} />
           <Route path="/units" element={<Units />} />
@@ -304,7 +303,6 @@ function App() {
           <Route path="/warranty" element={<Warranty />} />
 
           {/* Stock */}
-          <Route path="/manage-stocks" element={<ManageStocks />} />
           <Route path="/stock-history" element={<StockHistory />} />
           <Route path="/sold-stock" element={<SoldStock />} />
 
@@ -313,6 +311,7 @@ function App() {
           <Route path="/pos-orders" element={<POSOrders />} />
           <Route path="/sales-returns" element={<SalesReturns />} />
           <Route path="/quotation-list" element={<QuotationList />} />
+          <Route path="/staff-approvals" element={<StaffApprovals />} />
           <Route path="/pos" element={<POS />} />
 
 
@@ -325,6 +324,8 @@ function App() {
           {/* Finance */}
           <Route path="/expense-list" element={<ExpenseList />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/balance-sheet" element={<BalanceSheet />} />
+          <Route path="/capital-loans" element={<CapitalLoans />} />
           <Route path="/letterhead" element={<Letterhead />} />
           <Route path="/expense-category" element={<ExpenseCategory />} />
 
@@ -344,7 +345,6 @@ function App() {
           <Route path="/customer-report" element={<CustomerReport />} />
           <Route path="/customer-due-report" element={<CustomerDueReport />} />
           <Route path="/product-report" element={<ProductReport />} />
-          <Route path="/product-quantity-alert" element={<ProductQuantityAlert />} />
           <Route path="/expense-report" element={<ExpenseReport />} />
           <Route path="/tax-reports" element={<TaxReports />} />
           <Route path="/profit-and-loss" element={<ProfitAndLoss />} />

@@ -24,9 +24,10 @@ interface Transaction {
   createdBy?: string | null;
 }
 
-const KINDS = ['Sale payment', 'Supplier payment', 'Supplier refund', 'Customer refund', 'Expense'];
+const KINDS = ['Sale payment', 'Supplier payment', 'Supplier refund', 'Customer refund', 'Expense', 'Owner investment', 'Owner drawing', 'Loan received', 'Loan repayment', 'Fixed asset purchase'];
 const KIND_BADGE: Record<string, string> = {
   'Sale payment': 'bg-success', 'Supplier payment': 'bg-danger', 'Supplier refund': 'bg-info', 'Customer refund': 'bg-secondary', Expense: 'bg-warning',
+  'Owner investment': 'bg-success', 'Owner drawing': 'bg-warning', 'Loan received': 'bg-info', 'Loan repayment': 'bg-secondary', 'Fixed asset purchase': 'bg-primary',
 };
 const money = (n: number) => `Rs ${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const showDate = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });

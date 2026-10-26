@@ -5,7 +5,7 @@ import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
-const ROLES = ['Admin', 'Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
+import { useRoles } from '../../services/roleService';
 
 const Users: React.FC = () => {
   const { t } = useTranslation();
@@ -38,6 +38,10 @@ const Users: React.FC = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   // ── Fetch users ──
+  // roles come from the Roles table (Roles & Permissions > Roles)
+  const { roles } = useRoles();
+  const roleNames = roles.map((r) => r.name);
+
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -299,7 +303,7 @@ const Users: React.FC = () => {
 
       {/* ══════ Add User Modal ══════ */}
       {showAdd && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAdd(false)}>
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>{/* closes only with X / Cancel: a click on the browser's password suggestion counted as a click outside */}
           <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               <div className="page-wrapper-new p-0">
@@ -326,7 +330,7 @@ const Users: React.FC = () => {
                           <div className="mb-3">
                             <label className="form-label">{t('users.role')}<span className="text-danger ms-1">*</span></label>
                             <select className="form-select" value={addForm.role} onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}>
-                              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                              {roleNames.map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
                           </div>
                         </div>
@@ -345,13 +349,13 @@ const Users: React.FC = () => {
                         <div className="col-lg-6">
                           <div className="mb-3">
                             <label className="form-label">{t('users.password')}<span className="text-danger ms-1">*</span></label>
-                            <input type="password" className="form-control" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} required />
+                            <input type="password" autoComplete="new-password" className="form-control" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} required />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="mb-3">
                             <label className="form-label">{t('users.confirm_password')}<span className="text-danger ms-1">*</span></label>
-                            <input type="password" className="form-control" value={addConfirmPw} onChange={(e) => setAddConfirmPw(e.target.value)} required />
+                            <input type="password" autoComplete="new-password" className="form-control" value={addConfirmPw} onChange={(e) => setAddConfirmPw(e.target.value)} required />
                           </div>
                         </div>
                         <div className="col-lg-12">
@@ -380,7 +384,7 @@ const Users: React.FC = () => {
 
       {/* ══════ Edit User Modal ══════ */}
       {showEdit && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowEdit(false)}>
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               <div className="page-wrapper-new p-0">
@@ -407,7 +411,7 @@ const Users: React.FC = () => {
                           <div className="mb-3">
                             <label className="form-label">{t('users.role')}<span className="text-danger ms-1">*</span></label>
                             <select className="form-select" value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
-                              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                              {roleNames.map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
                           </div>
                         </div>
@@ -426,13 +430,13 @@ const Users: React.FC = () => {
                         <div className="col-lg-6">
                           <div className="mb-3">
                             <label className="form-label">{t('users.password')} <small className="text-muted">{t('users.password_hint')}</small></label>
-                            <input type="password" className="form-control" value={editForm.password || ''} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
+                            <input type="password" autoComplete="new-password" className="form-control" value={editForm.password || ''} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="mb-3">
                             <label className="form-label">{t('users.confirm_password')}</label>
-                            <input type="password" className="form-control" value={editConfirmPw} onChange={(e) => setEditConfirmPw(e.target.value)} />
+                            <input type="password" autoComplete="new-password" className="form-control" value={editConfirmPw} onChange={(e) => setEditConfirmPw(e.target.value)} />
                           </div>
                         </div>
                         <div className="col-lg-12">
