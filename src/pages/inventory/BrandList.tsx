@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import api, { mediaUrl } from '../../services/api';
+import api from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -46,16 +46,10 @@ const BrandList: React.FC = () => {
   // Add modal
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({ name: '', status: 'active' });
-  const [addImage, setAddImage] = useState<File | null>(null);
-  const [addImagePreview, setAddImagePreview] = useState<string | null>(null);
-  const addFileRef = useRef<HTMLInputElement>(null);
 
   // Edit modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({ id: 0, name: '', status: 'active' });
-  const [editImage, setEditImage] = useState<File | null>(null);
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
-  const editFileRef = useRef<HTMLInputElement>(null);
 
   // Delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -115,19 +109,8 @@ const BrandList: React.FC = () => {
   }, []);
 
   // ---------- Add Brand ----------
-  const handleAddImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAddImage(file);
-      setAddImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const resetAddForm = () => {
     setAddForm({ name: '', status: 'active' });
-    setAddImage(null);
-    setAddImagePreview(null);
-    if (addFileRef.current) addFileRef.current.value = '';
   };
 
   const handleAddSave = async () => {
@@ -135,7 +118,6 @@ const BrandList: React.FC = () => {
     const formData = new FormData();
     formData.append('name', addForm.name);
     formData.append('status', addForm.status);
-    if (addImage) formData.append('image', addImage);
 
     try {
       await api.post('/brands', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -148,17 +130,7 @@ const BrandList: React.FC = () => {
   // ---------- Edit Brand ----------
   const openEditModal = (item: BrandItem) => {
     setEditForm({ id: item.id, name: item.name, status: item.status });
-    setEditImage(null);
-    setEditImagePreview(item.image ? mediaUrl(item.image) : null);
     setShowEditModal(true);
-  };
-
-  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setEditImage(file);
-      setEditImagePreview(URL.createObjectURL(file));
-    }
   };
 
   const handleEditSave = async () => {
@@ -166,7 +138,6 @@ const BrandList: React.FC = () => {
     const formData = new FormData();
     formData.append('name', editForm.name);
     formData.append('status', editForm.status);
-    if (editImage) formData.append('image', editImage);
 
     try {
       await api.put(`/brands/${editForm.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -313,9 +284,6 @@ const BrandList: React.FC = () => {
                       </td>
                       <td>
                         <div className="d-flex align-items-center">
-                          <a href="#" className="avatar avatar-md bg-light-900 p-1 me-2" onClick={(e) => e.preventDefault()}>
-                            <img className="object-fit-contain" src={mediaUrl(item.image)} alt="img" />
-                          </a>
                           <a href="#" onClick={(e) => e.preventDefault()}>{item.name}</a>
                         </div>
                       </td>
@@ -356,22 +324,6 @@ const BrandList: React.FC = () => {
                 </button>
               </div>
               <div className="modal-body new-employee-field">
-                <div className="profile-pic-upload mb-3">
-                  <div className="profile-pic brand-pic">
-                    {addImagePreview ? (
-                      <span><img src={addImagePreview} alt="preview" /></span>
-                    ) : (
-                      <span><i data-feather="plus-circle" className="plus-down-add"></i> Add Image</span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="image-upload mb-0">
-                      <input type="file" ref={addFileRef} accept="image/*" onChange={handleAddImageChange} />
-                      <div className="image-uploads"><h4>Upload Image</h4></div>
-                    </div>
-                    <p className="mt-2">JPEG, PNG up to 2 MB</p>
-                  </div>
-                </div>
                 <div className="mb-3">
                   <label className="form-label">Brand<span className="text-danger ms-1">*</span></label>
                   <input
@@ -416,31 +368,6 @@ const BrandList: React.FC = () => {
                 </button>
               </div>
               <div className="modal-body new-employee-field">
-                <div className="profile-pic-upload mb-3">
-                  <div className="profile-pic brand-pic">
-                    {editImagePreview ? (
-                      <>
-                        <span><img src={editImagePreview} alt="preview" /></span>
-                        <a
-                          href="#"
-                          className="remove-photo"
-                          onClick={(e) => { e.preventDefault(); setEditImagePreview(null); setEditImage(null); if (editFileRef.current) editFileRef.current.value = ''; }}
-                        >
-                          <i data-feather="x" className="x-square-add"></i>
-                        </a>
-                      </>
-                    ) : (
-                      <span><i data-feather="plus-circle" className="plus-down-add"></i> Add Image</span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="image-upload mb-0">
-                      <input type="file" ref={editFileRef} accept="image/*" onChange={handleEditImageChange} />
-                      <div className="image-uploads"><h4>Change Image</h4></div>
-                    </div>
-                    <p className="mt-2">JPEG, PNG up to 2 MB</p>
-                  </div>
-                </div>
                 <div className="mb-3">
                   <label className="form-label">{t('brands.brand_name')}<span className="text-danger ms-1">*</span></label>
                   <input

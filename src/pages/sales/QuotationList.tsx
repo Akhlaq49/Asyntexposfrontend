@@ -22,6 +22,8 @@ interface QuotationItemDto {
 }
 interface QuotationDto {
   id: number; reference: string; customerId: number | null; customerName: string;
+  /** from the customer record */
+  customerAddress?: string | null; customerCity?: string | null; customerBuildingType?: string | null; customerBuildingSpace?: string | null; customerBuildingStage?: string | null;
   saleId?: number | null; saleReference?: string | null;
   taxes?: AppliedTax[];
   /** Terms edited for this quotation (null = standard terms) */
@@ -44,7 +46,21 @@ interface QuotationDto {
   grandTotal: number; status: string; description: string | null;
   quotationDate: string; createdAt: string; items: QuotationItemDto[];
 }
-interface CustomerResult { id: number; name: string; phone?: string; }
+interface CustomerResult { id: number; name: string; phone?: string; address?: string; city?: string; buildingType?: string; buildingSpace?: string; buildingStage?: string; }
+/** a customer's address and house (type, size, condition), shown on the quotation */
+interface CustomerHouse { address?: string | null; city?: string | null; buildingType?: string | null; buildingSpace?: string | null; buildingStage?: string | null }
+const joinParts = (...parts: (string | null | undefined)[]) => parts.map((x) => (x || '').trim()).filter(Boolean).join(', ');
+const CustomerHouseInfo: React.FC<{ c: CustomerHouse }> = ({ c }) => {
+  const address = joinParts(c.address, c.city), house = joinParts(c.buildingType, c.buildingSpace);
+  if (!address && !house && !c.buildingStage) return <small className="text-muted d-block mt-1">No address or house details on this customer.</small>;
+  return (
+    <div className="border rounded bg-light px-2 py-1 mt-2 customer-house" style={{ fontSize: 12 }}>
+      {address && <div><i className="ti ti-map-pin me-1 text-muted" />{address}</div>}
+      {house && <div><i className="ti ti-home me-1 text-muted" />House: {house}</div>}
+      {c.buildingStage && <div><i className="ti ti-crane me-1 text-muted" />Condition: {c.buildingStage}</div>}
+    </div>
+  );
+};
 interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; quantity?: number; description?: string; model?: string; }
 
 interface LocalItem {
@@ -439,7 +455,7 @@ const QuotationList: React.FC = () => {
       const stockMap: Record<number, number> = {};
       prods.forEach(p => { stockMap[Number(p.id)] = p.quantity ?? 0; });
       setConvertStock(stockMap);
-      setConvertPaid(full.grandTotal);
+      setConvertPaid(0);
       setConvertQ(full);
       setShowDetailModal(false);
     } catch {
@@ -463,10 +479,10 @@ const QuotationList: React.FC = () => {
         { paidAmount: paid, paymentType: convertPaymentType, notes: convertNotes || undefined });
       setConvertQ(null);
       setNotice({ type: 'success', saleRef: sale.reference,
-        text: `Quotation ${convertQ.reference || '#' + convertQ.id} converted to sale ${sale.reference}. Stock updated${sale.due > 0 ? `; Rs ${sale.due.toLocaleString('en-US', { minimumFractionDigits: 2 })} still due` : '; fully paid'}.` });
+        text: `Quotation ${convertQ.reference || '#' + convertQ.id} is now order ${sale.reference} in the sale queue (POS Orders). Make a purchase order for the goods; when they arrive, mark it as sold.` });
       await fetchData();
     } catch (err: any) {
-      setConvertError(err?.response?.data?.message || 'Could not convert the quotation.');
+      setConvertError(err?.response?.data?.message || 'Could not add the quotation to the sale queue.');
     }
     setConverting(false);
   };
@@ -698,11 +714,11 @@ const QuotationList: React.FC = () => {
                           </a>
                           {familyOpen(q) && (needsApproval(q) ? (
                             <span className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-muted" style={{ opacity: 0.45, cursor: 'not-allowed' }}
-                              title={q.approvalStatus === 'Pending' ? `Convert to sale: waiting for approval from ${q.approvalSentTo}` : 'Convert to sale: needs an admin\'s approval first'}>
+                              title={q.approvalStatus === 'Pending' ? `Convert to sale queue: waiting for approval from ${q.approvalSentTo}` : 'Convert to sale queue: needs an admin\'s approval first'}>
                               <i className="ti ti-shopping-cart-check"></i>
                             </span>
                           ) : (
-                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-success" href="#" title="Convert to sale" onClick={e => { e.preventDefault(); openConvert(q); }}>
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-success" href="#" title="Convert to sale queue" onClick={e => { e.preventDefault(); openConvert(q); }}>
                               <i className="ti ti-shopping-cart-check"></i>
                             </a>
                           ))}
@@ -711,13 +727,6 @@ const QuotationList: React.FC = () => {
                               title={q.approvalStatus === 'Pending' ? `Waiting for ${q.approvalSentTo} - send again or take back` : 'Send to Admin / Super Admin for approval'}
                               onClick={e => { e.preventDefault(); setApprovalFor(q); }}>
                               <i className={`ti ${q.approvalStatus === 'Pending' ? 'ti-clock-share' : 'ti-send'}`}></i>
-                            </a>
-                          )}
-                          {q.saleId && (
-                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-info" href="#"
-                              title={(linkedOrders[q.id] || []).some((o) => o.status !== 'Cancelled') ? `Open purchase order ${(linkedOrders[q.id] || []).find((o) => o.status !== 'Cancelled')!.poNumber}` : 'Create purchase order - buy the goods for this order from the supplier'}
-                              onClick={e => { e.preventDefault(); navigate(`/purchase-orders?fromQuotation=${q.id}`); }}>
-                              <i className="ti ti-truck-delivery"></i>
                             </a>
                           )}
                           {canPrint(q) && (
@@ -780,6 +789,7 @@ const QuotationList: React.FC = () => {
                             ))}
                           </ul>
                         )}
+                        {form.customerId && (() => { const c = customers.find((x) => x.id === form.customerId); return c ? <CustomerHouseInfo c={c} /> : null; })()}
                       </div>
                     </div>
                     <div className="col-lg-4 col-sm-6 col-12">
@@ -1074,7 +1084,7 @@ const QuotationList: React.FC = () => {
                           {!versions.some(x => x.saleId) && (
                             <>
                               <button type="button" className="btn btn-sm btn-outline-info me-1" title={`Make a new version from ${v.reference}`} onClick={() => { setVersions(null); openEditModal(v, true); }}><i className="ti ti-versions"></i></button>
-                              <button type="button" className="btn btn-sm btn-success" title={`Convert ${v.reference} to a sale`} onClick={() => { setVersions(null); openConvert(v); }}><i className="ti ti-shopping-cart-check"></i></button>
+                              <button type="button" className="btn btn-sm btn-success" title={`Convert ${v.reference} to the sale queue`} onClick={() => { setVersions(null); openConvert(v); }}><i className="ti ti-shopping-cart-check"></i></button>
                             </>
                           )}
                         </td>
@@ -1105,6 +1115,7 @@ const QuotationList: React.FC = () => {
                   <div className="col-sm-6">
                     <p className="mb-1"><strong>{t('quotations.reference')}:</strong> {detailQuotation.reference || '—'}</p>
                     <p className="mb-1"><strong>{t('quotations.customer')}:</strong> {detailQuotation.customerName}</p>
+                    {detailQuotation.customerId && <div className="mb-2"><CustomerHouseInfo c={{ address: detailQuotation.customerAddress, city: detailQuotation.customerCity, buildingType: detailQuotation.customerBuildingType, buildingSpace: detailQuotation.customerBuildingSpace, buildingStage: detailQuotation.customerBuildingStage }} /></div>}
                     <p className="mb-1"><strong>{t('quotations.date')}:</strong> {detailQuotation.quotationDate}</p>
                   </div>
                   <div className="col-sm-6 text-sm-end">
@@ -1186,7 +1197,7 @@ const QuotationList: React.FC = () => {
                   : <small className="text-muted"><i className="ti ti-lock me-1" />Printing is available once an admin approves it.</small>}
                 {familyOpen(detailQuotation) && (needsApproval(detailQuotation)
                   ? <button type="button" className="btn btn-primary me-auto" onClick={() => setApprovalFor(detailQuotation)}><i className="ti ti-send me-1"></i>{detailQuotation.approvalStatus === 'Pending' ? 'Awaiting approval' : 'Send for approval'}</button>
-                  : <button type="button" className="btn btn-success me-auto" onClick={() => openConvert(detailQuotation)}><i className="ti ti-shopping-cart-check me-1"></i>Convert to sale</button>)}
+                  : <button type="button" className="btn btn-success me-auto" onClick={() => openConvert(detailQuotation)}><i className="ti ti-shopping-cart-check me-1"></i>Convert to sale queue</button>)}
                 {!familyOpen(detailQuotation) && <span className="me-auto" />}
                 <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>{t('common.close')}</button>
               </div>
@@ -1201,11 +1212,11 @@ const QuotationList: React.FC = () => {
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">Convert to sale - {convertQ.reference || '#' + convertQ.id}</h4>
+                <h4 className="modal-title">Convert to sale queue - {convertQ.reference || '#' + convertQ.id}</h4>
                 <button type="button" className="btn-close" onClick={() => setConvertQ(null)} />
               </div>
               <div className="modal-body">
-                <p className="text-muted mb-2">Customer: <strong className="text-dark">{convertQ.customerName}</strong>. The products below are taken out of stock and the sale is recorded under POS Orders.</p>
+                <p className="text-muted mb-2">Customer: <strong className="text-dark">{convertQ.customerName}</strong>. The order goes to the sale queue under POS Orders. Products don't need to be in stock now: order them on a purchase order, and when they arrive mark the order as sold (then the stock goes out and it counts as a sale).</p>
                 <table className="table table-sm align-middle">
                   <thead className="thead-light"><tr><th>Product</th><th className="text-end">Qty</th><th className="text-end">In stock</th><th className="text-end">Total</th></tr></thead>
                   <tbody>
@@ -1213,10 +1224,10 @@ const QuotationList: React.FC = () => {
                       const inStock = convertStock[i.productId] ?? 0;
                       const short = inStock < convertQ.items.filter(x => x.productId === i.productId).reduce((n, x) => n + x.quantity, 0);
                       return (
-                        <tr key={i.id} className={short ? 'table-danger' : ''}>
+                        <tr key={i.id}>
                           <td>{i.productName}</td>
                           <td className="text-end">{i.quantity}</td>
-                          <td className="text-end">{inStock}{short && <span className="text-danger fw-semibold"> (short)</span>}</td>
+                          <td className="text-end">{inStock}{short && <span className="text-warning fw-semibold"> (to order)</span>}</td>
                           <td className="text-end">{fmt(i.totalCost)}</td>
                         </tr>
                       );
@@ -1225,14 +1236,14 @@ const QuotationList: React.FC = () => {
                   <tfoot><tr><th colSpan={3} className="text-end" style={{ fontSize: 16 }}>Grand total</th><th className="text-end text-primary" style={{ fontSize: 18 }}>{fmt(convertQ.grandTotal)}</th></tr></tfoot>
                 </table>
                 {convertShortages.length > 0 && (
-                  <div className="alert alert-warning py-2">Not enough stock for: {convertShortages.map(x => x.name).join(', ')}. Receive more stock first (Purchase Orders or Manage Stock).</div>
+                  <div className="alert alert-info py-2">Not in stock yet: {convertShortages.map(x => x.name).join(', ')}. That's fine - make a purchase order for them after converting.</div>
                 )}
                 <div className="row">
                   <div className="col-md-4 mb-3">
-                    <label className="form-label">Amount received now</label>
+                    <label className="form-label">Advance received now</label>
                     <input type="number" min={0} step="any" className="form-control" value={convertPaid}
                       onChange={e => setConvertPaid(e.target.value === '' ? '' : Number(e.target.value))} />
-                    <small className="text-muted">Leave less than the total to record the rest as due.</small>
+                    <small className="text-muted">Optional. The rest can be received later.</small>
                   </div>
                   <div className="col-md-3 mb-3">
                     <label className="form-label">Payment method</label>
@@ -1251,14 +1262,15 @@ const QuotationList: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setConvertQ(null)} disabled={converting}>Cancel</button>
-                <button type="button" className="btn btn-success" onClick={submitConvert} disabled={converting || convertShortages.length > 0}>
-                  <i className="ti ti-shopping-cart-check me-1"></i>{converting ? 'Converting...' : 'Convert to sale'}
+                <button type="button" className="btn btn-success" onClick={submitConvert} disabled={converting}>
+                  <i className="ti ti-shopping-cart-check me-1"></i>{converting ? 'Converting...' : 'Convert to sale queue'}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* ===================== Delete Modal ===================== */}
       <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />

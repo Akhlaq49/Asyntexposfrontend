@@ -8,6 +8,8 @@ interface PrintQuotation {
   productId?: number | null; productName?: string; grandTotal: number; orderTax: number; discount: number; shipping: number;
   installationCharges?: number; taxes?: { taxName: string; percent: number; amount: number }[]; termsContent?: string | null;
   items?: PrintLine[];
+  /** from the customer record */
+  customerAddress?: string | null; customerCity?: string | null; customerBuildingType?: string | null; customerBuildingSpace?: string | null; customerBuildingStage?: string | null;
 }
 /** product description / model, printed on the quotation (instead of the SKU) */
 export interface PrintProductInfo { id: string | number; description?: string; model?: string }
@@ -49,7 +51,8 @@ export async function printQuotation(quotationId: number, products?: PrintProduc
   printDocument(`Quotation ${q.reference || q.id}`, 'QUOTATION', q.reference || `#${q.id}`, `
     <table class="info" style="margin-bottom:14px"><tbody>
       <tr><th>Customer</th><td>${esc(q.customerName)}</td><th>Date</th><td>${esc(q.quotationDate)}</td></tr>
-      <tr><th>Reference</th><td>${esc(q.reference || '-')}</td><th></th><td></td></tr>
+      <tr><th>Address</th><td>${esc([q.customerAddress, q.customerCity].map((x) => (x || '').trim()).filter(Boolean).join(', ') || '-')}</td><th>Reference</th><td>${esc(q.reference || '-')}</td></tr>
+      ${q.customerBuildingType || q.customerBuildingSpace || q.customerBuildingStage ? `<tr><th>House</th><td>${esc([q.customerBuildingType, q.customerBuildingSpace].map((x) => (x || '').trim()).filter(Boolean).join(', ') || '-')}</td><th>Condition</th><td>${esc(q.customerBuildingStage || '-')}</td></tr>` : ''}
     </tbody></table>
     <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th>${hasDesc ? '<th>Description</th>' : ''}${hasModel ? '<th>Model</th>' : ''}<th class="r">Qty</th><th class="r">Unit price</th>${hasDiscount ? '<th class="r">Item discount<br><small>(per unit)</small></th>' : ''}${hasTax ? '<th class="r">Tax</th>' : ''}<th class="r">Total</th></tr></thead>
       <tbody>${rows}</tbody>

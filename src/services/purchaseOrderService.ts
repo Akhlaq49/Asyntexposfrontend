@@ -99,7 +99,7 @@ export interface PurchaseOrder {
 /** Buying the goods for a converted quotation */
 export interface QuotationPurchasePlan {
   quotationId: number; reference: string; saleReference?: string | null; customerName: string;
-  lines: { productId: number; productName: string; sku?: string | null; quoted: number; inStock: number; alreadyOrdered: number; suggested: number; lastCost: number }[];
+  lines: { productId: number; productName: string; sku?: string | null; quoted: number; inStock: number; alreadyOrdered: number; suggested: number; lastCost: number; /** the price set on the product in inventory */ price: number }[];
   purchaseOrders: { id: number; poNumber: string; status: string; supplierName: string; total: number }[];
   missingProducts: string[];
 }

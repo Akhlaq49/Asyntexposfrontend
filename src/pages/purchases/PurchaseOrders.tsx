@@ -155,6 +155,12 @@ const PurchaseOrders: React.FC = () => {
     const qid = Number(params.get('fromQuotation'));
     if (!qid) return;
     params.delete('fromQuotation'); setParams(params, { replace: true });
+    openFromQuotation(qid);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  /** a purchase order straight to a supplier (stock order, not tied to a quotation) */
+  const openCreate = () => { loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null); setForm(emptyForm()); };
+  /** start a purchase order for a queued customer order (or open the one it already has) */
+  const openFromQuotation = (qid: number) => {
     getQuotationPurchasePlan(qid).then(async (plan) => {
       // one purchase order per quotation: if it already has one (not cancelled), open that order instead
       const existing = plan.purchaseOrders.find((o) => o.status !== 'Cancelled');
@@ -165,12 +171,12 @@ const PurchaseOrders: React.FC = () => {
       }
       const lines = plan.lines.filter((l) => !plan.missingProducts.includes(l.productName) && l.suggested > 0)
         .map((l) => ({ productId: l.productId, productName: l.productName, sku: l.sku || undefined, quantity: l.suggested as number | '',
-          unitCost: (l.lastCost || '') as number | '', discount: '' as number | '', taxPercent: '' as number | '' }));
+          unitCost: (l.price || l.lastCost || '') as number | '', discount: '' as number | '', taxPercent: '' as number | '' }));
       loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null);
       // the link to the quotation is kept on the order itself; the supplier notes stay free (they print for the supplier)
       setForm({ ...emptyForm(), quotationId: plan.quotationId, plan, lines });
     }).catch((e) => flash('danger', apiError(e, 'Could not load the quotation')));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
   /** replace one order in the list (and in the open detail view) after an action */
   const upsert = (po: PurchaseOrder) => {
@@ -453,7 +459,8 @@ const PurchaseOrders: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Purchase Orders" subtitle="Order from suppliers and receive goods into stock" breadcrumbs={[{ title: 'Purchases' }]} />
+      <PageHeader title="Purchase Orders" subtitle="Order from suppliers and receive goods into stock" breadcrumbs={[{ title: 'Purchases' }]}
+        actions={<button className="btn btn-primary" onClick={openCreate}><i className="ti ti-circle-plus me-1" />New Purchase Order</button>} />
 
       {toast && <div className={`alert alert-${toast.type} py-2`}>{toast.text}</div>}
 
@@ -501,7 +508,7 @@ const PurchaseOrders: React.FC = () => {
                 <tbody>
                   {paginatedData.length === 0 ? (
                     <tr><td colSpan={8} className="text-center text-muted py-5">
-                      {orders.length === 0 ? 'No purchase orders yet. They are created from a converted quotation (Quotation > Create purchase order).' : 'No purchase orders match your filters.'}
+                      {orders.length === 0 ? <>No purchase orders yet. <a href="#" onClick={(e) => { e.preventDefault(); openCreate(); }}>Create one</a>, or use the Purchase order button on a sale queue order in POS Orders.</> : 'No purchase orders match your filters.'}
                     </td></tr>
                   ) : paginatedData.map((po) => (
                     <tr key={po.id}>

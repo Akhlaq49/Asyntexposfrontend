@@ -25,6 +25,10 @@
     <!-- RTL support for Urdu/Arabic -->
     <link rel="stylesheet" href="/assets/css/rtl.css" />
     <style>
+      /* Number boxes (prices, amounts, quantities): no up/down arrows - values are typed */
+      input[type=number]::-webkit-outer-spin-button,
+      input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       /* Native scrollbar for sidebar (replaces jQuery SlimScroll) */
       .sidebar .sidebar-inner.slimscroll {
         overflow-y: auto !important;

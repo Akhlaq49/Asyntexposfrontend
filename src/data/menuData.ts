@@ -109,18 +109,6 @@ const menuData: MenuSection[] = [
     ],
   },
   {
-    header: 'Inventory',
-    items: [
-      { title: 'Products', icon: 'box', iconType: 'feather', path: '/product-list' },
-      { title: 'Create Product', icon: 'ti-table-plus', iconType: 'tabler', path: '/add-product' },
-      { title: 'Category', icon: 'ti-list-details', iconType: 'tabler', path: '/category-list' },
-      { title: 'Brands', icon: 'ti-triangles', iconType: 'tabler', path: '/brand-list' },
-      { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
-      { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
-      { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
-    ],
-  },
-  {
     header: 'Sales',
     items: [
       // permission key "Sales/POS Orders" (was "Sales/Sales" when it sat under a Sales dropdown)
@@ -140,6 +128,25 @@ const menuData: MenuSection[] = [
       { title: 'Purchases', icon: 'ti-shopping-bag', iconType: 'tabler', path: '/purchase-list' },
       { title: 'Purchase Order', icon: 'ti-file-invoice', iconType: 'tabler', path: '/purchase-orders' },
       { title: 'Purchase Return', icon: 'ti-file-upload', iconType: 'tabler', path: '/purchase-returns' },
+    ],
+  },
+  {
+    header: 'Peoples',
+    items: [
+      { title: 'Customers', icon: 'ti-users-group', iconType: 'tabler', path: '/customers' },
+      { title: 'Suppliers', icon: 'ti-user-dollar', iconType: 'tabler', path: '/suppliers' },
+    ],
+  },
+  {
+    header: 'Inventory',
+    items: [
+      { title: 'Products', icon: 'box', iconType: 'feather', path: '/product-list' },
+      { title: 'Create Product', icon: 'ti-table-plus', iconType: 'tabler', path: '/add-product' },
+      { title: 'Category', icon: 'ti-list-details', iconType: 'tabler', path: '/category-list' },
+      { title: 'Brands', icon: 'ti-triangles', iconType: 'tabler', path: '/brand-list' },
+      { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
+      { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
+      { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
     ],
   },
   {
@@ -170,13 +177,6 @@ const menuData: MenuSection[] = [
     header: 'Documents',
     items: [
       { title: 'Letterhead', icon: 'ti-file-text', iconType: 'tabler', path: '/letterhead' },
-    ],
-  },
-  {
-    header: 'Peoples',
-    items: [
-      { title: 'Customers', icon: 'ti-users-group', iconType: 'tabler', path: '/customers' },
-      { title: 'Suppliers', icon: 'ti-user-dollar', iconType: 'tabler', path: '/suppliers' },
     ],
   },
   {
