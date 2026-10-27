@@ -88,12 +88,6 @@ const Header: React.FC = () => {
                   </Link>
                 </div>
                 <div className="col-md-2">
-                  <Link to="/pos-orders" className="link-item">
-                    <span className="link-icon"><i className="ti ti-shopping-cart"></i></span>
-                    <p>{t('header.sale')}</p>
-                  </Link>
-                </div>
-                <div className="col-md-2">
                   <Link to="/expense-list" className="link-item">
                     <span className="link-icon"><i className="ti ti-file-text"></i></span>
                     <p>{t('header.expense')}</p>

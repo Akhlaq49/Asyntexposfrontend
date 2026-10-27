@@ -82,6 +82,9 @@ const statusBadge = (s: string) => {
   return 'badge-secondary';
 };
 
+/** quotation status as shown in the list: a converted quotation waits in the sale queue (POS Orders) */
+const statusLabel = (s: string) => (s || '').toLowerCase() === 'converted' ? 'Converted (sale queue)' : s;
+
 const calcItem = (item: LocalItem): LocalItem => {
   const taxAmount = (item.purchasePrice * item.taxPercent) / 100;
   const unitCost = item.purchasePrice - item.discount + taxAmount;
@@ -127,6 +130,7 @@ const QuotationList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
   const [filterCustomer, setFilterCustomer] = useState('');
+  const [filterCreator, setFilterCreator] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilterValue>(EMPTY_DATE_FILTER);
   const [sortBy, setSortBy] = useState('recent');
@@ -225,6 +229,7 @@ const QuotationList: React.FC = () => {
   /* ---- Filters ---- */
   const productNames = [...new Set(quotations.map(q => q.productName).filter(Boolean))];
   const customerNames = [...new Set(quotations.map(q => q.customerName).filter(Boolean))];
+  const creatorNames = [...new Set(quotations.map(q => q.createdByName || '').filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   /* ---- Revisions: QT-005 (original) -> QT-005_R1 -> QT-005_R2 ---- */
   const familyId = (q: QuotationDto) => q.rootQuotationId ?? q.id;
@@ -249,9 +254,11 @@ const QuotationList: React.FC = () => {
       const matchProduct = !filterProduct || q.productName === filterProduct;
       // customer: typed name, matched anywhere in the name, any case
       const matchCustomer = !filterCustomer.trim() || q.customerName.toLowerCase().includes(filterCustomer.trim().toLowerCase());
+      // created by: the user who made the quotation, typed name matched anywhere, any case
+      const matchCreator = !filterCreator.trim() || (q.createdByName || '').toLowerCase().includes(filterCreator.trim().toLowerCase());
       const matchStatus = !filterStatus || q.status === filterStatus;
       const matchDate = matchesDateFilter(q.quotationDate, dateFilter);
-      return matchSearch && matchProduct && matchCustomer && matchStatus && matchDate;
+      return matchSearch && matchProduct && matchCustomer && matchCreator && matchStatus && matchDate;
     })
     .sort((a, b) => {
       if (sortBy === 'asc') return a.grandTotal - b.grandTotal;
@@ -263,7 +270,7 @@ const QuotationList: React.FC = () => {
 
   const { paginatedData, currentPage, setCurrentPage, itemsPerPage } = usePagination(filtered);
   // back to page 1 when the customer / date filter changes
-  useEffect(() => { setCurrentPage(1); }, [filterCustomer, dateFilter, showOldVersions]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setCurrentPage(1); }, [filterCustomer, filterCreator, dateFilter, showOldVersions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---- Select ---- */
   const handleSelectAll = (checked: boolean) => { setSelectAll(checked); setSelectedIds(checked ? new Set(filtered.map(q => q.id)) : new Set()); };
@@ -502,7 +509,7 @@ const QuotationList: React.FC = () => {
     quotationLines(q).map((l) => `${l.productName} x${l.quantity}`).join(', '),
     q.createdByName ? `${q.createdByName}${q.createdByRole ? ` (${q.createdByRole})` : ''}` : '-', q.status, fmt(q.grandTotal)]);
   const listTotal = () => filtered.reduce((sum, q) => sum + (q.grandTotal || 0), 0);
-  const filterNote = () => [describeDateFilter(dateFilter), filterCustomer.trim() && `Customer: ${filterCustomer.trim()}`, filterProduct && `Product: ${filterProduct}`, filterStatus && `Status: ${filterStatus}`, searchTerm && `Search: "${searchTerm}"`].filter(Boolean).join(' | ');
+  const filterNote = () => [describeDateFilter(dateFilter), filterCustomer.trim() && `Customer: ${filterCustomer.trim()}`, filterCreator.trim() && `Created by: ${filterCreator.trim()}`, filterProduct && `Product: ${filterProduct}`, filterStatus && `Status: ${filterStatus}`, searchTerm && `Search: "${searchTerm}"`].filter(Boolean).join(' | ');
 
   const printList = () => {
     const rows = listRows().map((r) => `<tr>${r.map((c, i) => `<td${i === 6 ? ' class="r"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('');
@@ -588,6 +595,15 @@ const QuotationList: React.FC = () => {
                 <button type="button" className="btn btn-sm position-absolute top-50 end-0 translate-middle-y border-0" title="Clear" onClick={() => setFilterCustomer('')}><i className="ti ti-x"></i></button>
               )}
             </div>
+            {/* Created-by filter: type the user's name (suggestions from the list) */}
+            <div className="me-2 position-relative">
+              <input className="form-control quotation-creator-filter" style={{ width: 170, paddingRight: filterCreator ? 30 : undefined }} placeholder="Created by" list="quotation-creators"
+                value={filterCreator} onChange={e => setFilterCreator(e.target.value)} />
+              <datalist id="quotation-creators">{creatorNames.map(c => <option key={c} value={c} />)}</datalist>
+              {filterCreator && (
+                <button type="button" className="btn btn-sm position-absolute top-50 end-0 translate-middle-y border-0" title="Clear" onClick={() => setFilterCreator('')}><i className="ti ti-x"></i></button>
+              )}
+            </div>
             {/* Status filter */}
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
@@ -641,6 +657,7 @@ const QuotationList: React.FC = () => {
                     <th>Reference</th>
                     <th>Date</th>
                     <th>Created by</th>
+                    <th>Approval</th>
                     <th>{t('common.status')}</th>
                     <th>{t('common.total')}</th>
                     <th className="no-sort"></th>
@@ -648,7 +665,7 @@ const QuotationList: React.FC = () => {
                 </thead>
                 <tbody>
                   {paginatedData.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-4">{t('quotations.no_quotations')}</td></tr>
+                    <tr><td colSpan={10} className="text-center py-4">{t('quotations.no_quotations')}</td></tr>
                   ) : paginatedData.map(q => (
                     <tr key={q.id}>
                       <td>
@@ -696,12 +713,20 @@ const QuotationList: React.FC = () => {
                           ? <><div className="fw-medium">{q.createdByName}</div>{q.createdByRole && <span className="badge bg-light text-dark border">{q.createdByRole}</span>}</>
                           : <small className="text-muted" title="Not recorded">-</small>}
                       </td>
-                      <td>
-                        <span className={`badge ${statusBadge(q.status)}`}>{q.status}</span>
+                      {/* approval by an admin: its own column, next to the quotation status */}
+                      {(
+                        <td className="quotation-approval">
+                          {q.approvalStatus === 'Pending' && <div><span className="badge bg-warning" title={`Sent by ${q.approvalBy}`}><i className="ti ti-clock me-1" />Awaiting approval</span><div><small className="text-muted">to {q.approvalSentTo}</small></div></div>}
+                          {q.approvalStatus === 'Approved' && <div><span className="badge bg-success" title={q.approvalNote || ''}><i className="ti ti-check me-1" />Approved</span><div><small className="text-muted">by {q.approvalBy}</small></div></div>}
+                          {q.approvalStatus === 'Discarded' && <div><span className="badge bg-danger"><i className="ti ti-x me-1" />Discarded</span><div><small className="text-danger">{q.approvalBy}: {q.approvalNote}</small></div></div>}
+                          {!q.approvalStatus && (/admin/i.test(q.createdByRole || '')
+                            ? <span className="badge bg-light text-muted border" title="Made by an admin - no approval needed">Not needed</span>
+                            : <span className="badge bg-light text-muted border">Not sent</span>)}
+                        </td>
+                      )}
+                      <td className="quotation-status">
+                        <span className={`badge ${statusBadge(q.status)}`}>{statusLabel(q.status)}</span>
                         {q.saleReference && <div><small className="text-muted">Sale {q.saleReference}</small></div>}
-                        {!q.saleId && q.approvalStatus === 'Pending' && <div><span className="badge bg-warning mt-1" title={`Sent by ${q.approvalBy}`}><i className="ti ti-clock me-1" />Awaiting approval</span><div><small className="text-muted">to {q.approvalSentTo}</small></div></div>}
-                        {!q.saleId && q.approvalStatus === 'Approved' && <div><span className="badge bg-success mt-1" title={q.approvalNote || ''}><i className="ti ti-check me-1" />Approved</span><div><small className="text-muted">by {q.approvalBy}</small></div></div>}
-                        {!q.saleId && q.approvalStatus === 'Discarded' && <div><span className="badge bg-danger mt-1"><i className="ti ti-x me-1" />Discarded</span><div><small className="text-danger">{q.approvalBy}: {q.approvalNote}</small></div></div>}
                         {(linkedOrders[q.id] || []).filter((o) => o.status !== 'Cancelled').map((o) => <div key={o.poNumber}><small><a href="#" title="Purchase order for this quotation" onClick={e => { e.preventDefault(); navigate(`/purchase-orders?fromQuotation=${q.id}`); }}><i className="ti ti-truck me-1" />{o.poNumber}</a></small></div>)}
                         {!q.saleId && convertedVersion(q) && <div><small className="text-muted">Not chosen ({convertedVersion(q)!.reference} was converted)</small></div>}
                         {!convertedVersion(q) && q.supersededById && <div><small className="text-muted">Earlier version (newer: {referenceOf(q.supersededById) || 'a newer version'})</small></div>}
@@ -1119,7 +1144,7 @@ const QuotationList: React.FC = () => {
                     <p className="mb-1"><strong>{t('quotations.date')}:</strong> {detailQuotation.quotationDate}</p>
                   </div>
                   <div className="col-sm-6 text-sm-end">
-                    <p className="mb-1"><strong>{t('common.status')}:</strong> <span className={`badge ${statusBadge(detailQuotation.status)}`}>{detailQuotation.status}</span></p>
+                    <p className="mb-1"><strong>{t('common.status')}:</strong> <span className={`badge ${statusBadge(detailQuotation.status)}`}>{statusLabel(detailQuotation.status)}</span></p>
                     <p className="mb-1"><strong>{t('common.grand_total')}:</strong> {fmt(detailQuotation.grandTotal)}</p>
                     {detailQuotation.saleReference && <p className="mb-1 text-primary"><strong>Converted to sale:</strong> {detailQuotation.saleReference}</p>}
                     {(detailQuotation.revisionNo || detailQuotation.supersededById) ? (
@@ -1243,7 +1268,18 @@ const QuotationList: React.FC = () => {
                     <label className="form-label">Advance received now</label>
                     <input type="number" min={0} step="any" className="form-control" value={convertPaid}
                       onChange={e => setConvertPaid(e.target.value === '' ? '' : Number(e.target.value))} />
-                    <small className="text-muted">Optional. The rest can be received later.</small>
+                    {Number(convertPaid || 0) >= convertQ.grandTotal - 0.004 && convertQ.grandTotal > 0 ? (
+                      <div className="d-flex align-items-center gap-2 mt-1 receive-full-done">
+                        <span className="badge bg-success"><i className="ti ti-check me-1" />Full payment received</span>
+                        <a href="#" className="small text-muted" onClick={e => { e.preventDefault(); setConvertPaid(0); }}>undo</a>
+                      </div>
+                    ) : (
+                      <button type="button" className="btn btn-sm btn-outline-success mt-1 py-0 px-2 receive-full-btn"
+                        title={`Fill in the full amount (${fmt(convertQ.grandTotal)})`} onClick={() => setConvertPaid(convertQ.grandTotal)}>
+                        <i className="ti ti-cash me-1" />Receive full
+                      </button>
+                    )}
+                    <small className="text-muted d-block">Optional. The rest can be received later.</small>
                   </div>
                   <div className="col-md-3 mb-3">
                     <label className="form-label">Payment method</label>

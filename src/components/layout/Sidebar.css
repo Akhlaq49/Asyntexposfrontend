@@ -140,3 +140,20 @@
     height: 40px !important;
   }
 }
+
+/* Shorter logo bar on desktop: the logo PNG has wide empty margins above and below,
+   so the link crops them (same logo size, less empty space) */
+@media (min-width: 992px) {
+  .sidebar .sidebar-logo {
+    height: 96px;
+  }
+  .sidebar .sidebar-logo .logo,
+  .sidebar .sidebar-logo .logo-white {
+    height: 96px;
+    overflow: hidden;
+  }
+  .sidebar .sidebar-logo .logo img,
+  .sidebar .sidebar-logo .logo-white img {
+    margin-top: -24px; /* (145 - 96) / 2: keeps the logo centred */
+  }
+}
