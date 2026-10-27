@@ -190,7 +190,7 @@ const PurchaseReturns: React.FC = () => {
         ${r.refunded ? `<tr><th colspan="4" class="r">Refunded by supplier</th><th class="r">${printMoney(r.refunded)}</th></tr>` : ''}
         ${r.due > 0 ? `<tr><th colspan="4" class="r">Still to come back</th><th class="r">${printMoney(r.due)}</th></tr>` : ''}</tfoot></table>
       ${refunds ? `<br><b>Refunds received</b><table><thead><tr><th>Date</th><th>Method</th><th>Reference</th><th class="r">Amount</th></tr></thead><tbody>${refunds}</tbody></table>` : ''}
-      <div class="sign"><div>Returned by</div><div>Received by (supplier)</div></div>`);
+      <div class="sign"><div>Returned by</div><div>Received by (supplier)</div></div>`, undefined, { stamp: true });
   };
 
   return (

@@ -825,25 +825,16 @@ const POS: React.FC = () => {
                   </div>
                 </div>
                 <div className="row gx-2 mt-3">
-                  <div className="col-6">
+                  <div className="col-12">
+                    {/* removes every product from the cart */}
                     <button
                       type="button"
                       className="btn btn-secondary d-flex align-items-center justify-content-center w-100 mb-2"
                       onClick={clearCart}
                       disabled={cart.length === 0}
                     >
-                      <i className="ti ti-reload me-2" />
-                      Reset
-                    </button>
-                  </div>
-                  <div className="col-6">
-                    <button
-                      type="button"
-                      className="btn btn-info d-flex align-items-center justify-content-center w-100 mb-2"
-                      disabled={cart.length === 0}
-                    >
                       <i className="ti ti-trash me-2" />
-                      Void
+                      Clear cart
                     </button>
                   </div>
                 </div>

@@ -13,7 +13,9 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  // signed out because an admin froze the account (see services/api.ts)
+  const [error, setError] = useState(() =>
+    new URLSearchParams(window.location.search).get('restricted') ? 'Your account has been restricted by the administration.' : '');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();

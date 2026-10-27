@@ -51,7 +51,7 @@ const TaxReports: React.FC = () => {
   const summary = [
     { label: 'Tax collected on sales', value: money(collected) },
     { label: 'Tax paid on purchases', value: money(paid) },
-    { label: 'Net tax payable', value: money(collected - paid) },
+    { label: 'Tax to pay (collected minus paid)', value: money(collected - paid) },
     ...byTax.map((t) => ({ label: `${t.name}: collected / paid`, value: `${money(t.collected)} / ${money(t.paid)}` })),
   ];
 
@@ -60,7 +60,7 @@ const TaxReports: React.FC = () => {
       <PageHeader title="Tax Report" subtitle="Tax collected on sales and paid on purchases" breadcrumbs={[{ title: 'Reports' }]} />
       {error && <div className="alert alert-danger py-2">{error}</div>}
       <div className="row g-3 mb-3">
-        {[{ label: 'Collected on sales', value: collected, cls: 'success' }, { label: 'Paid on purchases', value: paid, cls: 'danger' }, { label: 'Net tax payable', value: collected - paid, cls: collected - paid >= 0 ? 'primary' : 'warning' }].map((c) => (
+        {[{ label: 'Collected on sales', value: collected, cls: 'success' }, { label: 'Paid on purchases', value: paid, cls: 'danger' }, { label: 'Tax to pay (collected minus paid)', value: collected - paid, cls: collected - paid >= 0 ? 'primary' : 'warning' }].map((c) => (
           <div className="col-md-4" key={c.label}><div className="card mb-0"><div className="card-body"><p className="mb-1 text-muted">{c.label}</p><h5 className={`mb-0 text-${c.cls}`}>{money(c.value)}</h5></div></div></div>
         ))}
       </div>
@@ -74,7 +74,7 @@ const TaxReports: React.FC = () => {
       )}
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <input className="form-control" style={{ maxWidth: 240 }} placeholder="Search document, party, tax" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="form-control" style={{ maxWidth: 240 }} placeholder="Search document, customer, supplier, tax" value={search} onChange={(e) => setSearch(e.target.value)} />
           <div className="d-flex gap-2 flex-wrap">
             <select className="form-select" style={{ width: 190 }} value={direction} onChange={(e) => setDirection(e.target.value)}>
               <option value="">Collected &amp; paid</option><option value="Collected">Collected on sales</option><option value="Paid">Paid on purchases</option>

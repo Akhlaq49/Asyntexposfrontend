@@ -329,7 +329,7 @@ const EditProduct: React.FC = () => {
                       {isVisible('slug') && (
                       <div className="col-sm-6 col-12">
                         <div className="mb-3">
-                          <label className="form-label">Slug</label>
+                          <label className="form-label">Link name <small className="text-muted">(filled in for you)</small></label>
                           <input type="text" className="form-control" name="slug" value={form.slug} onChange={handleChange} />
                         </div>
                       </div>
@@ -482,25 +482,6 @@ const EditProduct: React.FC = () => {
               {accordion.pricingStocks && (
                 <div className="accordion-collapse collapse show">
                   <div className="accordion-body border-top">
-                    {/* Product Type */}
-                    <div className="mb-3s">
-                      <label className="form-label">Product Type</label>
-                      <div className="single-pill-product mb-3">
-                        <ul className="nav nav-pills" role="tablist">
-                          <li className="nav-item" role="presentation">
-                            <span
-                              className={`custom_radio me-4 mb-0 ${form.productType === 'single' ? 'active' : ''}`}
-                              onClick={() => setForm((prev) => ({ ...prev, productType: 'single' }))}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              <input type="radio" className="form-control" name="productType" checked={form.productType === 'single'} readOnly />
-                              <span className="checkmark"></span> Single Product
-                            </span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-
                     {/* Single Product Fields */}
                     {(
                       <div className="single-product">

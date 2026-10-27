@@ -12,6 +12,7 @@ const SECTION_HEADINGS = ['notes', 'terms & conditions', 'terms and conditions',
 export function termsToHtml(content: string): string {
   const out: string[] = [];
   let list: string[] = [];
+  let keepOpen = false;
   const flush = () => { if (list.length) { out.push(`<ul>${list.join('')}</ul>`); list = []; } };
   for (const raw of content.split(/\r?\n/)) {
     const line = raw.trim();
@@ -19,6 +20,8 @@ export function termsToHtml(content: string): string {
     if (line.startsWith('- ')) { list.push(`<li>${esc(line.slice(2))}</li>`); continue; }
     flush();
     const numbered = line.match(/^(\d+)\s*[:.)]\s*(.+)$/);
+    // the acknowledgment (text + signature lines) is kept together on one page
+    if (/^acknowledge?ment$/i.test(line) && !keepOpen) { out.push('<div class="tc-keep">'); keepOpen = true; }
     if (SECTION_HEADINGS.includes(line.toLowerCase())) out.push(`<h3>${esc(line)}</h3>`);
     else if (numbered) out.push(`<h4>${esc(numbered[1])}. ${esc(numbered[2])}</h4>`);
     else if (line.includes('___')) out.push(`<p class="tc-sign">${esc(line)}</p>`);
@@ -26,6 +29,7 @@ export function termsToHtml(content: string): string {
     else out.push(`<p>${esc(line)}</p>`);
   }
   flush();
+  if (keepOpen) out.push('</div>');
   return out.join('');
 }
 
@@ -50,7 +54,9 @@ export async function loadTermsPrintHtml(customContent?: string | null): Promise
       : (await api.get<{ content: string }>('/terms-conditions')).data;
     if (!data?.content?.trim()) return '';
     return `<style>
-      .tc{page-break-before:always;break-before:page;font-size:11.5px;line-height:1.45;color:#222}
+      .tc{margin-top:28px;font-size:11.5px;line-height:1.45;color:#222}
+      .tc h2{break-after:avoid;page-break-after:avoid}
+      .tc .tc-keep{break-inside:avoid;page-break-inside:avoid}
       .tc h2{text-align:center;font-size:18px;letter-spacing:1px;margin:0 0 10px}
       .tc h3{font-size:14px;margin:14px 0 4px;border-bottom:1px solid #999;padding-bottom:2px}
       .tc h4{font-size:12.5px;margin:10px 0 2px}

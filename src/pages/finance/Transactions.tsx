@@ -24,10 +24,10 @@ interface Transaction {
   createdBy?: string | null;
 }
 
-const KINDS = ['Sale payment', 'Supplier payment', 'Supplier refund', 'Customer refund', 'Expense', 'Owner investment', 'Owner drawing', 'Loan received', 'Loan repayment', 'Fixed asset purchase'];
+const KINDS = ['Sale payment', 'Supplier payment', 'Supplier refund', 'Customer refund', 'Expense', 'Owner investment', 'Owner withdrawal', 'Loan received', 'Loan repayment', 'Equipment bought'];
 const KIND_BADGE: Record<string, string> = {
   'Sale payment': 'bg-success', 'Supplier payment': 'bg-danger', 'Supplier refund': 'bg-info', 'Customer refund': 'bg-secondary', Expense: 'bg-warning',
-  'Owner investment': 'bg-success', 'Owner drawing': 'bg-warning', 'Loan received': 'bg-info', 'Loan repayment': 'bg-secondary', 'Fixed asset purchase': 'bg-primary',
+  'Owner investment': 'bg-success', 'Owner withdrawal': 'bg-warning', 'Loan received': 'bg-info', 'Loan repayment': 'bg-secondary', 'Equipment bought': 'bg-primary',
 };
 const money = (n: number) => `Rs ${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const showDate = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -77,7 +77,7 @@ const Transactions: React.FC = () => {
     const body = filtered.map((t) => `<tr><td>${esc(showDate(t.date))}</td><td>${esc(t.kind)}</td><td>${esc(t.reference || '-')}</td><td>${esc(t.document || '-')}${t.purchaseOrderNo ? `<br><small>${esc(t.purchaseOrderNo)}</small>` : ''}</td>
       <td>${esc(t.party || '-')}</td><td>${esc(t.method || '-')}</td><td class="r">${t.direction === 'In' ? printMoney(t.amount) : ''}</td><td class="r">${t.direction === 'Out' ? printMoney(t.amount) : ''}</td></tr>`).join('');
     printDocument('Transactions', 'TRANSACTIONS', filterNote || 'All transactions', `
-      <table><thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Document</th><th>Party</th><th>Method</th><th class="r">In</th><th class="r">Out</th></tr></thead>
+      <table><thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Document</th><th>Customer / supplier</th><th>Method</th><th class="r">In</th><th class="r">Out</th></tr></thead>
         <tbody>${body}</tbody>
         <tfoot><tr class="total"><th colspan="6" class="r">Totals</th><th class="r">${printMoney(moneyIn)}</th><th class="r">${printMoney(moneyOut)}</th></tr>
         <tr class="total"><th colspan="6" class="r">Net</th><th colspan="2" class="r">${printMoney(moneyIn - moneyOut)}</th></tr></tfoot></table>`);
@@ -124,7 +124,7 @@ const Transactions: React.FC = () => {
 
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <input className="form-control" style={{ maxWidth: 280 }} placeholder="Search reference, party, PO, notes" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="form-control" style={{ maxWidth: 280 }} placeholder="Search reference, customer, supplier, notes" value={search} onChange={(e) => setSearch(e.target.value)} />
           <div className="d-flex gap-2">
             <select className="form-select" style={{ width: 190 }} value={kind} onChange={(e) => setKind(e.target.value)}>
               <option value="">All types</option>
@@ -146,7 +146,7 @@ const Transactions: React.FC = () => {
             <div className="table-responsive">
               <table className="table table-hover mb-0 align-middle">
                 <thead className="thead-light">
-                  <tr><th>Date</th><th>Type</th><th>Reference</th><th>Document</th><th>Party</th><th>Method</th><th className="text-end">In</th><th className="text-end">Out</th><th>Notes</th><th>By</th></tr>
+                  <tr><th>Date</th><th>Type</th><th>Reference</th><th>Document</th><th>Customer / supplier</th><th>Method</th><th className="text-end">In</th><th className="text-end">Out</th><th>Notes</th><th>By</th></tr>
                 </thead>
                 <tbody>
                   {paginatedData.length === 0 ? (

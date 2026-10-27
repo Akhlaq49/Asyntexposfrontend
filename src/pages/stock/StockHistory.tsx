@@ -70,7 +70,7 @@ const StockHistory: React.FC = () => {
       </div>
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <input className="form-control" style={{ maxWidth: 240 }} placeholder="Search product, reference, party" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="form-control" style={{ maxWidth: 240 }} placeholder="Search product, reference, customer, supplier" value={search} onChange={(e) => setSearch(e.target.value)} />
           <div className="d-flex gap-2 flex-wrap">
             <select className="form-select" style={{ width: 230 }} value={productId} onChange={(e) => setProductId(e.target.value)}>
               <option value="">All products</option>

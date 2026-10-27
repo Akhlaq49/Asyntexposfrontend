@@ -22,7 +22,7 @@ const menuTitleToKey: Record<string, string> = {
   // Main
   'Dashboard': 'menu.dashboard',
   'Admin Dashboard': 'menu.admin_dashboard',
-  'Accessibility': 'menu.accessibility',
+  'Rights': 'menu.accessibility',
   'Sales Dashboard': 'menu.sales_dashboard',
 
   // Inventory items
@@ -148,7 +148,6 @@ const menuTitleToKey: Record<string, string> = {
   'Users': 'menu.users',
   'Roles & Permissions': 'menu.roles_permissions',
   'Web Content': 'menu.web_content',
-  'Delete Account Request': 'menu.delete_account_request',
 };
 
 /**

@@ -49,7 +49,7 @@ export async function printQuotation(quotationId: number, products?: PrintProduc
   printDocument(`Quotation ${q.reference || q.id}`, 'QUOTATION', q.reference || `#${q.id}`, `
     <table class="info" style="margin-bottom:14px"><tbody>
       <tr><th>Customer</th><td>${esc(q.customerName)}</td><th>Date</th><td>${esc(q.quotationDate)}</td></tr>
-      <tr><th>Reference</th><td>${esc(q.reference || '-')}</td><th>Status</th><td>${esc(q.status)}</td></tr>
+      <tr><th>Reference</th><td>${esc(q.reference || '-')}</td><th></th><td></td></tr>
     </tbody></table>
     <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th>${hasDesc ? '<th>Description</th>' : ''}${hasModel ? '<th>Model</th>' : ''}<th class="r">Qty</th><th class="r">Unit price</th>${hasDiscount ? '<th class="r">Item discount<br><small>(per unit)</small></th>' : ''}${hasTax ? '<th class="r">Tax</th>' : ''}<th class="r">Total</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -60,5 +60,5 @@ export async function printQuotation(quotationId: number, products?: PrintProduc
       </tfoot></table>
     ${q.description ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(q.description)}</p>` : ''}
     <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
-    ${termsHtml}`, win);
+    ${termsHtml}`, win, { stamp: true });
 }

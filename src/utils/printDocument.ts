@@ -20,7 +20,11 @@ export function openPrintWindow(): Window | null {
  * `bodyHtml` must already be escaped (use `esc` for any user data).
  * Pass `target` (from openPrintWindow) when the window was opened before the data loaded.
  */
-export function printDocument(title: string, heading: string, subheading: string, bodyHtml: string, target?: Window | null) {
+/** The company's round stamp, printed bottom-left on documents sent to customers / suppliers */
+export const COMPANY_STAMP = '/assets/img/company-stamp.png';
+
+export function printDocument(title: string, heading: string, subheading: string, bodyHtml: string, target?: Window | null,
+  options?: { /** print the company stamp bottom-left on every page */ stamp?: boolean }) {
   const w = target ?? window.open('', '_blank', 'width=900,height=1000');
   if (!w) {
     alert('Please allow pop-ups for this site to print.');
@@ -35,7 +39,8 @@ export function printDocument(title: string, heading: string, subheading: string
     .lh img{height:120px;width:174px;object-fit:contain}
     .lh img.r-logo{height:auto;width:140px}
     .page{width:100%;border:none}.page>tbody>tr>td,.page>tfoot>tr>td{border:none;padding:0}
-    .ft-space{height:110px}
+    .ft-space{height:${options?.stamp ? 236 : 110}px}
+    .stamp{position:fixed;left:26px;bottom:98px;width:124px;height:124px;opacity:.92;pointer-events:none}
     .ft{position:fixed;left:0;right:0;bottom:20px;height:50px;background:${REPORT_FOOTER.color};color:#fff;display:flex;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .ft .badge{width:88px;height:88px;margin-left:56px;flex:none}
     .ft .addr{display:flex;align-items:center;gap:8px;margin-left:24px;font-size:15px;line-height:1.2}
@@ -46,7 +51,7 @@ export function printDocument(title: string, heading: string, subheading: string
     th{background:#f2f2f2;text-align:left}.r{text-align:right}.c{text-align:center}
     .info td,.info th{border:none;padding:3px 0}.info th{background:none;width:120px;color:#555}
     .total th,.total td{font-size:17px}
-    .sign{display:flex;justify-content:space-between;margin-top:60px}
+    .sign{display:flex;justify-content:space-between;margin-top:60px;break-inside:avoid;page-break-inside:avoid}
     .sign div{border-top:1px solid #333;width:220px;text-align:center;padding-top:4px}
     @media print{body{margin:10mm}}
   </style></head><body>
@@ -56,12 +61,13 @@ export function printDocument(title: string, heading: string, subheading: string
       <img class="r-logo" src="${origin}${REPORT_LOGOS.right}" alt="">
     </div>
     <table class="page"><tbody><tr><td>${bodyHtml}</td></tr></tbody><tfoot><tr><td><div class="ft-space"></div></td></tr></tfoot></table>
+    ${options?.stamp ? `<img class="stamp" src="${origin}${COMPANY_STAMP}" alt="">` : ''}
     <div class="ft">
       <img class="badge" src="${origin}${REPORT_FOOTER.badge}" alt="">
       <div class="addr"><img src="${origin}${REPORT_FOOTER.pinIcon}" alt=""><div>${REPORT_FOOTER.addressLines.map(esc).join('<br>')}</div></div>
       <div class="wa"><img src="${origin}${REPORT_FOOTER.whatsappIcon}" alt="">${esc(REPORT_FOOTER.whatsapp)}</div>
     </div>
-    <script>window.onload=function(){window.print();}<\/script>
+    <script>window.onload=function(){setTimeout(function(){window.print();},100);}<\/script>
   </body></html>`);
   w.document.close();
 }

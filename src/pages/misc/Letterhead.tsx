@@ -3,6 +3,10 @@ import PageHeader from '../../components/common/PageHeader';
 
 /** The company letterhead (A4, 1810 x 2560): logos at the top, green address bar at the bottom */
 const LETTERHEAD_IMG = '/assets/img/letterhead-a4.jpg';
+/** company stamp, bottom-left above the green address bar */
+const STAMP_IMG = '/assets/img/company-stamp.png';
+/** CEO stamp, to the right of the company stamp */
+const CEO_STAMP_IMG = '/assets/img/ceo-stamp.png';
 const DRAFT_KEY = 'letterhead-draft';
 
 /*
@@ -11,7 +15,10 @@ const DRAFT_KEY = 'letterhead-draft';
  */
 const LAYOUT = {
   refLeft: 21, dateLeft: 174, lineTop: 49.3, lineWidth: 27,
-  bodyTop: 58, bodyBottom: 36, side: 16,
+  bodyTop: 58, bodyBottom: 72, side: 16,
+  stampLeft: 14, stampBottom: 38, stampSize: 31,
+  // CEO stamp sits beside the round stamp, vertically centred on it
+  ceoLeft: 49, ceoHeight: 15, ceoBottom: 46,
 };
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -93,19 +100,24 @@ const Letterhead: React.FC = () => {
       .page td{padding:0 ${L.side}mm}
       .page thead td{height:${L.bodyTop}mm}
       .page tfoot td{height:${L.bodyBottom}mm}
+      .stamp{position:fixed;left:${L.stampLeft}mm;bottom:${L.stampBottom}mm;width:${L.stampSize}mm;height:${L.stampSize}mm;opacity:.92}
+      .ceo-stamp{position:fixed;left:${L.ceoLeft}mm;bottom:${L.ceoBottom}mm;height:${L.ceoHeight}mm;width:auto;opacity:.92}
       .text p{margin:0 0 8pt}.text ul,.text ol{margin:0 0 8pt;padding-left:22pt}
       @media screen{body{width:210mm;min-height:297mm;margin:0 auto;box-shadow:0 0 8px #999;position:relative}}
     </style></head><body>
       <img class="bg" src="${origin}${LETTERHEAD_IMG}" alt="">
+      <img class="stamp" src="${origin}${STAMP_IMG}" alt="">
+      <img class="ceo-stamp" src="${origin}${CEO_STAMP_IMG}" alt="">
       ${withText && refNo.trim() ? `<div class="field" style="left:${L.refLeft}mm">${esc(refNo.trim())}</div>` : ''}
       ${withText && date ? `<div class="field" style="left:${L.dateLeft}mm">${esc(showDate(date))}</div>` : ''}
       <table class="page"><thead><tr><td></td></tr></thead>
         <tbody><tr><td class="text">${body}</td></tr></tbody>
         <tfoot><tr><td></td></tr></tfoot></table>
       <script>
-        var img=document.querySelector('.bg');
+        var imgs=[].slice.call(document.images), left=imgs.length;
         function go(){setTimeout(function(){window.print();},150);}
-        if(img.complete) go(); else { img.onload=go; img.onerror=go; }
+        imgs.forEach(function(i){ if(i.complete){ if(--left===0) go(); } else { i.onload=i.onerror=function(){ if(--left===0) go(); }; } });
+        if(!imgs.length) go();
       <\/script>
     </body></html>`);
     w.document.close();
@@ -194,6 +206,8 @@ const Letterhead: React.FC = () => {
         <div className="card">
           <div className="card-body" style={{ overflowX: 'auto', background: '#eef0f3' }}>
             <div className="mx-auto shadow" style={{ position: 'relative', width: '210mm', minHeight: '297mm', background: `#fff url(${LETTERHEAD_IMG}) top left / 210mm 297mm no-repeat` }}>
+              <img src={STAMP_IMG} alt="Company stamp" style={{ position: 'absolute', left: `${L.stampLeft}mm`, top: `${297 - L.stampBottom - L.stampSize}mm`, width: `${L.stampSize}mm`, height: `${L.stampSize}mm`, opacity: 0.92, pointerEvents: 'none' }} />
+              <img src={CEO_STAMP_IMG} alt="CEO stamp" style={{ position: 'absolute', left: `${L.ceoLeft}mm`, top: `${297 - L.ceoBottom - L.ceoHeight}mm`, height: `${L.ceoHeight}mm`, width: 'auto', opacity: 0.92, pointerEvents: 'none' }} />
               {typeOn && (
                 <>
                   <input aria-label="Ref" style={fieldStyle(L.refLeft)} value={refNo} maxLength={40} onChange={(e) => setRefNo(e.target.value)} />

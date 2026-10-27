@@ -11,11 +11,11 @@ interface Asset { name: string; cost: number; bookValue: number }
 
 const TYPES: { type: string; label: string; help: string; nameLabel: string; namePlaceholder: string; cls: string }[] = [
   { type: 'OwnerInvestment', label: 'Owner investment', help: 'Money the owner puts into the business (also the starting cash).', nameLabel: 'Owner', namePlaceholder: 'e.g. Owner name', cls: 'success' },
-  { type: 'OwnerDrawing', label: 'Owner drawing', help: 'Money the owner takes out for personal use.', nameLabel: 'Owner', namePlaceholder: 'e.g. Owner name', cls: 'warning' },
+  { type: 'OwnerDrawing', label: 'Owner withdrawal', help: 'Money the owner takes out for personal use.', nameLabel: 'Owner', namePlaceholder: 'e.g. Owner name', cls: 'warning' },
   { type: 'LoanReceived', label: 'Loan received', help: 'Money borrowed from a bank or a person.', nameLabel: 'Lender', namePlaceholder: 'e.g. Meezan Bank', cls: 'info' },
   { type: 'LoanRepayment', label: 'Loan repayment', help: 'Paying back part of a loan.', nameLabel: 'Lender', namePlaceholder: 'Choose the loan', cls: 'secondary' },
-  { type: 'AssetPurchase', label: 'Fixed asset purchase', help: 'Furniture, equipment, computers, vehicles ... bought for the business (not for resale).', nameLabel: 'Asset', namePlaceholder: 'e.g. Shop furniture', cls: 'primary' },
-  { type: 'Depreciation', label: 'Depreciation', help: 'Value a fixed asset has lost through use and age (no money moves).', nameLabel: 'Asset', namePlaceholder: 'Choose the asset', cls: 'dark' },
+  { type: 'AssetPurchase', label: 'Equipment bought', help: 'Furniture, equipment, computers, vehicles ... bought for the business (not for resale).', nameLabel: 'Item', namePlaceholder: 'e.g. Shop furniture', cls: 'primary' },
+  { type: 'Depreciation', label: 'Value lost (depreciation)', help: 'Value your equipment has lost through use and age (no money moves).', nameLabel: 'Item', namePlaceholder: 'Choose the item', cls: 'dark' },
 ];
 const meta = (t: string) => TYPES.find((x) => x.type === t) || TYPES[0];
 const money = (n: number) => `Rs ${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -87,15 +87,15 @@ const CapitalLoans: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Capital & Loans" subtitle="Owner's capital and drawings, loans and fixed assets - shown on the Balance Sheet" breadcrumbs={[{ title: 'Finance' }]} />
+      <PageHeader title="Capital & Loans" subtitle="Money the owner put in or took out, loans and business equipment - used for the Balance Sheet" breadcrumbs={[{ title: 'Finance' }]} />
       {notice && <div className="alert alert-success py-2 d-flex justify-content-between">{notice}<button type="button" className="btn-close" onClick={() => setNotice('')} /></div>}
       {error && <div className="alert alert-danger py-2">{error}</div>}
 
       <div className="row g-3 mb-3">
         {[
-          { label: "Owner's capital (net of drawings)", value: totals.capital, cls: 'success', icon: 'ti-user-dollar' },
-          { label: 'Loans outstanding', value: totals.loans, cls: 'danger', icon: 'ti-building-bank' },
-          { label: 'Fixed assets (book value)', value: totals.assets, cls: 'primary', icon: 'ti-armchair' },
+          { label: "Owner's money in the business (after withdrawals)", value: totals.capital, cls: 'success', icon: 'ti-user-dollar' },
+          { label: 'Loans still to repay', value: totals.loans, cls: 'danger', icon: 'ti-building-bank' },
+          { label: 'Business equipment (current value)', value: totals.assets, cls: 'primary', icon: 'ti-armchair' },
         ].map((c) => (
           <div className="col-md-4" key={c.label}>
             <div className="card mb-0"><div className="card-body d-flex align-items-center">
@@ -129,8 +129,8 @@ const CapitalLoans: React.FC = () => {
               </tbody></table></div></div></div>
           )}
           {assets.length > 0 && (
-            <div className="col-md-6"><div className="card h-100 mb-0"><div className="card-header"><h6 className="mb-0">Fixed assets</h6></div>
-              <div className="card-body p-0"><table className="table table-sm mb-0"><thead><tr><th className="ps-3">Asset</th><th className="text-end">Cost</th><th className="text-end pe-3">Book value</th></tr></thead><tbody>
+            <div className="col-md-6"><div className="card h-100 mb-0"><div className="card-header"><h6 className="mb-0">Business equipment</h6></div>
+              <div className="card-body p-0"><table className="table table-sm mb-0"><thead><tr><th className="ps-3">Item</th><th className="text-end">Cost</th><th className="text-end pe-3">Current value</th></tr></thead><tbody>
                 {assets.map((a) => <tr key={a.name}><td className="ps-3">{a.name}</td><td className="text-end">{money(a.cost)}</td><td className="text-end pe-3">{money(a.bookValue)}</td></tr>)}
               </tbody></table></div></div></div>
           )}
@@ -149,7 +149,7 @@ const CapitalLoans: React.FC = () => {
           {loading ? <div className="text-center py-5"><div className="spinner-border text-primary" /></div> : (
             <div className="table-responsive">
               <table className="table table-hover mb-0 align-middle">
-                <thead className="thead-light"><tr><th>Date</th><th>Type</th><th>Owner / lender / asset</th><th>Method</th><th>Reference</th><th className="text-end">Amount</th><th>Notes</th><th /></tr></thead>
+                <thead className="thead-light"><tr><th>Date</th><th>Type</th><th>Owner / lender / item</th><th>Method</th><th>Reference</th><th className="text-end">Amount</th><th>Notes</th><th /></tr></thead>
                 <tbody>
                   {shown.length === 0 ? (
                     <tr><td colSpan={8} className="text-center text-muted py-5">Nothing recorded yet. Start with the owner's investment (the money the business started with).</td></tr>

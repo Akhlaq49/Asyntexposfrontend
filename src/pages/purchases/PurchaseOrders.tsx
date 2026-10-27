@@ -207,7 +207,6 @@ const PurchaseOrders: React.FC = () => {
   const openValue = orders.filter((o) => o.status === 'Ordered' || o.status === 'PartiallyReceived').reduce((s, o) => s + Math.max(0, o.total - o.receivedValue), 0);
 
   /* ── create / edit ── */
-  const openCreate = () => { loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null); setForm(emptyForm()); };
   const openEdit = (po: PurchaseOrder) => {
     loadLookups(); setFormError(''); setProductSearch(''); setNewProduct(null);
     setForm({
@@ -404,13 +403,13 @@ const PurchaseOrders: React.FC = () => {
           ${orderShare !== 0 && items.length ? `<tr><td colspan="4" class="r">Share of order tax / shipping / discount</td><td class="r">${printMoney(orderShare)}</td></tr>` : ''}
           <tr class="total"><th colspan="4" class="r">Receipt value</th><th class="r">${printMoney(r.total)}</th></tr>
           <tr><td colspan="4" class="r">Paid</td><td class="r">${printMoney(r.paid)}</td></tr>
-          <tr class="total"><th colspan="4" class="r">${r.due < 0 ? 'Paid over' : 'Balance due'}</th><th class="r">${printMoney(Math.abs(r.due))}</th></tr>
+          <tr class="total"><th colspan="4" class="r">${r.due < 0 ? 'Overpaid' : 'Balance due'}</th><th class="r">${printMoney(Math.abs(r.due))}</th></tr>
         </tfoot></table>
       <h3 style="font-size:15px;margin:18px 0 6px">Payments</h3>
       ${payRows ? `<table><thead><tr><th>Date</th><th>Type</th><th>Method</th><th>Reference</th><th>Notes</th><th>By</th><th class="r">Amount</th></tr></thead><tbody>${payRows}</tbody></table>`
         : '<p style="color:#555">No payment made yet.</p>'}
       ${notes ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(notes)}</p>` : ''}
-      <div class="sign"><div>Received by</div><div>Supplier signature</div></div>`, win);
+      <div class="sign"><div>Received by</div><div>Supplier signature</div></div>`, win, { stamp: true });
   };
 
   /* ── print ── */
@@ -421,7 +420,7 @@ const PurchaseOrders: React.FC = () => {
   useEffect(() => {
     if (!printing || !printRef.current) return;
     // letterhead (logos + address footer) from the shared print helper
-    printDocument(printing.poNumber, 'PURCHASE ORDER', printing.poNumber, printRef.current.innerHTML);
+    printDocument(printing.poNumber, 'PURCHASE ORDER', printing.poNumber, printRef.current.innerHTML, undefined, { stamp: true });
     setPrinting(null);
   }, [printing]);
 
@@ -454,8 +453,7 @@ const PurchaseOrders: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Purchase Orders" subtitle="Order from suppliers and receive goods into stock" breadcrumbs={[{ title: 'Purchases' }]}
-        actions={<button className="btn btn-primary" onClick={openCreate}><i className="ti ti-circle-plus me-1" />New Purchase Order</button>} />
+      <PageHeader title="Purchase Orders" subtitle="Order from suppliers and receive goods into stock" breadcrumbs={[{ title: 'Purchases' }]} />
 
       {toast && <div className={`alert alert-${toast.type} py-2`}>{toast.text}</div>}
 
@@ -503,7 +501,7 @@ const PurchaseOrders: React.FC = () => {
                 <tbody>
                   {paginatedData.length === 0 ? (
                     <tr><td colSpan={8} className="text-center text-muted py-5">
-                      {orders.length === 0 ? <>No purchase orders yet. <a href="#" onClick={(e) => { e.preventDefault(); openCreate(); }}>Create the first one</a>.</> : 'No purchase orders match your filters.'}
+                      {orders.length === 0 ? 'No purchase orders yet. They are created from a converted quotation (Quotation > Create purchase order).' : 'No purchase orders match your filters.'}
                     </td></tr>
                   ) : paginatedData.map((po) => (
                     <tr key={po.id}>
@@ -875,7 +873,7 @@ const PurchaseOrders: React.FC = () => {
                 <div className="d-flex justify-content-between mb-3 p-2 bg-light rounded">
                   <span>Receipt value <strong className="d-block">{money(payTarget.receipt.total)}</strong></span>
                   <span>Paid so far <strong className="d-block">{money(payTarget.receipt.paid)}</strong></span>
-                  <span>{payTarget.receipt.due < 0 ? 'Paid over' : 'Due'} <strong className={`d-block ${payTarget.receipt.due > 0 ? 'text-danger' : ''}`}>{money(Math.abs(payTarget.receipt.due))}</strong></span>
+                  <span>{payTarget.receipt.due < 0 ? 'Overpaid' : 'Due'} <strong className={`d-block ${payTarget.receipt.due > 0 ? 'text-danger' : ''}`}>{money(Math.abs(payTarget.receipt.due))}</strong></span>
                 </div>
                 <div className="row">
                   <div className="col-md-6 mb-3">
@@ -918,15 +916,15 @@ const PurchaseOrders: React.FC = () => {
           <div ref={printRef}>
             <table style={{ marginBottom: 16 }}>
               <tbody>
-                <tr><th style={{ width: '18%' }}>Supplier</th><td>{printing.supplierName}{printing.supplierPhone ? ` - ${printing.supplierPhone}` : ''}</td><th style={{ width: '18%' }}>Status</th><td>{STATUS[printing.status]?.label}</td></tr>
+                <tr><th style={{ width: '18%' }}>Supplier</th><td colSpan={3}>{printing.supplierName}{printing.supplierPhone ? ` - ${printing.supplierPhone}` : ''}</td></tr>
                 <tr><th>Order date</th><td>{showDate(printing.orderDate)}</td><th>Expected delivery</th><td>{showDate(printing.expectedDate)}</td></tr>
               </tbody>
             </table>
             <table>
-              <thead><tr><th>#</th><th>Product</th><th>SKU</th><th className="r">Qty</th><th className="r">Unit cost</th>{printHasDiscount && <th className="r">Item discount</th>}{printHasTax && <th className="r">Tax</th>}<th className="r">Total</th></tr></thead>
+              <thead><tr><th>#</th><th>Product</th><th>Description</th><th className="r">Qty</th><th className="r">Unit cost</th>{printHasDiscount && <th className="r">Item discount</th>}{printHasTax && <th className="r">Tax</th>}<th className="r">Total</th></tr></thead>
               <tbody>
                 {printing.items.map((i, n) => (
-                  <tr key={i.id}><td>{n + 1}</td><td>{i.productName}</td><td>{i.sku}</td><td className="r">{i.quantity}</td><td className="r">{money(i.unitCost)}</td>{printHasDiscount && <td className="r">{money(i.discount)}</td>}{printHasTax && <td className="r">{i.taxPercent ? `${i.taxPercent}%` : '-'}</td>}<td className="r">{money(i.totalCost)}</td></tr>
+                  <tr key={i.id}><td>{n + 1}</td><td>{i.productName}</td><td style={{ whiteSpace: 'pre-line', fontSize: 12 }}>{i.description || '-'}</td><td className="r">{i.quantity}</td><td className="r">{money(i.unitCost)}</td>{printHasDiscount && <td className="r">{money(i.discount)}</td>}{printHasTax && <td className="r">{i.taxPercent ? `${i.taxPercent}%` : '-'}</td>}<td className="r">{money(i.totalCost)}</td></tr>
                 ))}
               </tbody>
               <tfoot>

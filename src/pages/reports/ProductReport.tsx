@@ -1,6 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import ExportButtons from '../../components/ExportButtons';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
@@ -38,12 +37,6 @@ const ProductReport: React.FC = () => {
   return (
     <>
       <PageHeader title={t('reports.product_report')} breadcrumbs={[{ title: t('reports.reports') }, { title: t('reports.product_report') }]} />
-
-      <ul className="nav nav-pills mb-3">
-        <li className="nav-item"><Link className="nav-link active" to="/product-report">{t('reports.product_report')}</Link></li>
-        <li className="nav-item"><Link className="nav-link" to="/product-expiry-report">{t('reports.product_expiry')}</Link></li>
-        <li className="nav-item"><Link className="nav-link" to="/product-quantity-alert">{t('reports.quantity_alert')}</Link></li>
-      </ul>
 
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">

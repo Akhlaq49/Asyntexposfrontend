@@ -38,7 +38,7 @@ interface LocalItem {
 }
 
 const STATUS_OPTIONS = ['Completed', 'Pending'];
-const PAYMENT_STATUS_OPTIONS = ['Paid', 'Unpaid', 'Overdue'];
+const PAYMENT_STATUS_OPTIONS = ['Paid', 'Partial', 'Unpaid'];
 const PAYMENT_TYPES = ['Cash', 'Online'];
 
 const statusBadge = (s: string) => {
@@ -50,7 +50,7 @@ const statusBadge = (s: string) => {
 const paymentStatusBadge = (s: string) => {
   if (s === 'Paid') return 'badge-soft-success';
   if (s === 'Unpaid') return 'badge-soft-danger';
-  if (s === 'Overdue') return 'badge-soft-warning';
+  if (s === 'Partial' || s === 'Overdue') return 'badge-soft-warning';
   return 'badge-soft-secondary';
 };
 
@@ -284,16 +284,7 @@ const POSOrders: React.FC = () => {
     setShowCustomerDropdown(false);
   };
 
-  /* ---- Open add/edit modal ---- */
-  const openAddModal = () => {
-    setEditingId(null);
-    setForm({ customerId: null, customerName: '', customerImage: '', biller: 'Admin', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, notes: '', expectedDate: '' });
-    setItems([]);
-    setCustomerSearchTerm('');
-    setProductSearchTerm('');
-    setShowModal(true);
-  };
-
+  /* ---- Open edit modal (new sales come from the POS screen or a converted quotation) ---- */
   const openEditModal = (sale: SaleDto) => {
     setEditingId(sale.id);
     setForm({
@@ -534,11 +525,6 @@ const POSOrders: React.FC = () => {
             {viewMode === 'table' ? t('sales.group_by_customer') : t('sales.list_view')}
           </button>
         </div>
-        <div className="page-btn">
-          <a href="#" className="btn btn-primary" onClick={(e) => { e.preventDefault(); openAddModal(); }}>
-            <i className="ti ti-circle-plus me-1"></i>{t('sales.add_sales')}
-          </a>
-        </div>
       </div>
 
       {/* ---- Card ---- */}
@@ -579,12 +565,12 @@ const POSOrders: React.FC = () => {
             </div>
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {t('common.sort_by')} {sortBy === 'asc' ? t('common.ascending') : sortBy === 'desc' ? t('common.descending') : t('common.recently_added')}
+                {t('common.sort_by')} {sortBy === 'asc' ? 'Lowest amount first' : sortBy === 'desc' ? 'Highest amount first' : t('common.recently_added')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
                 <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('recent'); }}>{t('common.recently_added')}</a></li>
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>{t('common.ascending')}</a></li>
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>{t('common.descending')}</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('asc'); }}>{'Lowest amount first'}</a></li>
+                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setSortBy('desc'); }}>{'Highest amount first'}</a></li>
               </ul>
             </div>
           </div>

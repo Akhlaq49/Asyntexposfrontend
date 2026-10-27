@@ -60,7 +60,7 @@ export async function printSaleInvoice(sale: PrintableSale) {
     ${payRows ? `<table><thead><tr><th>Date</th><th>Reference</th><th>Method</th><th>Notes</th><th class="r">Amount</th></tr></thead><tbody>${payRows}</tbody></table>` : '<p style="color:#555">No payment received yet.</p>'}
     ${s.notes ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(s.notes)}</p>` : ''}
     <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
-    ${terms}`, win);
+    ${terms}`, win, { stamp: true });
 }
 
 /* ---------------- purchase ---------------- */
@@ -100,12 +100,12 @@ export async function printPurchase(purchase: PrintablePurchase) {
         ${p.orderTax ? row('Order tax', p.orderTax, { cols: pCols }) : ''}${p.discount ? row('Discount', p.discount, { cols: pCols, minus: true }) : ''}${p.shipping ? row('Shipping / charges', p.shipping, { cols: pCols }) : ''}
         ${row('Total', p.total, { cols: pCols, total: true })}
         ${row('Paid', p.paid, { cols: pCols })}
-        ${row(p.due < 0 ? 'Paid over' : 'Balance due', Math.abs(p.due), { cols: pCols, total: true })}
+        ${row(p.due < 0 ? 'Overpaid' : 'Balance due', Math.abs(p.due), { cols: pCols, total: true })}
       </tfoot></table>
     <h3 style="font-size:15px;margin:18px 0 6px">Payments</h3>
     ${payRows ? `<table><thead><tr><th>Date</th><th>Type</th><th>Method</th><th>Reference</th><th>Notes</th><th class="r">Amount</th></tr></thead><tbody>${payRows}</tbody></table>` : '<p style="color:#555">No payment made yet.</p>'}
     ${p.notes ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(p.notes)}</p>` : ''}
-    <div class="sign"><div>Received by</div><div>Supplier signature</div></div>`, win);
+    <div class="sign"><div>Received by</div><div>Supplier signature</div></div>`, win, { stamp: true });
 }
 
 /* ---------------- sales return ---------------- */
@@ -138,7 +138,7 @@ export async function printSalesReturn(ret: PrintableSalesReturn) {
         ${row('Refunded', r.paid, { cols: rCols })}
         ${row('Still to refund', Math.max(0, r.due), { cols: rCols, total: true })}
       </tfoot></table>
-    <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>`, win);
+    <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>`, win, { stamp: true });
 }
 
 /* ---------------- expense voucher ---------------- */

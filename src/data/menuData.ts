@@ -38,7 +38,7 @@ const menuData: MenuSection[] = [
         iconType: 'tabler',
         children: [
           { title: 'Admin Dashboard', path: '/admin-dashboard' },
-          { title: 'Accessibility', path: '/user-dashboard' },
+          { title: 'Rights', path: '/user-dashboard' },
           // { title: 'Sales Dashboard', path: '/sales-dashboard' },
         ],
       },
@@ -117,7 +117,6 @@ const menuData: MenuSection[] = [
       { title: 'Brands', icon: 'ti-triangles', iconType: 'tabler', path: '/brand-list' },
       { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
       { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
-      { title: 'Variant Attributes', icon: 'ti-checklist', iconType: 'tabler', path: '/variant-attributes' },
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
     ],
   },
@@ -156,7 +155,15 @@ const menuData: MenuSection[] = [
         ],
       },
       { title: 'Transactions', icon: 'ti-arrows-exchange', iconType: 'tabler', path: '/transactions' },
-      { title: 'Capital & Loans', icon: 'ti-building-bank', iconType: 'tabler', path: '/capital-loans' },
+      {
+        title: 'Balance Sheet',
+        icon: 'ti-scale',
+        iconType: 'tabler',
+        children: [
+          { title: 'Capital & Loans', path: '/capital-loans' },
+          { title: 'Balance Sheet', path: '/balance-sheet' },
+        ],
+      },
     ],
   },
   {
@@ -226,7 +233,6 @@ const menuData: MenuSection[] = [
       { title: 'Expense Report', icon: 'ti-file-vector', iconType: 'tabler', path: '/expense-report' },
       { title: 'Tax Report', icon: 'ti-chart-dots-2', iconType: 'tabler', path: '/tax-reports' },
       { title: 'Profit & Loss', icon: 'ti-chart-donut', iconType: 'tabler', path: '/profit-and-loss' },
-      { title: 'Balance Sheet', icon: 'ti-scale', iconType: 'tabler', path: '/balance-sheet' },
       { title: 'Annual Report', icon: 'ti-report-search', iconType: 'tabler', path: '/annual-report' },
     ],
   },
@@ -272,7 +278,6 @@ const menuData: MenuSection[] = [
       { title: 'Users', icon: 'ti-shield-up', iconType: 'tabler', path: '/users' },
       { title: 'Roles & Permissions', icon: 'ti-jump-rope', iconType: 'tabler', path: '/roles-permissions' },
       { title: 'Menu Configuration', icon: 'ti-layout-list', iconType: 'tabler', path: '/tenant-menu-config' },
-      { title: 'Delete Account Request', icon: 'ti-trash-x', iconType: 'tabler', path: '/delete-account' },
     ],
   },
   // {

@@ -38,7 +38,8 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       // Only redirect if not already on auth page
       if (!window.location.pathname.startsWith('/signin') && !window.location.pathname.startsWith('/register')) {
-        window.location.href = '/signin';
+        // frozen by an admin while logged in: the sign-in page explains why
+        window.location.href = error.response?.data?.code === 'ACCOUNT_FROZEN' ? '/signin?restricted=1' : '/signin';
       }
     }
     return Promise.reject(error);

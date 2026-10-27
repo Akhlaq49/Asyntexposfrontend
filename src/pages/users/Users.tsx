@@ -6,9 +6,19 @@ import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
 
 import { useRoles } from '../../services/roleService';
+import { useAuth } from '../../context/AuthContext';
 
 const Users: React.FC = () => {
   const { t } = useTranslation();
+  // ── Freeze (SuperAdmin / Admin): a frozen user cannot sign in ──
+  const { user: me } = useAuth();
+  const canFreeze = me?.role === 'SuperAdmin' || me?.role === 'Admin';
+  /** may the signed-in admin freeze this user? (not themselves; only a SuperAdmin can freeze a SuperAdmin) */
+  const canFreezeUser = (u: UserDto) => canFreeze && u.id !== me?.id && (u.role !== 'SuperAdmin' || me?.role === 'SuperAdmin');
+  const [freezeTarget, setFreezeTarget] = useState<UserDto | null>(null);
+  const [freezeLoading, setFreezeLoading] = useState(false);
+  const [freezeError, setFreezeError] = useState('');
+  const [notice, setNotice] = useState('');
   // ── Data state ──
   const [users, setUsers] = useState<UserDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +26,7 @@ const Users: React.FC = () => {
 
   // ── Search & filter ──
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'' | 'active' | 'inactive'>('');
+  const [statusFilter, setStatusFilter] = useState<'' | 'active' | 'inactive' | 'frozen'>('');
 
   // ── Add modal ──
   const [showAdd, setShowAdd] = useState(false);
@@ -61,7 +71,8 @@ const Users: React.FC = () => {
   const filtered = users.filter((u) => {
     const q = search.toLowerCase();
     const matchesSearch = !q || u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || '').includes(q) || u.role.toLowerCase().includes(q);
-    const matchesStatus = !statusFilter || (statusFilter === 'active' ? u.isActive : !u.isActive);
+    const matchesStatus = !statusFilter
+      || (statusFilter === 'frozen' ? !!u.isFrozen : statusFilter === 'active' ? u.isActive : !u.isActive);
     return matchesSearch && matchesStatus;
   });
 
@@ -147,6 +158,25 @@ const Users: React.FC = () => {
     setShowDelete(true);
   };
 
+  const handleFreeze = async () => {
+    if (!freezeTarget) return;
+    const freeze = !freezeTarget.isFrozen;
+    setFreezeLoading(true);
+    setFreezeError('');
+    try {
+      await userService.setFrozen(freezeTarget.id, freeze);
+      setNotice(freeze
+        ? `${freezeTarget.fullName}'s account is frozen. They can no longer sign in.`
+        : `${freezeTarget.fullName}'s account is unfrozen. They can sign in again.`);
+      setFreezeTarget(null);
+      fetchUsers();
+    } catch (err: any) {
+      setFreezeError(err.response?.data?.message || 'Could not change the account.');
+    } finally {
+      setFreezeLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
     await userService.delete(deleteId);
@@ -186,6 +216,13 @@ const Users: React.FC = () => {
         </div>
       )}
 
+      {notice && (
+        <div className="alert alert-success alert-dismissible fade show" role="alert">
+          {notice}
+          <button type="button" className="btn-close" onClick={() => setNotice('')}></button>
+        </div>
+      )}
+
       {/* Users Table */}
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
@@ -209,12 +246,13 @@ const Users: React.FC = () => {
                 data-bs-toggle="dropdown"
                 onClick={(e) => e.preventDefault()}
               >
-                {statusFilter ? (statusFilter === 'active' ? t('common.active') : t('common.inactive')) : t('common.status')}
+                {statusFilter ? (statusFilter === 'frozen' ? 'Frozen' : statusFilter === 'active' ? t('common.active') : t('common.inactive')) : t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
                 <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter(''); }}>{t('common.all')}</a></li>
                 <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('active'); }}>{t('common.active')}</a></li>
                 <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('inactive'); }}>{t('common.inactive')}</a></li>
+                <li><a href="#" className="dropdown-item rounded-1" onClick={(e) => { e.preventDefault(); setStatusFilter('frozen'); }}>Frozen</a></li>
               </ul>
             </div>
           </div>
@@ -272,6 +310,12 @@ const Users: React.FC = () => {
                               <i className="ti ti-point-filled me-1 fs-11"></i>{t('common.inactive')}
                             </span>
                           )}
+                          {user.isFrozen && (
+                            <span className="d-inline-flex align-items-center p-1 pe-2 rounded-1 text-white bg-dark fs-10 ms-1"
+                              title={`Frozen${user.frozenBy ? ` by ${user.frozenBy}` : ''}${user.frozenAt ? ` on ${new Date(user.frozenAt).toLocaleString()}` : ''}`}>
+                              <i className="ti ti-lock me-1 fs-11"></i>Frozen
+                            </span>
+                          )}
                         </td>
                         <td className="action-table-data">
                           <div className="edit-delete-action">
@@ -282,6 +326,16 @@ const Users: React.FC = () => {
                             >
                               <i data-feather="edit" className="feather-edit"></i>
                             </a>
+                            {canFreezeUser(user) && (
+                              <a
+                                className="me-2 p-2 mb-0"
+                                href="#"
+                                title={user.isFrozen ? 'Unfreeze account' : 'Freeze account'}
+                                onClick={(e) => { e.preventDefault(); setFreezeError(''); setFreezeTarget(user); }}
+                              >
+                                <i className={`ti ${user.isFrozen ? 'ti-lock-open text-success' : 'ti-lock text-warning'} fs-16`}></i>
+                              </a>
+                            )}
                             <a
                               className="p-2 mb-0"
                               href="#"
@@ -461,6 +515,39 @@ const Users: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ══════ Freeze / Unfreeze Confirmation ══════ */}
+      {freezeTarget && (
+        <>
+          <div className="modal fade show d-block" tabIndex={-1} style={{ background: 'rgba(0,0,0,.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h4 className="modal-title">{freezeTarget.isFrozen ? 'Unfreeze account' : 'Freeze account'}</h4>
+                  <button type="button" className="btn-close" onClick={() => setFreezeTarget(null)} disabled={freezeLoading}></button>
+                </div>
+                <div className="modal-body">
+                  {freezeError && <div className="alert alert-danger py-2">{freezeError}</div>}
+                  {freezeTarget.isFrozen ? (
+                    <p className="mb-0"><strong>{freezeTarget.fullName}</strong> ({freezeTarget.email}) will be able to sign in again.</p>
+                  ) : (
+                    <>
+                      <p><strong>{freezeTarget.fullName}</strong> ({freezeTarget.email}) will not be able to sign in, and will be signed out right away if logged in.</p>
+                      <p className="mb-0 text-muted">They will see: "Your account has been restricted by the administration."</p>
+                    </>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setFreezeTarget(null)} disabled={freezeLoading}>{t('common.cancel')}</button>
+                  <button type="button" className={`btn ${freezeTarget.isFrozen ? 'btn-success' : 'btn-warning'}`} onClick={handleFreeze} disabled={freezeLoading}>
+                    {freezeLoading ? t('common.saving') : freezeTarget.isFrozen ? 'Unfreeze' : 'Freeze'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ══════ Delete Confirmation Modal ══════ */}

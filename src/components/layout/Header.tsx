@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -10,8 +11,14 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  // logout asks "Do you want to logout?" first
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
+    setConfirmLogout(true);
+  };
+  const doLogout = () => {
+    setConfirmLogout(false);
     logout();
     navigate('/signin');
   };
@@ -81,12 +88,6 @@ const Header: React.FC = () => {
                   </Link>
                 </div>
                 <div className="col-md-2">
-                  <Link to="/purchase-list" className="link-item">
-                    <span className="link-icon"><i className="ti ti-shopping-bag"></i></span>
-                    <p>{t('header.purchase')}</p>
-                  </Link>
-                </div>
-                <div className="col-md-2">
                   <Link to="/pos-orders" className="link-item">
                     <span className="link-icon"><i className="ti ti-shopping-cart"></i></span>
                     <p>{t('header.sale')}</p>
@@ -132,12 +133,6 @@ const Header: React.FC = () => {
             </div>
           </li>
 
-          {/* POS Button */}
-          <li className="nav-item pos-nav">
-            <Link to="/pos" className="btn btn-dark btn-md d-inline-flex align-items-center">
-              <i className="ti ti-device-laptop me-1"></i><span className="header-btn-text">{t('header.pos')}</span>
-            </Link>
-          </li>
 
           {/* Language Switcher */}
           <LanguageSwitcher />
@@ -147,34 +142,6 @@ const Header: React.FC = () => {
             <a href="#" id="btnFullscreen" onClick={handleFullscreen}>
               <i className="ti ti-maximize"></i>
             </a>
-          </li>
-
-          {/* Email */}
-          <li className="nav-item nav-item-box">
-            <Link to="/email">
-              <i className="ti ti-mail"></i>
-              <span className="badge rounded-pill">1</span>
-            </Link>
-          </li>
-
-          {/* Notifications */}
-          <li className="nav-item dropdown nav-item-box">
-            <a href="#" className="dropdown-toggle nav-link" data-bs-toggle="dropdown">
-              <i className="ti ti-bell"></i>
-            </a>
-            <div className="dropdown-menu notifications">
-              <div className="topnav-dropdown-header">
-                <h5 className="notification-title">{t('header.notifications')}</h5>
-              </div>
-              <div className="noti-content">
-                <p className="text-muted text-center py-4 mb-0">{t('header.no_notifications')}</p>
-              </div>
-            </div>
-          </li>
-
-          {/* Settings */}
-          <li className="nav-item nav-item-box">
-            <Link to="/general-settings"><i className="ti ti-settings"></i></Link>
           </li>
 
           {/* Profile */}
@@ -196,9 +163,6 @@ const Header: React.FC = () => {
                   <p>{user?.role || 'User'}</p>
                 </div>
               </div>
-              <Link className="dropdown-item" to="/profile"><i className="ti ti-user-circle me-2"></i>{t('header.my_profile')}</Link>
-              <Link className="dropdown-item" to="/sales-report"><i className="ti ti-file-text me-2"></i>{t('header.reports')}</Link>
-              <Link className="dropdown-item" to="/general-settings"><i className="ti ti-settings-2 me-2"></i>{t('header.settings')}</Link>
               <hr className="my-2" />
               <a className="dropdown-item logout" href="#" onClick={handleLogout}><i className="ti ti-logout me-2"></i>{t('auth.logout')}</a>
             </div>
@@ -211,12 +175,31 @@ const Header: React.FC = () => {
             <i className="fa fa-ellipsis-v"></i>
           </a>
           <div className="dropdown-menu dropdown-menu-right">
-            <Link className="dropdown-item" to="/profile">{t('header.my_profile')}</Link>
-            <Link className="dropdown-item" to="/general-settings">{t('header.settings')}</Link>
             <a className="dropdown-item" href="#" onClick={handleLogout}>{t('auth.logout')}</a>
           </div>
         </div>
       </div>
+
+      {/* Logout confirmation */}
+      {confirmLogout && createPortal(
+        <div className="modal fade show d-block" tabIndex={-1} style={{ background: 'rgba(0,0,0,.5)', zIndex: 2000 }} onClick={() => setConfirmLogout(false)}>
+          <div className="modal-dialog modal-dialog-centered modal-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content">
+              <div className="modal-body text-center p-4">
+                <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-transparent text-danger mb-3" style={{ width: 56, height: 56 }}>
+                  <i className="ti ti-logout fs-24"></i>
+                </span>
+                <h5 className="mb-3">Do you want to logout?</h5>
+                <div className="d-flex justify-content-center gap-2">
+                  <button type="button" className="btn btn-secondary px-4" onClick={() => setConfirmLogout(false)}>No</button>
+                  <button type="button" className="btn btn-danger px-4" onClick={doLogout}>Yes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

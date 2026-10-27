@@ -8,6 +8,8 @@ export interface PurchaseOrderItem {
   productName: string;
   sku?: string;
   productImage: string;
+  /** product description (printed on the purchase order) */
+  description?: string | null;
   quantity: number;
   receivedQuantity: number;
   remainingQuantity: number;

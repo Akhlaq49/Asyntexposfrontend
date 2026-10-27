@@ -27,7 +27,7 @@ const TenantMenuConfig: React.FC = () => {
         DASHBOARD_OPTIONS.some((o) => o.value === dashboard) ? dashboard : '/admin-dashboard'
       );
     } catch {
-      setMessage({ type: 'danger', text: 'Failed to load tenant menu configuration.' });
+      setMessage({ type: 'danger', text: 'Could not load the menu settings.' });
     } finally {
       setLoading(false);
     }
@@ -77,9 +77,9 @@ const TenantMenuConfig: React.FC = () => {
         tenantMenuService.updateHiddenKeys(Array.from(hiddenKeys)),
         tenantMenuService.setDefaultDashboard(defaultDashboard),
       ]);
-      setMessage({ type: 'success', text: 'Tenant menu configuration saved successfully.' });
+      setMessage({ type: 'success', text: 'Menu settings saved.' });
     } catch (err: any) {
-      setMessage({ type: 'danger', text: err.response?.data?.message || 'Failed to save configuration.' });
+      setMessage({ type: 'danger', text: err.response?.data?.message || 'Could not save the menu settings.' });
     } finally {
       setSaving(false);
     }
@@ -96,7 +96,7 @@ const TenantMenuConfig: React.FC = () => {
         <div className="add-item d-flex">
           <div className="page-title">
             <h4 className="fw-bold">Menu Configuration</h4>
-            <h6>Enable or disable menu modules for your organization</h6>
+            <h6>Show or hide menus for everyone in your company</h6>
           </div>
         </div>
       </div>
@@ -143,8 +143,8 @@ const TenantMenuConfig: React.FC = () => {
             <div className="col-md-8">
               <p className="text-muted mb-0 fs-13">
                 <i className="ti ti-info-circle me-1"></i>
-                Uncheck a menu to hide it for all users in your organization.
-                Role permissions will only apply to visible menus.
+                Untick a menu to hide it for everyone in your company.
+                Role rights only apply to the menus that are shown.
               </p>
             </div>
             <div className="col-md-4 text-md-end mt-2 mt-md-0">
@@ -194,7 +194,7 @@ const TenantMenuConfig: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <i className="ti ti-device-floppy me-1"></i>Save Configuration
+                  <i className="ti ti-device-floppy me-1"></i>Save
                 </>
               )}
             </button>

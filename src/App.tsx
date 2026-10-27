@@ -24,7 +24,6 @@ const CategoryList = lazy(() => import('./pages/inventory/CategoryList'))
 const BrandList = lazy(() => import('./pages/inventory/BrandList'))
 const Units = lazy(() => import('./pages/inventory/Units'))
 const TaxTypes = lazy(() => import('./pages/inventory/TaxTypes'))
-const VariantAttributes = lazy(() => import('./pages/inventory/VariantAttributes'))
 const Warranty = lazy(() => import('./pages/inventory/Warranty'))
 
 
@@ -92,7 +91,6 @@ const FAQ = lazy(() => import('./pages/cms/FAQ'))
 const Users = lazy(() => import('./pages/users/Users'))
 const RolesPermissions = lazy(() => import('./pages/users/RolesPermissions'))
 const Permissions = lazy(() => import('./pages/users/Permissions'))
-const DeleteAccount = lazy(() => import('./pages/users/DeleteAccount'))
 const TenantMenuConfig = lazy(() => import('./pages/settings/TenantMenuConfig'))
 
 // Settings
@@ -299,7 +297,6 @@ function App() {
           <Route path="/brand-list" element={<BrandList />} />
           <Route path="/units" element={<Units />} />
           <Route path="/tax-types" element={<TaxTypes />} />
-          <Route path="/variant-attributes" element={<VariantAttributes />} />
           <Route path="/warranty" element={<Warranty />} />
 
           {/* Stock */}
@@ -369,7 +366,6 @@ function App() {
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/tenant-menu-config" element={<TenantMenuConfig />} />
           <Route path="/permissions" element={<Permissions />} />
-          <Route path="/delete-account" element={<DeleteAccount />} />
 
           {/* Settings */}
           <Route path="/general-settings" element={<GeneralSettings />} />

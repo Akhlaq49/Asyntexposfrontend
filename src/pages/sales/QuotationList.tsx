@@ -32,7 +32,7 @@ interface QuotationDto {
   supersededById?: number | null;
   /** staff approval before converting to a sale: null (not sent), Pending, Approved, Discarded */
   /** who made it (staff only see their own) */
-  createdById?: number | null; createdByName?: string | null;
+  createdById?: number | null; createdByName?: string | null; createdByRole?: string | null;
   approvalStatus?: string | null; approvalSentTo?: string | null; approvalBy?: string | null; approvalAt?: string | null; approvalNote?: string | null;
   /** number of product lines and their names (the list has no line items) */
   itemCount?: number;
@@ -389,7 +389,7 @@ const QuotationList: React.FC = () => {
       if (reviseFromId) {
         // new version; the current one is kept unchanged as history
         const { data: rev } = await api.post<QuotationDto>(`/quotations/${reviseFromId}/revise`, payload);
-        setNotice({ type: 'success', text: `Revision ${rev.reference} saved. ${referenceOf(reviseFromId) || 'The previous version'} is kept as history.` });
+        setNotice({ type: 'success', text: `New version ${rev.reference} saved. ${referenceOf(reviseFromId) || 'The previous version'} is kept as history.` });
       } else if (editingId) await api.put(`/quotations/${editingId}`, payload);
       else await api.post('/quotations', payload);
       setShowModal(false);
@@ -481,19 +481,20 @@ const QuotationList: React.FC = () => {
   const printQuotation = (summary: QuotationDto) => printQuotationDoc(summary.id, products);
 
   /** The quotations list (current search / filters) */
-  const listColumns = ['Reference', 'Date', 'Customer', 'Products', 'Status', 'Grand total'];
+  const listColumns = ['Reference', 'Date', 'Customer', 'Products', 'Created by', 'Status', 'Grand total'];
   const listRows = () => filtered.map((q) => [q.reference || `#${q.id}`, q.quotationDate, q.customerName,
-    quotationLines(q).map((l) => `${l.productName} x${l.quantity}`).join(', '), q.status, fmt(q.grandTotal)]);
+    quotationLines(q).map((l) => `${l.productName} x${l.quantity}`).join(', '),
+    q.createdByName ? `${q.createdByName}${q.createdByRole ? ` (${q.createdByRole})` : ''}` : '-', q.status, fmt(q.grandTotal)]);
   const listTotal = () => filtered.reduce((sum, q) => sum + (q.grandTotal || 0), 0);
   const filterNote = () => [describeDateFilter(dateFilter), filterCustomer.trim() && `Customer: ${filterCustomer.trim()}`, filterProduct && `Product: ${filterProduct}`, filterStatus && `Status: ${filterStatus}`, searchTerm && `Search: "${searchTerm}"`].filter(Boolean).join(' | ');
 
   const printList = () => {
-    const rows = listRows().map((r) => `<tr>${r.map((c, i) => `<td${i === 5 ? ' class="r"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('');
+    const rows = listRows().map((r) => `<tr>${r.map((c, i) => `<td${i === 6 ? ' class="r"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('');
     printDocument('Quotations', 'QUOTATIONS', `${filtered.length} quotation(s) - printed ${new Date().toLocaleDateString('en-GB')}`, `
       ${filterNote() ? `<p style="color:#555">Filtered by ${esc(filterNote())}</p>` : ''}
-      <table><thead><tr>${listColumns.map((c, i) => `<th${i === 5 ? ' class="r"' : ''}>${c}</th>`).join('')}</tr></thead>
-        <tbody>${rows || '<tr><td colspan="6" class="c">No quotations</td></tr>'}</tbody>
-        <tfoot><tr class="total"><th colspan="5" class="r">Total</th><th class="r">${printMoney(listTotal())}</th></tr></tfoot></table>`);
+      <table><thead><tr>${listColumns.map((c, i) => `<th${i === 6 ? ' class="r"' : ''}>${c}</th>`).join('')}</tr></thead>
+        <tbody>${rows || '<tr><td colspan="7" class="c">No quotations</td></tr>'}</tbody>
+        <tfoot><tr class="total"><th colspan="6" class="r">Total</th><th class="r">${printMoney(listTotal())}</th></tr></tfoot></table>`);
   };
   const exportListPdf = () => exportToPDF(listColumns, listRows(), 'quotations', 'Quotations', [
     { label: 'Quotations', value: filtered.length }, { label: 'Total value', value: fmt(listTotal()) },
@@ -586,12 +587,12 @@ const QuotationList: React.FC = () => {
             {/* Sort */}
             <div className="dropdown">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {t('common.sort_by')} {sortBy === 'asc' ? t('common.ascending') : sortBy === 'desc' ? t('common.descending') : t('common.recently_added')}
+                {t('common.sort_by')} {sortBy === 'asc' ? 'Lowest amount first' : sortBy === 'desc' ? 'Highest amount first' : t('common.recently_added')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end p-3">
                 <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('recent'); }}>{t('common.recently_added')}</a></li>
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>{t('common.ascending')}</a></li>
-                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>{t('common.descending')}</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('asc'); }}>{'Lowest amount first'}</a></li>
+                <li><a className="dropdown-item rounded-1" href="#" onClick={e => { e.preventDefault(); setSortBy('desc'); }}>{'Highest amount first'}</a></li>
               </ul>
             </div>
           </div>
@@ -623,6 +624,7 @@ const QuotationList: React.FC = () => {
                     <th>{t('quotations.customer_name')}</th>
                     <th>Reference</th>
                     <th>Date</th>
+                    <th>Created by</th>
                     <th>{t('common.status')}</th>
                     <th>{t('common.total')}</th>
                     <th className="no-sort"></th>
@@ -630,7 +632,7 @@ const QuotationList: React.FC = () => {
                 </thead>
                 <tbody>
                   {paginatedData.length === 0 ? (
-                    <tr><td colSpan={8} className="text-center py-4">{t('quotations.no_quotations')}</td></tr>
+                    <tr><td colSpan={9} className="text-center py-4">{t('quotations.no_quotations')}</td></tr>
                   ) : paginatedData.map(q => (
                     <tr key={q.id}>
                       <td>
@@ -665,7 +667,6 @@ const QuotationList: React.FC = () => {
                       </td>
                       <td>
                         <div className="fw-semibold">{q.reference || '-'}</div>
-                        {isAdmin && q.createdByName && <div><small className="text-muted" title="Made by"><i className="ti ti-user me-1" />{q.createdByName}</small></div>}
                         {familyOf(q).length > 1 && (
                           <div className="d-flex align-items-center gap-1 mt-1">
                             <span className={`badge ${q.supersededById ? 'badge-secondary' : 'badge-info'}`} title={q.supersededById ? 'Earlier version' : 'Latest version'}>{versionLabel(q)}</span>
@@ -674,6 +675,11 @@ const QuotationList: React.FC = () => {
                         )}
                       </td>
                       <td className="text-nowrap">{q.quotationDate}</td>
+                      <td className="text-nowrap">
+                        {q.createdByName
+                          ? <><div className="fw-medium">{q.createdByName}</div>{q.createdByRole && <span className="badge bg-light text-dark border">{q.createdByRole}</span>}</>
+                          : <small className="text-muted" title="Not recorded">-</small>}
+                      </td>
                       <td>
                         <span className={`badge ${statusBadge(q.status)}`}>{q.status}</span>
                         {q.saleReference && <div><small className="text-muted">Sale {q.saleReference}</small></div>}
@@ -682,7 +688,7 @@ const QuotationList: React.FC = () => {
                         {!q.saleId && q.approvalStatus === 'Discarded' && <div><span className="badge bg-danger mt-1"><i className="ti ti-x me-1" />Discarded</span><div><small className="text-danger">{q.approvalBy}: {q.approvalNote}</small></div></div>}
                         {(linkedOrders[q.id] || []).filter((o) => o.status !== 'Cancelled').map((o) => <div key={o.poNumber}><small><a href="#" title="Purchase order for this quotation" onClick={e => { e.preventDefault(); navigate(`/purchase-orders?fromQuotation=${q.id}`); }}><i className="ti ti-truck me-1" />{o.poNumber}</a></small></div>)}
                         {!q.saleId && convertedVersion(q) && <div><small className="text-muted">Not chosen ({convertedVersion(q)!.reference} was converted)</small></div>}
-                        {!convertedVersion(q) && q.supersededById && <div><small className="text-muted">Earlier version (newer: {referenceOf(q.supersededById) || 'later revision'})</small></div>}
+                        {!convertedVersion(q) && q.supersededById && <div><small className="text-muted">Earlier version (newer: {referenceOf(q.supersededById) || 'a newer version'})</small></div>}
                       </td>
                       <td>{fmt(q.grandTotal)}</td>
                       <td>
@@ -720,7 +726,7 @@ const QuotationList: React.FC = () => {
                             </a>
                           )}
                           {familyOpen(q) && (
-                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-primary" href="#" title={`Revise: save a new version (${baseReference(q)}_R${nextRevisionNo(q)})`} onClick={e => { e.preventDefault(); openEditModal(q, true); }}>
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-primary" href="#" title={`Make a new version (${baseReference(q)}_R${nextRevisionNo(q)})`} onClick={e => { e.preventDefault(); openEditModal(q, true); }}>
                               <i className="ti ti-versions"></i>
                             </a>
                           )}
@@ -751,7 +757,7 @@ const QuotationList: React.FC = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h4 className="modal-title">{reviseFromId ? `New revision ${form.reference}` : editingId ? t('quotations.edit_quotation') : t('quotations.add_quotation')}</h4>
+                <h4 className="modal-title">{reviseFromId ? `New version ${form.reference}` : editingId ? t('quotations.edit_quotation') : t('quotations.add_quotation')}</h4>
                 {reviseFromId && <small className="text-muted ms-3">{referenceOf(reviseFromId)} will be kept unchanged as history</small>}
                 <button type="button" className="close" onClick={() => setShowModal(false)}><span>&times;</span></button>
               </div>
@@ -786,7 +792,7 @@ const QuotationList: React.FC = () => {
                       <div className="mb-3">
                         <label className="form-label">{t('common.reference')}</label>
                         <input type="text" className="form-control" placeholder={editingId ? t('quotations.enter_reference') : 'Automatic (QT-0001 ...) if left empty'} value={form.reference} readOnly={!!reviseFromId}
-                          title={reviseFromId ? 'Revision references are numbered automatically' : undefined} onChange={e => setForm({ ...form, reference: e.target.value })} />
+                          title={reviseFromId ? 'Version numbers are added automatically' : undefined} onChange={e => setForm({ ...form, reference: e.target.value })} />
                       </div>
                     </div>
                     <div className="col-lg-12 col-sm-12 col-12">
@@ -976,7 +982,7 @@ const QuotationList: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary me-2" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
-                <button type="button" className="btn btn-primary" onClick={askTerms}>{reviseFromId ? `Save revision R${form.reference.split('_R').pop()}` : editingId ? t('common.update') : t('common.submit')}</button>
+                <button type="button" className="btn btn-primary" onClick={askTerms}>{reviseFromId ? `Save version R${form.reference.split('_R').pop()}` : editingId ? t('common.update') : t('common.submit')}</button>
               </div>
             </div>
           </div>
@@ -1067,7 +1073,7 @@ const QuotationList: React.FC = () => {
                           {canPrint(v) && <button type="button" className="btn btn-sm btn-outline-primary me-1" title="Print this version" onClick={() => printQuotation(v)}><i className="ti ti-printer"></i></button>}
                           {!versions.some(x => x.saleId) && (
                             <>
-                              <button type="button" className="btn btn-sm btn-outline-info me-1" title={`Revise from ${v.reference}`} onClick={() => { setVersions(null); openEditModal(v, true); }}><i className="ti ti-versions"></i></button>
+                              <button type="button" className="btn btn-sm btn-outline-info me-1" title={`Make a new version from ${v.reference}`} onClick={() => { setVersions(null); openEditModal(v, true); }}><i className="ti ti-versions"></i></button>
                               <button type="button" className="btn btn-sm btn-success" title={`Convert ${v.reference} to a sale`} onClick={() => { setVersions(null); openConvert(v); }}><i className="ti ti-shopping-cart-check"></i></button>
                             </>
                           )}
@@ -1111,7 +1117,7 @@ const QuotationList: React.FC = () => {
                   </div>
                 </div>
                 {detailQuotation.supersededById && (
-                  <div className="alert alert-secondary py-2">This is an earlier version (the newest is <strong>{referenceOf(familyOf(detailQuotation).find(x => !x.supersededById)?.id) || 'a later revision'}</strong>). It is kept unchanged{familyOpen(detailQuotation) ? ' and can still be converted to a sale if the customer chooses it' : ''}.</div>
+                  <div className="alert alert-secondary py-2">This is an earlier version (the newest is <strong>{referenceOf(familyOf(detailQuotation).find(x => !x.supersededById)?.id) || 'a newer version'}</strong>). It is kept unchanged{familyOpen(detailQuotation) ? ' and can still be converted to a sale if the customer chooses it' : ''}.</div>
                 )}
                 {detailQuotation.description && <p className="mb-3"><strong>{t('common.description')}:</strong> {detailQuotation.description}</p>}
 
