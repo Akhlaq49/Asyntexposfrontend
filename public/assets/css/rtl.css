@@ -234,3 +234,28 @@
   background-color: #f0f0f0;
   font-weight: 600;
 }
+
+/* ── Selected left-menu item: light orange ── */
+#sidebar .sidebar-menu ul li a.active,
+#sidebar .sidebar-menu ul li.submenu > a.active {
+  background: #FFE8D2;
+  color: #E8802A;
+  border-radius: 6px;
+  font-weight: 600;
+}
+#sidebar .sidebar-menu ul li a.active span,
+#sidebar .sidebar-menu ul li a.active i,
+#sidebar .sidebar-menu ul li a.active svg {
+  color: #E8802A;
+}
+#sidebar .sidebar-menu ul li a.active:hover {
+  background: #FFDDBE;
+}
+[data-theme=dark] #sidebar .sidebar-menu ul li a.active {
+  background: rgba(254, 159, 67, 0.18);
+  color: #FE9F43;
+}
+[data-theme=dark] #sidebar .sidebar-menu ul li a.active span,
+[data-theme=dark] #sidebar .sidebar-menu ul li a.active i {
+  color: #FE9F43;
+}

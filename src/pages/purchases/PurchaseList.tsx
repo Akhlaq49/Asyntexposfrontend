@@ -539,9 +539,6 @@ const PurchaseList: React.FC = () => {
                           <a href="#" className="me-2 text-dark" title="Payments" onClick={e => { e.preventDefault(); setPayPurchase(purchase); }}><i className="ti ti-cash"></i></a>
                         )}
                         <a href="#" className="me-2 text-dark" title="Print purchase" onClick={e => { e.preventDefault(); printPurchase(purchase); }}><i className="ti ti-printer"></i></a>
-                        {purchase.status === 'Received' && (
-                          <Link to={`/purchase-returns?ref=${encodeURIComponent(purchase.reference)}`} className="me-2 text-dark" title="Return goods to the supplier"><i className="ti ti-truck-return"></i></Link>
-                        )}
                         {purchase.purchaseOrderId ? (
                           <Link to="/purchase-orders" className="text-muted" title="Managed from Purchase Orders"><i className="ti ti-lock"></i></Link>
                         ) : (<>
