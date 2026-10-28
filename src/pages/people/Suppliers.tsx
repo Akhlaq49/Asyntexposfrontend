@@ -61,7 +61,7 @@ const Suppliers: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!form.fullName) { showError(t('suppliers.first_name_required')); return; }
+    // every field is optional (a supplier without a name is listed by phone, else as "Unnamed supplier")
     try { if (editingId) await updateParty(editingId, form); else await createParty(form); setShowModal(false); showSuccess(editingId ? t('suppliers.supplier_updated') : t('suppliers.supplier_created')); loadData(); }
     catch { showError(t('suppliers.failed_save')); }
   };
@@ -164,10 +164,10 @@ const Suppliers: React.FC = () => {
               </div>
               <div className="modal-body">
                 <div className="row">
-                  <div className="col-lg-6"><div className="mb-3"><label className="form-label">{t('suppliers.first_name')}<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} /></div></div>
+                  <div className="col-lg-6"><div className="mb-3"><label className="form-label">{t('suppliers.first_name')}</label><input type="text" className="form-control" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} /></div></div>
                   <div className="col-lg-6"><div className="mb-3"><label className="form-label">{t('suppliers.last_name')}</label><input type="text" className="form-control" value={form.lastName || ''} onChange={e => setForm({ ...form, lastName: e.target.value })} /></div></div>
-                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('suppliers.email')}<span className="text-danger ms-1">*</span></label><input type="email" className="form-control" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} /></div></div>
-                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('suppliers.phone')}<span className="text-danger ms-1">*</span></label><input type="text" className="form-control" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div></div>
+                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('suppliers.email')}</label><input type="email" className="form-control" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} /></div></div>
+                  <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('suppliers.phone')}</label><input type="text" className="form-control" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div></div>
                   <div className="col-lg-12"><div className="mb-3"><label className="form-label">{t('suppliers.address')}</label><input type="text" className="form-control" value={form.address || ''} onChange={e => setForm({ ...form, address: e.target.value })} /></div></div>
                   <div className="col-lg-6"><div className="mb-3"><label className="form-label">{t('suppliers.city')}</label><input type="text" className="form-control" value={form.city || ''} onChange={e => setForm({ ...form, city: e.target.value })} /></div></div>
                   <div className="col-lg-6"><div className="mb-3"><label className="form-label">{t('suppliers.state')}</label><input type="text" className="form-control" value={form.state || ''} onChange={e => setForm({ ...form, state: e.target.value })} /></div></div>

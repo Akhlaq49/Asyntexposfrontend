@@ -980,11 +980,11 @@ const QuotationList: React.FC = () => {
                   {/* Taxes */}
                   <TaxSelector base={taxBase} value={taxes} onChange={setTaxes} baseLabel="on the subtotal after discount" format={fmt} />
 
-                  {/* Description */}
+                  {/* Note (stored as the quotation's description) */}
                   <div className="row">
                     <div className="col-lg-12">
                       <div className="mb-3">
-                        <label className="form-label">{t('common.description')}</label>
+                        <label className="form-label">Note</label>
                         <textarea className="form-control" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}></textarea>
                       </div>
                     </div>
@@ -1155,7 +1155,7 @@ const QuotationList: React.FC = () => {
                 {detailQuotation.supersededById && (
                   <div className="alert alert-secondary py-2">This is an earlier version (the newest is <strong>{referenceOf(familyOf(detailQuotation).find(x => !x.supersededById)?.id) || 'a newer version'}</strong>). It is kept unchanged{familyOpen(detailQuotation) ? ' and can still be converted to a sale if the customer chooses it' : ''}.</div>
                 )}
-                {detailQuotation.description && <p className="mb-3"><strong>{t('common.description')}:</strong> {detailQuotation.description}</p>}
+                {detailQuotation.description && <p className="mb-3"><strong>Note:</strong> {detailQuotation.description}</p>}
 
                 {detailQuotation.items.length > 0 && (
                   <div className="table-responsive">

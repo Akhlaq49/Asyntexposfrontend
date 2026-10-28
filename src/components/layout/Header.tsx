@@ -138,30 +138,17 @@ const Header: React.FC = () => {
             </a>
           </li>
 
-          {/* Profile */}
-          <li className="nav-item dropdown has-arrow main-drop profile-nav">
-            <a href="#" className="nav-link userset" data-bs-toggle="dropdown">
-              <span className="user-info p-0">
-                <span className="user-letter">
-                  <img src="/assets/img/profiles/avator1.jpg" alt="" className="img-fluid" />
-                </span>
-              </span>
-            </a>
-            <div className="dropdown-menu menu-drop-user">
-              <div className="profileset d-flex align-items-center">
-                <span className="user-img me-2">
-                  <img src="/assets/img/profiles/avator1.jpg" alt="" />
-                </span>
-                <div>
-                  <h6 className="fw-medium">{user?.fullName || 'User'}</h6>
-                  <p>{user?.role || 'User'}</p>
-                </div>
-              </div>
-              <hr className="my-2" />
-              <a className="dropdown-item logout" href="#" onClick={handleLogout}><i className="ti ti-logout me-2"></i>{t('auth.logout')}</a>
-            </div>
-          </li>
         </ul>
+
+        {/* Logout: a plain text button in the top-right corner, with who is signed in */}
+        <div className="header-logout d-none d-md-flex align-items-center gap-2"
+          style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', zIndex: 5 }}>
+          <div className="text-end lh-sm">
+            <div className="fw-medium" style={{ fontSize: 13 }}>{user?.fullName || 'User'}</div>
+            <small className="text-muted">{user?.role || ''}</small>
+          </div>
+          <button type="button" className="btn btn-outline-danger btn-sm px-3 fw-medium" onClick={handleLogout}>{t('auth.logout')}</button>
+        </div>
 
         {/* Mobile Menu */}
         <div className="dropdown mobile-user-menu">

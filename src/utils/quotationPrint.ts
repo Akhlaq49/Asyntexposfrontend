@@ -61,7 +61,7 @@ export async function printQuotation(quotationId: number, products?: PrintProduc
         ${extra('Overall discount', q.discount, true)}${q.taxes && q.taxes.length > 0 ? q.taxes.map((tx) => extra(`${esc(tx.taxName)} (${tx.percent}%)`, tx.amount)).join('') : extra('Order tax', q.orderTax)}${extra('Shipping', q.shipping)}${extra('Installation, Testing and Commissioning', q.installationCharges || 0)}
         <tr class="total"><th colspan="${labelCols}" class="r">Grand total</th><th class="r">${printMoney(q.grandTotal)}</th></tr>
       </tfoot></table>
-    ${q.description ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(q.description)}</p>` : ''}
+    ${q.description ? `<p style="margin-top:14px"><strong>Note:</strong> ${esc(q.description)}</p>` : ''}
     <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
     ${termsHtml}`, win, { stamp: true });
 }

@@ -20,11 +20,11 @@ export function openPrintWindow(): Window | null {
  * `bodyHtml` must already be escaped (use `esc` for any user data).
  * Pass `target` (from openPrintWindow) when the window was opened before the data loaded.
  */
-/** The company's round stamp, printed bottom-left on documents sent to customers / suppliers */
+/** The company's round stamp, printed on the "Authorised signature" line of documents sent to customers / suppliers */
 export const COMPANY_STAMP = '/assets/img/company-stamp.png';
 
 export function printDocument(title: string, heading: string, subheading: string, bodyHtml: string, target?: Window | null,
-  options?: { /** print the company stamp bottom-left on every page */ stamp?: boolean }) {
+  options?: { /** print the company stamp on the authorised signature (else the company's signature line) */ stamp?: boolean }) {
   const w = target ?? window.open('', '_blank', 'width=900,height=1000');
   if (!w) {
     alert('Please allow pop-ups for this site to print.');
@@ -39,8 +39,11 @@ export function printDocument(title: string, heading: string, subheading: string
     .lh img{height:120px;width:174px;object-fit:contain}
     .lh img.r-logo{height:auto;width:140px}
     .page{width:100%;border:none}.page>tbody>tr>td,.page>tfoot>tr>td{border:none;padding:0}
-    .ft-space{height:${options?.stamp ? 236 : 110}px}
-    .stamp{position:fixed;left:26px;bottom:98px;width:124px;height:124px;opacity:.92;pointer-events:none}
+    .ft-space{height:110px}
+    /* company stamp: on the signature line (moved there by the script below); bottom-left only if the document has no signature line */
+    .stamp-sign{position:absolute;left:50%;bottom:calc(100% - 26px);transform:translateX(-50%) rotate(-8deg);width:92px;height:92px;opacity:.9;pointer-events:none}
+    .stamp-corner{position:fixed;left:26px;bottom:98px;width:92px;height:92px;opacity:.9;pointer-events:none}
+    .has-stamp .sign{margin-top:84px}
     .ft{position:fixed;left:0;right:0;bottom:20px;height:50px;background:${REPORT_FOOTER.color};color:#fff;display:flex;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .ft .badge{width:88px;height:88px;margin-left:56px;flex:none}
     .ft .addr{display:flex;align-items:center;gap:8px;margin-left:24px;font-size:15px;line-height:1.2}
@@ -54,20 +57,31 @@ export function printDocument(title: string, heading: string, subheading: string
     .sign{display:flex;justify-content:space-between;margin-top:60px;break-inside:avoid;page-break-inside:avoid}
     .sign div{border-top:1px solid #333;width:220px;text-align:center;padding-top:4px}
     @media print{body{margin:10mm}}
-  </style></head><body>
+  </style></head><body${options?.stamp ? ' class="has-stamp"' : ''}>
     <div class="lh">
       <img src="${origin}${REPORT_LOGOS.left}" alt="">
       <div class="t"><h1>${esc(heading)}</h1>${subheading ? `<div>${esc(subheading)}</div>` : ''}</div>
       <img class="r-logo" src="${origin}${REPORT_LOGOS.right}" alt="">
     </div>
     <table class="page"><tbody><tr><td>${bodyHtml}</td></tr></tbody><tfoot><tr><td><div class="ft-space"></div></td></tr></tfoot></table>
-    ${options?.stamp ? `<img class="stamp" src="${origin}${COMPANY_STAMP}" alt="">` : ''}
+    ${options?.stamp ? `<img id="co-stamp" class="stamp-corner" src="${origin}${COMPANY_STAMP}" alt="">` : ''}
     <div class="ft">
       <img class="badge" src="${origin}${REPORT_FOOTER.badge}" alt="">
       <div class="addr"><img src="${origin}${REPORT_FOOTER.pinIcon}" alt=""><div>${REPORT_FOOTER.addressLines.map(esc).join('<br>')}</div></div>
       <div class="wa"><img src="${origin}${REPORT_FOOTER.whatsappIcon}" alt="">${esc(REPORT_FOOTER.whatsapp)}</div>
     </div>
-    <script>window.onload=function(){setTimeout(function(){window.print();},100);}<\/script>
+    <script>
+      // put the stamp on "Authorised signature"; else on the first signature line (the company's: Received by / Returned by)
+      (function(){
+        var s=document.getElementById('co-stamp'); if(!s) return;
+        var t=null, all=document.querySelectorAll('div');
+        for(var i=0;i<all.length;i++){ var d=all[i]; if(!d.children.length && /^authori[sz]ed signature$/i.test((d.textContent||'').trim())){ t=d; break; } }
+        if(!t) t=document.querySelector('.sign > div');
+        if(!t) return;
+        t.style.position='relative'; t.appendChild(s); s.className='stamp-sign';
+      })();
+      window.onload=function(){setTimeout(function(){window.print();},100);}
+    <\/script>
   </body></html>`);
   w.document.close();
 }
