@@ -30,7 +30,7 @@ const AddProduct: React.FC = () => {
     productName: '',
     slug: '',
     sku: '',
-    sellingType: 'pos', // new products are sold in the shop by default
+    sellingType: 'pos', // always POS on this branch (no Selling Type field)
     category: '',
     brand: '',
     color: '',
@@ -189,10 +189,6 @@ const AddProduct: React.FC = () => {
     setAccordion((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const sellingTypes = [
-    { value: 'online', label: 'Online' },
-    { value: 'pos', label: 'POS' },
-  ];
   return (
     <>
       {/* Page Header */}
@@ -280,7 +276,7 @@ const AddProduct: React.FC = () => {
                       )}
                     </div>
 
-                    {/* SKU & Selling Type */}
+                    {/* SKU (selling type is always POS on this branch) */}
                     <div className="row">
                       {isVisible('sku') && (
                       <div className="col-sm-6 col-12">
@@ -290,19 +286,6 @@ const AddProduct: React.FC = () => {
                           <button type="button" className="btn btn-primaryadd" onClick={generateSKU}>
                             Generate
                           </button>
-                        </div>
-                      </div>
-                      )}
-                      {isVisible('sellingType') && (
-                      <div className="col-sm-6 col-12">
-                        <div className="mb-3">
-                          <label className="form-label">Selling Type</label>
-                          <select className="form-select" name="sellingType" value={form.sellingType} onChange={handleChange}>
-                            <option value="">Select</option>
-                            {sellingTypes.map((st) => (
-                              <option key={st.value} value={st.value}>{st.label}</option>
-                            ))}
-                          </select>
                         </div>
                       </div>
                       )}

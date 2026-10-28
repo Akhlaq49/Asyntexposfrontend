@@ -34,7 +34,7 @@ const EditProduct: React.FC = () => {
     productName: '',
     slug: '',
     sku: '',
-    sellingType: '',
+    sellingType: 'pos',
     category: '',
     brand: '',
     color: '',
@@ -101,7 +101,7 @@ const EditProduct: React.FC = () => {
           productName: product.productName || '',
           slug: product.slug || '',
           sku: product.sku || '',
-          sellingType: product.sellingType || '',
+          sellingType: 'pos', // always POS on this branch
           category: product.category || '',
           brand: product.brand || '',
           color: product.color || '',
@@ -237,10 +237,6 @@ const EditProduct: React.FC = () => {
     setAccordion((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const sellingTypes = [
-    { value: 'online', label: 'Online' },
-    { value: 'pos', label: 'POS' },
-  ];
   if (loading) {
     return (
       <div className="text-center p-5">
@@ -336,7 +332,7 @@ const EditProduct: React.FC = () => {
                       )}
                     </div>
 
-                    {/* SKU & Selling Type */}
+                    {/* SKU (selling type is always POS on this branch) */}
                     <div className="row">
                       {isVisible('sku') && (
                       <div className="col-sm-6 col-12">
@@ -346,19 +342,6 @@ const EditProduct: React.FC = () => {
                           <button type="button" className="btn btn-primaryadd" onClick={generateSKU}>
                             Generate
                           </button>
-                        </div>
-                      </div>
-                      )}
-                      {isVisible('sellingType') && (
-                      <div className="col-sm-6 col-12">
-                        <div className="mb-3">
-                          <label className="form-label">Selling Type</label>
-                          <select className="form-select" name="sellingType" value={form.sellingType} onChange={handleChange}>
-                            <option value="">Select</option>
-                            {sellingTypes.map((st) => (
-                              <option key={st.value} value={st.value}>{st.label}</option>
-                            ))}
-                          </select>
                         </div>
                       </div>
                       )}
