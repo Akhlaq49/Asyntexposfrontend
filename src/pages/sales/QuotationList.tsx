@@ -311,10 +311,19 @@ const QuotationList: React.FC = () => {
   const taxAmount = taxTotal(taxes);
   const grandTotal = Math.max(0, itemsTotal - form.discount + taxAmount + form.shipping + (form.installationCharges || 0));
 
-  /* ---- Customer search ---- */
-  const filteredCustomers = customerSearchTerm.trim().length > 0
-    ? customers.filter(c => c.name.toLowerCase().includes(customerSearchTerm.toLowerCase())).slice(0, 8)
-    : [];
+  /* ---- Customer search: by name, phone number, building (type / size / condition) or location (address / city).
+     Every word typed must match one of them, e.g. "ali dha" or "house lahore" or "0300 123". ---- */
+  const filteredCustomers = (() => {
+    const words = customerSearchTerm.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    const digits = (v?: string) => (v || '').replace(/\D/g, '');
+    return customers.filter((c) => {
+      const text = [c.name, c.phone, c.buildingType, c.buildingSpace, c.buildingStage, c.address, c.city].filter(Boolean).join(' ').toLowerCase();
+      const phone = digits(c.phone);
+      // a number (3+ digits, dashes allowed) also matches the phone ignoring its dashes / spaces
+      return words.every((w) => text.includes(w) || (/^[\d-]+$/.test(w) && digits(w).length >= 3 && phone.includes(digits(w))));
+    }).slice(0, 10);
+  })();
 
   const handleCustomerSelect = (c: CustomerResult) => {
     setForm({ ...form, customerId: c.id, customerName: c.name });
@@ -802,14 +811,21 @@ const QuotationList: React.FC = () => {
                     <div className="col-lg-4 col-sm-6 col-12">
                       <div className="mb-3" ref={customerSearchRef}>
                         <label className="form-label">{t('quotations.customer_name')}<span className="text-danger ms-1">*</span></label>
-                        <input type="text" className="form-control" placeholder={t('quotations.search_customer')} value={customerSearchTerm}
+                        <input type="text" className="form-control customer-search" placeholder="Name, phone, building or location" title="Search by customer name, phone number, building type or location (address / city)" value={customerSearchTerm}
                           onChange={e => { setCustomerSearchTerm(e.target.value); setShowCustomerDropdown(true); }}
                           onFocus={() => setShowCustomerDropdown(true)} />
                         {showCustomerDropdown && filteredCustomers.length > 0 && (
-                          <ul className="list-group position-absolute w-100" style={{ zIndex: 1050, maxHeight: 200, overflowY: 'auto' }}>
+                          <ul className="list-group position-absolute w-100" style={{ zIndex: 1050, maxHeight: 280, overflowY: 'auto' }}>
                             {filteredCustomers.map(c => (
                               <li key={c.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleCustomerSelect(c)}>
-                                {c.name} {c.phone && <small className="text-muted ms-1">{c.phone}</small>}
+                                <div>{c.name} {c.phone && <small className="text-muted ms-1">{c.phone}</small>}</div>
+                                {(c.buildingType || c.buildingSpace || c.address || c.city) && (
+                                  <small className="text-muted d-block">
+                                    {[c.buildingType, c.buildingSpace].filter(Boolean).join(', ')}
+                                    {(c.buildingType || c.buildingSpace) && (c.address || c.city) ? ' · ' : ''}
+                                    {[c.address, c.city].filter(Boolean).join(', ')}
+                                  </small>
+                                )}
                               </li>
                             ))}
                           </ul>

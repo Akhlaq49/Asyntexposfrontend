@@ -50,7 +50,7 @@
     "showing": "Showing",
     "entries": "entries",
     "of": "of",
-    "copyright": "Copyright \u00a9 2025 Asentyx. All rights reserved.",
+    "copyright": "Copyright © {{year}} Asentyx. All rights reserved.",
     "select": "Select",
     "choose": "Choose",
     "n_a": "N/A",

@@ -141,7 +141,7 @@ const SignIn: React.FC = () => {
                       </div>
                     </div>
                     <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                      <p>{t('common.copyright')}</p>
+                      <p>{t('common.copyright', { year: new Date().getFullYear() })}</p>
                     </div>
                   </div>
                 </div>

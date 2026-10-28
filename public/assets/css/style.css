@@ -46533,3 +46533,35 @@ span.flatpickr-weekday {
 [data-theme=dark] #sidebar .sidebar-menu ul li a.active i {
   color: #FE9F43;
 }
+
+/* ── List search boxes: no magnifier button inside the box (it overlapped the "Search" text) ── */
+.search-input .btn-searchset {
+  display: none !important;
+}
+
+/* ── Table side-scroll: a thicker, rounded scrollbar that is easy to grab, and smooth scrolling ── */
+.table-responsive {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+/* Firefox only (Chrome / Edge would drop the rounded bar below if these were set for them) */
+@supports (-moz-appearance: none) {
+  .table-responsive { scrollbar-width: auto; scrollbar-color: #FE9F43 #EEF0F3; }
+}
+.table-responsive::-webkit-scrollbar {
+  height: 12px;
+}
+.table-responsive::-webkit-scrollbar-track {
+  background: #EEF0F3;
+  border-radius: 10px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #FE9F43;
+  border-radius: 10px;
+  border: 2px solid #EEF0F3;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:active {
+  background: #E8802A;
+}

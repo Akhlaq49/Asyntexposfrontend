@@ -68,7 +68,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {children}
           </div>
           <div className="footer">
-            <p>{t('common.copyright')}</p>
+            <p>{t('common.copyright', { year: new Date().getFullYear() })}</p>
           </div>
         </div>
         <AiBot />

@@ -164,12 +164,6 @@ const ExpenseList: React.FC = () => {
               <div className="mb-3"><label className="form-label">{t('expenses.description')}</label><textarea className="form-control" rows={3} value={addForm.description} onChange={e => setAddForm(p => ({ ...p, description: e.target.value }))} /></div>
               <div className="mb-3"><label className="form-label">{t('expenses.date')}<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={addForm.date} onChange={e => setAddForm(p => ({ ...p, date: e.target.value }))} /></div>
               <div className="mb-3"><label className="form-label">{t('expenses.amount')}<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={addForm.amount || ''} onChange={e => setAddForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
-              <div className="mb-0"><label className="form-label">{t('expenses.status')}</label>
-                <select className="form-select" value={addForm.status} onChange={e => setAddForm(p => ({ ...p, status: e.target.value }))}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
             </div>
             <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowAddModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-primary" onClick={handleAdd} disabled={!addForm.expenseName.trim() || !addForm.expenseCategoryId || !addForm.date}>{t('expenses.add_expense')}</button></div>
           </div></div>
@@ -191,12 +185,6 @@ const ExpenseList: React.FC = () => {
               <div className="mb-3"><label className="form-label">{t('expenses.description')}</label><textarea className="form-control" rows={3} value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} /></div>
               <div className="mb-3"><label className="form-label">{t('expenses.date')}<span className="text-danger ms-1">*</span></label><input type="date" className="form-control" value={editForm.date} onChange={e => setEditForm(p => ({ ...p, date: e.target.value }))} /></div>
               <div className="mb-3"><label className="form-label">{t('expenses.amount')}<span className="text-danger ms-1">*</span></label><input type="number" className="form-control" value={editForm.amount || ''} onChange={e => setEditForm(p => ({ ...p, amount: Number(e.target.value) }))} /></div>
-              <div className="mb-0"><label className="form-label">{t('expenses.status')}</label>
-                <select className="form-select" value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
             </div>
             <div className="modal-footer"><button type="button" className="btn me-2 btn-secondary" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</button><button type="button" className="btn btn-primary" onClick={handleEditSave}>{t('common.save_changes')}</button></div>
           </div></div>
