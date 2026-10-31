@@ -24,6 +24,8 @@ const CategoryList = lazy(() => import('./pages/inventory/CategoryList'))
 const BrandList = lazy(() => import('./pages/inventory/BrandList'))
 const Units = lazy(() => import('./pages/inventory/Units'))
 const TaxTypes = lazy(() => import('./pages/inventory/TaxTypes'))
+const SolutionPackages = lazy(() => import('./pages/inventory/SolutionPackages'))
+const DrawingSolution = lazy(() => import('./pages/sales/DrawingSolution'))
 const Warranty = lazy(() => import('./pages/inventory/Warranty'))
 
 
@@ -297,6 +299,7 @@ function App() {
           <Route path="/brand-list" element={<BrandList />} />
           <Route path="/units" element={<Units />} />
           <Route path="/tax-types" element={<TaxTypes />} />
+          <Route path="/solution-packages" element={<SolutionPackages />} />
           <Route path="/warranty" element={<Warranty />} />
 
           {/* Stock */}
@@ -309,6 +312,7 @@ function App() {
           <Route path="/sales-returns" element={<SalesReturns />} />
           <Route path="/quotation-list" element={<QuotationList />} />
           <Route path="/staff-approvals" element={<StaffApprovals />} />
+          <Route path="/drawing-solution" element={<DrawingSolution />} />
           <Route path="/pos" element={<POS />} />
 
 

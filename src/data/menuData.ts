@@ -118,6 +118,8 @@ const menuData: MenuSection[] = [
       { title: 'Quotation', icon: 'ti-files', iconType: 'tabler', path: '/quotation-list' },
       // Admin / Super Admin approve staff quotations here (other roles only if given access)
       { title: 'Staff Approvals', icon: 'ti-checklist', iconType: 'tabler', path: '/staff-approvals' },
+      // upload an electrical drawing -> suggested Standard / Premium solution (read by the Drawing2Quote service)
+      { title: 'Drawing to Solution', icon: 'ti-file-search', iconType: 'tabler', path: '/drawing-solution' },
       // Hidden from the sidebar (opened from the header POS button); kept here so the Sales/POS permission still applies
       { title: 'POS', icon: 'ti-device-laptop', iconType: 'tabler', path: '/pos', hideInSidebar: true },
     ],
@@ -147,6 +149,8 @@ const menuData: MenuSection[] = [
       { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
       { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
+      // items per building size + Standard / Premium categorization (used by the package calculation)
+      { title: 'Solution Packages', icon: 'ti-packages', iconType: 'tabler', path: '/solution-packages' },
     ],
   },
   {

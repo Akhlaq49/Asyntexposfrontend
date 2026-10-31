@@ -1,7 +1,8 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api, { mediaUrl } from '../../services/api';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import type { DrawingEstimate } from './DrawingSolution';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
@@ -181,6 +182,9 @@ const QuotationList: React.FC = () => {
   // quotation id -> purchase orders raised to buy its goods
   const [linkedOrders, setLinkedOrders] = useState<Record<number, { poNumber: string; status: string }[]>>({});
   const navigate = useNavigate();
+  const location = useLocation();
+  /** Sales > Drawing to Solution: what the estimate couldn't fill in (items with no inventory product) */
+  const [estimateNote, setEstimateNote] = useState<DrawingEstimate['unlinked'] | null>(null);
 
   /** The product's description and model, shown and printed on quotations (instead of the SKU) */
   const productInfo = (productId: number) => {
@@ -334,6 +338,7 @@ const QuotationList: React.FC = () => {
   /* ---- Open add/edit modal ---- */
   const openAddModal = () => {
     setEditingId(null);
+    setEstimateNote(null);
     setForm({ customerId: null, customerName: '', customerImage: '', productId: null, productName: '', productImage: '', reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, installationCharges: 0, description: '', quotationDate: new Date().toISOString().slice(0, 10) });
     setItems([]);
     setTaxes([]);
@@ -346,8 +351,31 @@ const QuotationList: React.FC = () => {
     setShowModal(true);
   };
 
+  /** Drawing to Solution "Create Quotation": a new quotation with the estimated products and quantities;
+      prices come from the products, the same as adding them by hand */
+  const estimate = (location.state as { drawingEstimate?: DrawingEstimate } | null)?.drawingEstimate;
+  useEffect(() => {
+    if (!estimate || loading) return;
+    navigate(location.pathname, { replace: true, state: null });   // once only (not again on refresh / back)
+    openAddModal();
+    const found = estimate.items.map((e) => ({ e, p: products.find((x) => Number(x.id) === e.productId) }));
+    setItems(found.filter((f) => f.p).map(({ e, p }) => calcItem({
+      productId: e.productId, productName: p!.productName, quantity: e.quantity, purchasePrice: p!.price,
+      discount: 0, taxPercent: 0, taxAmount: 0, unitCost: p!.price, totalCost: p!.price * e.quantity,
+    })));
+    const first = found.find((f) => f.p)?.p;
+    setForm((f) => ({ ...f, description: estimate.description,
+      ...(first ? { productId: parseInt(first.id), productName: first.productName, productImage: first.images?.[0] || '' } : {}) }));
+    // a linked product that was deleted from inventory also has to be added by hand
+    const missing = found.filter((f) => !f.p).map(({ e }) => ({ name: e.productName, quantity: e.quantity }));
+    const note = [...estimate.unlinked, ...missing];
+    setEstimateNote(note.length ? note : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estimate, loading]);
+
   /** revise = open the form as a new revision (…_R1, _R2 …) of this quotation instead of editing it in place */
   const openEditModal = async (q: QuotationDto, revise = false) => {
+    setEstimateNote(null);
     // Fetch full detail with items
     try {
       const res = await api.get<QuotationDto>(`/quotations/${q.id}`);
@@ -806,6 +834,14 @@ const QuotationList: React.FC = () => {
               </div>
               <div className="card border-0 mb-0">
                 <div className="card-body pb-0">
+                  {estimateNote && (
+                    <div className="alert alert-warning py-2 estimate-note">
+                      <div className="d-flex justify-content-between"><b>Not added from the drawing estimate - no inventory product linked:</b>
+                        <button type="button" className="btn btn-link btn-sm p-0 text-muted" onClick={() => setEstimateNote(null)}>Dismiss</button></div>
+                      <div className="small">{estimateNote.map((u) => `${u.name} x ${u.quantity}`).join(', ')}</div>
+                      <div className="small text-muted">Search and add the products below, or link them under Inventory &gt; Solution Packages.</div>
+                    </div>
+                  )}
                   {/* Form fields */}
                   <div className="row">
                     <div className="col-lg-4 col-sm-6 col-12">
