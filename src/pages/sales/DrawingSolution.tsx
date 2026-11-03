@@ -9,6 +9,7 @@ import {
 import { solutionPackageService, PackageSize } from '../../services/solutionPackageService';
 
 type Plan = 'standard' | 'premium';
+const money = (n: number | null | undefined) => (n == null ? '-' : `PKR ${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
 const errorText = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 /** what the quotation form is filled with (Sales > Quotations), see QuotationList */
 export interface DrawingEstimate {
@@ -52,6 +53,10 @@ const DrawingSolution: React.FC = () => {
   const [asking, setAsking] = useState<Suggestion | null>(null);
   const [choices, setChoices] = useState<Choices>({});
   const [extraType, setExtraType] = useState('');
+  // does the client already use another company's automation? the areas ticked get a Matter gateway each
+  const [otherUses, setOtherUses] = useState<'' | 'yes' | 'no'>('');
+  const [otherCompany, setOtherCompany] = useState('');
+  const [otherAreas, setOtherAreas] = useState<Set<string>>(new Set());
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -65,7 +70,7 @@ const DrawingSolution: React.FC = () => {
     if (!file) { setFileError('Choose the drawing file.'); return; }
     const problem = checkFile(file);
     if (problem) { setFileError(problem); return; }
-    setReading(true); setProgress(null); setFileError(''); setResult(null); setAsking(null); setPlan(null); setError('');
+    setReading(true); setProgress(null); setFileError(''); setResult(null); setAsking(null); setPlan(null); setError(''); setOtherUses(''); setOtherCompany(''); setOtherAreas(new Set());
     try { const ex = await drawingService.extract(file, setProgress, () => left.current); if (!left.current) setExtraction(ex); }
     catch (err) { if (left.current) return; setExtraction(null); setFileError(errorText(err, 'The drawing could not be read.')); }
     setReading(false); setProgress(null);
@@ -107,11 +112,27 @@ const DrawingSolution: React.FC = () => {
   const unassignedLeft = extraction ? extraction.floors.reduce((n, f) => n + f.areas.filter((a) => a.name === 'Unassigned').reduce((m, a) => m + Object.values(a.items).reduce((x, y) => x + y, 0), 0), 0) : 0;
 
   // ── step 3: plan -> suggestion ──
+  // the house portion-wise (floor -> its areas) for the "other company" question; "Unassigned" isn't a room
+  const areaKey = (floor: string, area: string) => `${floor} / ${area}`;
+  const housePortions = useMemo(() => (extraction?.floors || []).map((f) => ({
+    floor: f.name, areas: f.areas.filter((a) => a.name !== 'Unassigned').map((a) => ({ key: areaKey(f.name, a.name), name: a.name })),
+  })).filter((f) => f.areas.length > 0), [extraction]);
+  // areas renamed / removed in the review table drop out of the ticked list
+  const tickedAreas = housePortions.flatMap((f) => f.areas.map((a) => a.key)).filter((k) => otherAreas.has(k));
+  const otherBrand = otherUses === 'yes' ? { company: otherCompany.trim(), areas: tickedAreas } : null;
+  const otherReady = otherUses === 'no' || (otherUses === 'yes' && otherCompany.trim() !== '' && tickedAreas.length > 0);
+  const otherChanged = () => { setResult(null); setAsking(null); };
+  const tick = (keys: string[], on: boolean) => {
+    setOtherAreas((prev) => { const n = new Set(prev); keys.forEach((k) => (on ? n.add(k) : n.delete(k))); return n; });
+    otherChanged();
+  };
+
   const run = async (p: Plan, answer: Choices | null) => {
     if (!extraction) return;
+    if (!otherReady) { setError("Answer whether the client uses another company's automation products (and tick those areas)."); return; }
     setSuggesting(true); setError('');
     try {
-      const res = await drawingService.suggest(extraction, p, answer, sizeId ? Number(sizeId) : null);
+      const res = await drawingService.suggest(extraction, p, answer, sizeId ? Number(sizeId) : null, otherBrand);
       if (res.needsConfirmation) {
         setAsking(res);
         setChoices(Object.fromEntries(res.toConfirm.map((c) => [String(c.itemId), choices[String(c.itemId)] || 'use'])));
@@ -124,14 +145,14 @@ const DrawingSolution: React.FC = () => {
 
   // ── exports (all from the same result, so the totals match) ──
   const title = () => extraction?.project.projectName || extraction?.fileName.replace(/\.[^.]+$/, '') || 'Drawing';
-  const rows = (r: Suggestion) => r.lines.map((l) => [l.name, l.groupName || '', USAGE_LABEL[l.usage], l.source === 'drawing' ? 'Drawing' : l.source === 'choice' ? 'Your choice' : 'Package',
-    l.quantity, l.productName || 'Not linked']);
+  const rows = (r: Suggestion) => r.lines.map((l) => [l.name, l.groupName || '', USAGE_LABEL[l.usage], l.source === 'drawing' ? 'Drawing' : l.source === 'choice' ? 'Your choice' : l.source === 'other' ? 'Other company' : 'Package',
+    l.quantity, l.productName || 'Not linked', money(l.unitPrice), money(l.lineTotal)]);
   const exportExcel = () => {
     if (!result || !extraction) return;
     const head = [[`${title()} - ${result.plan === 'premium' ? 'Premium' : 'Standard'} solution`], [`Building size: ${result.size?.name || '-'} (${result.size?.reason || ''})`],
       ...Object.entries(extraction.project).map(([k, v]) => [`${PROJECT_LABEL[k] || k}: ${v}`]), []];
-    const table = [['Item', 'Group', 'Rule', 'From', 'Quantity', 'Inventory product'], ...rows(result),
-      ['Total', '', '', '', result.totals.quantity, '']];
+    const table = [['Item', 'Group', 'Rule', 'From', 'Quantity', 'Inventory product', 'Unit price', 'Total'], ...rows(result),
+      ['Total', '', '', '', result.totals.quantity, '', '', money(result.totals.amount ?? 0)]];
     const areaRows = [['Floor / area', 'Item', 'Quantity'], ...result.lines.flatMap((l) => Object.entries(l.areas).map(([a, q]) => [a, l.name, q]))];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([...head, ...table]), 'Solution');
@@ -147,9 +168,9 @@ const DrawingSolution: React.FC = () => {
     info.forEach((t, i) => doc.text(t, 14, 22 + i * 5));
     autoTable(doc, {
       startY: 24 + info.length * 5,
-      head: [['Item', 'Group', 'Rule', 'From', 'Quantity', 'Inventory product']],
+      head: [['Item', 'Group', 'Rule', 'From', 'Quantity', 'Inventory product', 'Unit price', 'Total']],
       body: rows(result).map((r) => r.map(String)),
-      foot: [['Total', '', '', '', String(result.totals.quantity), '']],
+      foot: [['Total', '', '', '', String(result.totals.quantity), '', '', money(result.totals.amount ?? 0)]],
       styles: { fontSize: 8 }, headStyles: { fillColor: [254, 159, 67] }, footStyles: { fillColor: [240, 240, 240], textColor: 20 },
     });
     doc.save(`${title()} - ${result.plan} solution.pdf`);
@@ -167,7 +188,8 @@ const DrawingSolution: React.FC = () => {
       else byProduct.set(l.productId, { productId: l.productId, productName: l.productName || l.name, quantity: l.quantity });
     }
     const estimate: DrawingEstimate = {
-      description: `${title()} - ${result.plan === 'premium' ? 'Premium' : 'Standard'} solution${result.size ? ` (${result.size.name})` : ''}, estimated from the drawing ${extraction.fileName}`,
+      description: `${title()} - ${result.plan === 'premium' ? 'Premium' : 'Standard'} solution${result.size ? ` (${result.size.name})` : ''}, estimated from the drawing ${extraction.fileName}`
+        + (otherBrand ? `. The client uses ${otherBrand.company} automation in ${otherBrand.areas.length} area(s) - Matter gateways included` : ''),
       items: [...byProduct.values()], unlinked,
     };
     navigate('/quotation-list', { state: { drawingEstimate: estimate } });
@@ -176,6 +198,7 @@ const DrawingSolution: React.FC = () => {
   const sourceBadge = (l: SolutionLineResult) => l.source === 'drawing'
     ? <span className="badge badge-soft-success" title={l.detail}>Drawing</span>
     : l.source === 'choice' ? <span className="badge badge-soft-warning" title={l.detail}>Your choice</span>
+    : l.source === 'other' ? <span className="badge badge-soft-info" title={l.detail}>Other company</span>
       : <span className="badge badge-soft-secondary" title={l.detail}>Package</span>;
 
   return (
@@ -324,10 +347,66 @@ const DrawingSolution: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <button type="button" className="btn btn-success" disabled={!plan || suggesting} onClick={() => plan && run(plan, null)}>
+            </div>
+            {/* another company's automation -> Matter gateways */}
+            <div className="card-body border-top other-brand">
+              <label className="form-label d-block mb-1">Is the client using automation products of any other company?</label>
+              {(['yes', 'no'] as const).map((v) => (
+                <div key={v} className="form-check form-check-inline">
+                  <input className="form-check-input" type="radio" name="other-uses" id={`other-${v}`} checked={otherUses === v}
+                    onChange={() => { setOtherUses(v); otherChanged(); }} />
+                  <label className="form-check-label" htmlFor={`other-${v}`}>{v === 'yes' ? 'Yes' : 'No'}</label>
+                </div>
+              ))}
+              {otherUses === 'yes' && (
+                <div className="mt-3">
+                  <div className="mb-3" style={{ maxWidth: 420 }}>
+                    <label className="form-label mb-1" htmlFor="other-company">Company name<span className="text-danger ms-1">*</span></label>
+                    <input id="other-company" className="form-control" placeholder="e.g. Sonoff, Tuya, Schneider" value={otherCompany}
+                      onChange={(e) => { setOtherCompany(e.target.value); otherChanged(); }} />
+                  </div>
+                  <label className="form-label mb-1 d-block">Where is it used? Tick the areas (one Matter gateway per area)</label>
+                  {housePortions.length === 0 && <small className="text-muted">No areas were read from the drawing - add them in the table above.</small>}
+                  {housePortions.map((f) => {
+                    const ticked = f.areas.filter((a) => otherAreas.has(a.key)).length;
+                    return (
+                      <details key={f.floor} className="border rounded mb-2 other-floor">
+                        <summary className="px-3 py-2" style={{ cursor: 'pointer' }}>
+                          <span className="fw-semibold">{f.floor}</span>
+                          <small className={`ms-2 ${ticked ? 'text-primary' : 'text-muted'}`}>{ticked} of {f.areas.length} area(s) ticked</small>
+                        </summary>
+                        <div className="px-3 pb-2">
+                          <div className="mb-1">
+                            <button type="button" className="btn btn-link btn-sm p-0 me-3" onClick={() => tick(f.areas.map((a) => a.key), true)}>Tick all</button>
+                            <button type="button" className="btn btn-link btn-sm p-0" onClick={() => tick(f.areas.map((a) => a.key), false)}>Clear</button>
+                          </div>
+                          <div className="d-flex flex-wrap gap-3">
+                            {f.areas.map((a) => (
+                              <div key={a.key} className="form-check">
+                                <input className="form-check-input" type="checkbox" id={`oa-${a.key}`} aria-label={a.key} checked={otherAreas.has(a.key)}
+                                  onChange={(e) => tick([a.key], e.target.checked)} />
+                                <label className="form-check-label" htmlFor={`oa-${a.key}`}>{a.name}</label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </details>
+                    );
+                  })}
+                  {tickedAreas.length > 0 && (
+                    <div className="small mt-1 gateway-count"><i className="ti ti-router me-1"></i>
+                      <b>{tickedAreas.length}</b> Matter gateway(s) will be added to the solution</div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="card-body border-top d-flex align-items-center gap-3 flex-wrap">
+              <button type="button" className="btn btn-success" disabled={!plan || !otherReady || suggesting} onClick={() => plan && run(plan, null)}>
                 <i className="ti ti-wand me-1"></i>{suggesting ? 'Working it out...' : 'Suggest Solution'}
               </button>
-              {!plan && <small className="text-muted">Choose Standard or Premium - nothing is worked out until you do.</small>}
+              {(!plan || !otherReady) && <small className="text-muted">
+                {!plan ? 'Choose Standard or Premium' : otherUses === '' ? "Answer whether the client uses another company's automation"
+                  : otherCompany.trim() === '' ? "Enter the other company's name" : 'Tick the areas where it is used'} - nothing is worked out until you do.</small>}
             </div>
             {error && <div className="card-body pt-0"><div className="alert alert-danger py-2 mb-0">{error}</div></div>}
           </div>
@@ -356,11 +435,11 @@ const DrawingSolution: React.FC = () => {
                 <div className="table-responsive">
                   <table className="table table-bordered align-middle result-table">
                     <thead className="thead-light">
-                      <tr><th>Item</th><th>Group</th><th>Rule</th><th>From</th><th className="text-center">Quantity</th><th className="text-center">Package qty</th><th>Inventory product</th></tr>
+                      <tr><th>Item</th><th>Group</th><th>Rule</th><th>From</th><th className="text-center">Quantity</th><th className="text-center">Package qty</th><th>Inventory product</th><th className="text-end">Unit price</th><th className="text-end">Total</th></tr>
                     </thead>
                     <tbody>
                       {result.lines.length === 0 ? (
-                        <tr><td colSpan={7} className="text-center py-4">No items - enter quantities under Inventory &gt; Solution Packages.</td></tr>
+                        <tr><td colSpan={9} className="text-center py-4">No items - enter quantities under Inventory &gt; Solution Packages.</td></tr>
                       ) : result.lines.map((l) => (
                         <tr key={l.itemId}>
                           <td style={{ whiteSpace: 'normal', minWidth: 240, maxWidth: 360 }}>
@@ -377,11 +456,15 @@ const DrawingSolution: React.FC = () => {
                           <td className="text-center fw-bold">{l.quantity}</td>
                           <td className="text-center text-muted">{l.baseline || '-'}</td>
                           <td style={{ whiteSpace: 'normal' }}>{l.productName || <span className="badge badge-soft-danger" title="Link it on Inventory > Solution Packages, or add it to the quotation yourself">Not linked</span>}</td>
+                          <td className="text-end text-nowrap result-price">{l.unitPrice === 0 ? <span className="badge badge-soft-warning" title="This product's price is 0 - set it on the product">No price</span> : money(l.unitPrice)}</td>
+                          <td className="text-end text-nowrap fw-semibold result-line-total">{money(l.lineTotal)}</td>
                         </tr>
                       ))}
                     </tbody>
                     {result.lines.length > 0 && (
-                      <tfoot><tr className="fw-bold bg-light"><td colSpan={4}>Total ({result.totals.items} items)</td><td className="text-center result-quantity">{result.totals.quantity}</td><td></td><td>{result.totals.unlinked > 0 && <small className="text-danger fw-normal">{result.totals.unlinked} not linked</small>}</td></tr></tfoot>
+                      <tfoot><tr className="fw-bold bg-light"><td colSpan={4}>Total ({result.totals.items} items)</td><td className="text-center result-quantity">{result.totals.quantity}</td><td></td><td>{result.totals.unlinked > 0 && <small className="text-danger fw-normal">{result.totals.unlinked} not linked</small>}</td>
+                        <td className="text-end">{(result.totals.unpriced ?? 0) > 0 && <small className="text-warning fw-normal">{result.totals.unpriced} without a price</small>}</td>
+                        <td className="text-end text-nowrap result-amount">{money(result.totals.amount ?? 0)}</td></tr></tfoot>
                     )}
                   </table>
                 </div>
@@ -408,7 +491,7 @@ const DrawingSolution: React.FC = () => {
                 <button type="button" className="btn-close" onClick={() => setAsking(null)} />
               </div>
               <div className="modal-body">
-                <p>These products are ticked for <b>both</b> Standard and Premium. Choose what to use in this Premium solution (applies to all areas).</p>
+                <p>These products are ticked for <b>both</b> Standard and Premium, and a Premium-only product can be used instead. Choose what to use in this Premium solution (applies to all areas). Other products are used as they are.</p>
                 {asking.toConfirm.map((c) => {
                   const key = String(c.itemId);
                   const options = [{ value: 'use', label: `Use ${c.name}` }, ...(c.alternatives || []).map((a) => ({ value: String(a.itemId), label: `Use ${a.name} instead (Premium only)` })),

@@ -97,26 +97,11 @@ const ProductList: React.FC = () => {
         </div>
         <ul className="table-top-head">
           <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.pdf')} onClick={(e) => e.preventDefault()}>
-              <img src="/assets/img/icons/pdf.svg" alt="img" />
-            </a>
-          </li>
-          <li>
-            <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.excel')} onClick={(e) => e.preventDefault()}>
-              <img src="/assets/img/icons/excel.svg" alt="img" />
-            </a>
-          </li>
-          <li>
             <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title={t('common.refresh')} onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
               <i className="ti ti-refresh"></i>
             </a>
           </li>
         </ul>
-        <div className="page-btn">
-          <Link to="/add-product" className="btn btn-primary">
-            <i className="ti ti-circle-plus me-1"></i>{t('products.add_product')}
-          </Link>
-        </div>
       </div>
 
       {/* Table Card */}

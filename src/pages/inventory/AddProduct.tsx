@@ -10,6 +10,7 @@ import {
 } from '../../services/productService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
 import { AppliedTax, cleanTaxes } from '../../components/common/TaxSelector';
+import BulkAddProducts from './BulkAddProducts';
 
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
@@ -70,6 +71,8 @@ const AddProduct: React.FC = () => {
 
   // Add Category modal
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  // bulk add from an Excel sheet
+  const [showBulk, setShowBulk] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
   // Load dropdown data
@@ -211,7 +214,10 @@ const AddProduct: React.FC = () => {
             </a>
           </li>
         </ul>
-        <div className="page-btn mt-0">
+        <div className="page-btn mt-0 d-flex gap-2">
+          <button type="button" className="btn btn-primary bulk-add-btn" onClick={() => setShowBulk(true)}>
+            <i className="ti ti-file-spreadsheet me-1"></i>Bulk Add
+          </button>
           <Link to="/product-list" className="btn btn-secondary">
             <i data-feather="arrow-left" className="me-2"></i>Back to Product
           </Link>
@@ -574,6 +580,10 @@ const AddProduct: React.FC = () => {
           </div>
         </div>
       </form>
+
+      {showBulk && (
+        <BulkAddProducts onClose={() => setShowBulk(false)} onAdded={() => navigate('/product-list')} />
+      )}
 
       {/* Add Category Modal */}
       {showCategoryModal && (

@@ -18,8 +18,10 @@ export interface Extraction {
 }
 export interface SolutionLineResult {
   itemId: number; name: string; groupName: string | null; productLineName: string | null; usage: SolutionUsage;
-  productName: string | null; quantity: number; baseline: number; source: 'drawing' | 'package' | 'choice';
+  productName: string | null; quantity: number; baseline: number; source: 'drawing' | 'package' | 'choice' | 'other';
   detail: string; areas: Record<string, number>; productId: number | null;
+  /** joined from the Products table by the backend: the linked product's price, x quantity (null = not linked) */
+  unitPrice?: number | null; lineTotal?: number | null;
   alternatives?: { itemId: number; name: string }[]; reason?: string;
 }
 export interface Suggestion {
@@ -29,7 +31,7 @@ export interface Suggestion {
   toConfirm: SolutionLineResult[];
   lines: SolutionLineResult[];
   leftOut: SolutionLineResult[];
-  totals: { items: number; quantity: number; unlinked: number };
+  totals: { items: number; quantity: number; unlinked: number; amount?: number; unpriced?: number };
   notes: string[];
 }
 /** a drawing being read in the background (a printed PDF is read with OCR, about a minute per sheet) */
@@ -40,13 +42,15 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** an error shaped like an API error, so pages show its message the same way */
 const failure = (message: string) => Object.assign(new Error(message), { response: { data: { message } } });
 
+/** the client already uses another company's automation in these areas ("Floor / Area"): one Matter gateway each */
+export interface OtherBrand { company: string; areas: string[] }
+
 /** Premium "both" products: item id -> "use" | "skip" | id of the Premium-only item to use instead */
 export type Choices = Record<string, string>;
 
 export const SUPPORTED_MESSAGE =
-  'Supported files: DXF (recommended) or a vector PDF exported directly from AutoCAD/CAD software. Maximum size 50 MB. ' +
-  'Not supported: DWG files (please save as DXF), scanned PDFs, photos or images (JPG/PNG), hand-drawn plans, or password-protected PDFs. ' +
-  'For best results, the drawing should include a legend and room names.';
+  'Supported: DXF (best), or a PDF exported or printed from AutoCAD/CAD (printed PDFs take longer). Max 50 MB. ' +
+  'Not supported: DWG (save as DXF), scanned PDFs, photos, hand-drawn or password-protected files.';
 
 export const MAX_BYTES = 50 * 1024 * 1024;
 
@@ -74,8 +78,8 @@ export const drawingService = {
       onProgress?.(job);
     }
   },
-  suggest: (extraction: Extraction, plan: 'standard' | 'premium', choices: Choices | null, sizeId: number | null) =>
-    api.post<Suggestion>('/drawings/suggest', { extraction, plan, choices, sizeId }, { timeout: 120000 }).then((r) => r.data),
+  suggest: (extraction: Extraction, plan: 'standard' | 'premium', choices: Choices | null, sizeId: number | null, otherBrand: OtherBrand | null = null) =>
+    api.post<Suggestion>('/drawings/suggest', { extraction, plan, choices, sizeId, otherBrand }, { timeout: 120000 }).then((r) => r.data),
 };
 
 /** the file is refused before uploading when it obviously can't be read */
