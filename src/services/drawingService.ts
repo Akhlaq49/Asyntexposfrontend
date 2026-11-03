@@ -48,11 +48,13 @@ export interface OtherBrand { company: string; areas: string[] }
 /** Premium "both" products: item id -> "use" | "skip" | id of the Premium-only item to use instead */
 export type Choices = Record<string, string>;
 
-export const SUPPORTED_MESSAGE =
-  'Supported: DXF (best), or a PDF exported or printed from AutoCAD/CAD (printed PDFs take longer). Max 50 MB. ' +
-  'Not supported: DWG (save as DXF), scanned PDFs, photos, hand-drawn or password-protected files.';
+// keep the same in the backend (DrawingService.MaxMb) and Drawing2Quote (validator.py MAX_MB)
+export const MAX_MB = 200;
+export const MAX_BYTES = MAX_MB * 1024 * 1024;
 
-export const MAX_BYTES = 50 * 1024 * 1024;
+export const SUPPORTED_MESSAGE =
+  `Supported: DXF (best), or a PDF exported or printed from AutoCAD/CAD (printed PDFs take longer). Max ${MAX_MB} MB. ` +
+  'Not supported: DWG (save as DXF), scanned PDFs, photos, hand-drawn or password-protected files.';
 
 export const drawingService = {
   status: () => api.get<{ running: boolean }>('/drawings/status').then((r) => r.data.running),
@@ -89,7 +91,7 @@ export const checkFile = (file: File): string | null => {
   if (['jpg', 'jpeg', 'png', 'bmp', 'tif', 'tiff', 'heic', 'heif', 'gif', 'webp'].includes(ext))
     return 'Photos and images (JPG/PNG ...) can\'t be read. Upload the DXF, or the PDF exported directly from AutoCAD/CAD software.';
   if (!['dxf', 'pdf'].includes(ext)) return `".${ext}" files are not supported. ${SUPPORTED_MESSAGE}`;
-  if (file.size > MAX_BYTES) return `The file is ${(file.size / 1024 / 1024).toFixed(1)} MB - the maximum is 50 MB.`;
+  if (file.size > MAX_BYTES) return `The file is ${(file.size / 1024 / 1024).toFixed(1)} MB - the maximum is ${MAX_MB} MB.`;
   if (file.size === 0) return 'The file is empty.';
   return null;
 };
