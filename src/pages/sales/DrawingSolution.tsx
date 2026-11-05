@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  drawingService, checkFile, Extraction, ReadProgress, DrawingArea, Suggestion, Choices, SUPPORTED_MESSAGE, SolutionLineResult,
+  drawingService, checkFile, Extraction, ReadProgress, DrawingArea, Suggestion, Choices, SUPPORTED_LINES, SolutionLineResult,
 } from '../../services/drawingService';
 import { solutionPackageService, PackageSize } from '../../services/solutionPackageService';
 
@@ -220,9 +220,11 @@ const DrawingSolution: React.FC = () => {
       <div className="card">
         <div className="card-header"><h5 className="card-title mb-0">1. Upload the drawing</h5></div>
         <div className="card-body">
-          <div className="alert alert-info py-2 small drawing-supported">{SUPPORTED_MESSAGE}</div>
+          <div className="alert alert-info py-2 small drawing-supported">
+            {SUPPORTED_LINES.map((line) => <div key={line}>{line}</div>)}
+          </div>
           <div className="d-flex gap-2 align-items-start flex-wrap">
-            <input ref={fileInput} type="file" className="form-control drawing-file" style={{ maxWidth: 480 }} accept=".dxf,.pdf"
+            <input ref={fileInput} type="file" className="form-control drawing-file" style={{ maxWidth: 480 }} accept=".dxf,.pdf,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.gif,.webp"
               onChange={(e) => pick(e.target.files?.[0] || null)} />
             <button type="button" className="btn btn-primary" disabled={!file || reading} onClick={read}>
               <i className="ti ti-file-search me-1"></i>{reading ? 'Reading the drawing...' : 'Read Drawing'}
@@ -257,9 +259,17 @@ const DrawingSolution: React.FC = () => {
                   {Object.entries(extraction.project).map(([k, v]) => <div key={k}><span className="text-muted">{PROJECT_LABEL[k] || k}:</span> <b>{v}</b></div>)}
                 </div>
               )}
-              {extraction.warnings.length > 0 && (
+              {extraction.electrical === false && (
+                <div className="alert alert-danger py-2 small">
+                  <i className="ti ti-alert-circle me-1"></i><b>Not an electrical drawing.</b> It has no electrical legend or
+                  points (an architectural layout), so the suggested solution is based on the rooms and areas found only -
+                  lights, switches and sockets are estimated per room.
+                </div>
+              )}
+              {extraction.warnings.filter((w) => !w.startsWith('Not an electrical drawing')).length > 0 && (
                 <div className="alert alert-warning py-2 small">
-                  {extraction.warnings.map((w, i) => <div key={i}><i className="ti ti-alert-triangle me-1"></i>{w}</div>)}
+                  {extraction.warnings.filter((w) => !w.startsWith('Not an electrical drawing'))
+                    .map((w, i) => <div key={i}><i className="ti ti-alert-triangle me-1"></i>{w}</div>)}
                 </div>
               )}
               <details className="mb-3 small">

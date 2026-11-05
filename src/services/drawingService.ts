@@ -9,11 +9,13 @@ export interface DrawingArea {
 }
 export interface DrawingFloor { name: string; areas: DrawingArea[] }
 export interface Extraction {
-  fileName: string; fileType: 'dxf' | 'pdf';
+  fileName: string; fileType: 'dxf' | 'pdf' | 'scan' | 'image';
   project: Record<string, string>;
   floors: DrawingFloor[];
   legend: { symbol: string; description: string; type: string }[];
   totals: { areaSqft: number; items: Record<string, number>; points: number };
+  /** false: an architectural layout with no electrical legend or points - the solution comes from the rooms only */
+  electrical?: boolean;
   warnings: string[]; log: string[]; pointTypes: string[];
 }
 export interface SolutionLineResult {
@@ -52,9 +54,15 @@ export type Choices = Record<string, string>;
 export const MAX_MB = 200;
 export const MAX_BYTES = MAX_MB * 1024 * 1024;
 
-export const SUPPORTED_MESSAGE =
-  `Supported: DXF (best), or a PDF exported or printed from AutoCAD/CAD (printed PDFs take longer). Max ${MAX_MB} MB. ` +
-  'Not supported: DWG (save as DXF), scanned PDFs, photos, hand-drawn or password-protected files.';
+/** how well each kind of file is read, in two lines (keep in step with SUPPORTED_MESSAGE in Drawing2Quote validator.py) */
+export const SUPPORTED_LINES = [
+  'Best: DXF or CAD-exported PDF (exact) · Good: CAD PDF without text (OCR, slower) · Fair: scan or clear JPG/PNG (check counts) · Low: blurry photo/screenshot (rooms & sizes estimated).',
+  `Cannot read: DWG (save as DXF), locked PDF, HEIC, under 300 px, over ${MAX_MB} MB. Points need a legend; send WhatsApp images as Document.`,
+];
+export const SUPPORTED_MESSAGE = SUPPORTED_LINES.join(' ');
+
+/** pictures of a drawing the service reads from the image */
+export const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'bmp', 'tif', 'tiff', 'gif', 'webp'];
 
 export const drawingService = {
   status: () => api.get<{ running: boolean }>('/drawings/status').then((r) => r.data.running),
@@ -88,9 +96,9 @@ export const drawingService = {
 export const checkFile = (file: File): string | null => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (ext === 'dwg') return 'DWG files can\'t be read. In AutoCAD use Save As -> DXF and upload the DXF file.';
-  if (['jpg', 'jpeg', 'png', 'bmp', 'tif', 'tiff', 'heic', 'heif', 'gif', 'webp'].includes(ext))
-    return 'Photos and images (JPG/PNG ...) can\'t be read. Upload the DXF, or the PDF exported directly from AutoCAD/CAD software.';
-  if (!['dxf', 'pdf'].includes(ext)) return `".${ext}" files are not supported. ${SUPPORTED_MESSAGE}`;
+  if (['heic', 'heif'].includes(ext))
+    return 'HEIC photos can\'t be read. On the phone choose "Most Compatible" (JPG) or send it as JPG.';
+  if (!['dxf', 'pdf', ...IMAGE_EXTENSIONS].includes(ext)) return `".${ext}" files are not supported. ${SUPPORTED_MESSAGE}`;
   if (file.size > MAX_BYTES) return `The file is ${(file.size / 1024 / 1024).toFixed(1)} MB - the maximum is ${MAX_MB} MB.`;
   if (file.size === 0) return 'The file is empty.';
   return null;

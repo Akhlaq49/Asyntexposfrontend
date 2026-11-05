@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import {
-  solutionPackageService as svc, SolutionData, SolutionGroup, SolutionLine, PackageSize, PackageItem, MoveKind, SolutionUsage, DesignResult,
+  solutionPackageService as svc, SolutionData, SolutionGroup, SolutionLine, PackageSize, PackageItem, MoveKind, SolutionUsage,
 } from '../../services/solutionPackageService';
 
-type Tab = 'packages' | 'categorization' | 'design';
+type Tab = 'packages' | 'categorization';
 
 /** the rule each categorization tick pattern gives */
 const USAGE: Record<SolutionUsage, { label: string; badge: string; hint: string }> = {
@@ -53,15 +53,6 @@ const SolutionPackages: React.FC = () => {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<DeleteTarget | null>(null);
-
-  // designing a package: size + solution; Premium asks about the products ticked for both
-  const [designSize, setDesignSize] = useState('');
-  const [designSolution, setDesignSolution] = useState<'standard' | 'premium'>('standard');
-  const [design, setDesign] = useState<DesignResult | null>(null);
-  const [confirmAsk, setConfirmAsk] = useState<DesignResult | null>(null);
-  const [confirmPicked, setConfirmPicked] = useState<Set<number>>(new Set());
-  const [designError, setDesignError] = useState('');
-  const [designing, setDesigning] = useState(false);
 
   const load = async () => {
     setLoading(true); setPageError('');
@@ -181,22 +172,6 @@ const SolutionPackages: React.FC = () => {
     setToDelete(null);
   };
 
-  const runDesign = async (confirmed: number[] | null) => {
-    if (!designSize) { setDesignError('Choose the building size.'); return; }
-    setDesigning(true); setDesignError('');
-    try {
-      const res = await svc.design(Number(designSize), designSolution, confirmed);
-      if (res.toConfirm.length > 0) {
-        // Premium: ask which of the "both" products to use (all ticked to start with)
-        setConfirmAsk(res); setConfirmPicked(new Set(res.toConfirm.map((x) => x.itemId)));
-      } else { setDesign(res); setConfirmAsk(null); }
-    } catch (err) { setDesignError(errorText(err, 'Could not design the package.')); }
-    setDesigning(false);
-  };
-  /** premium-only products of the same group: shown next to each question, so the choice is easy */
-  const premiumAlternatives = (groupName: string | null) =>
-    data.groups.find((g) => g.name === groupName)?.lines.filter((l) => l.usage === 'premium').map((l) => l.name) || [];
-
   const linkedCount = (lineId: number) => data.items.filter((i) => i.productLineId === lineId).length;
   const deleteGroup = (g: SolutionGroup) => setToDelete({ kind: 'group', id: g.id, label: g.name,
     message: `Delete the group "${g.name}" and its ${g.lines.length} product(s)? Package items that use them become "not categorised".` });
@@ -216,76 +191,6 @@ const SolutionPackages: React.FC = () => {
     </optgroup>
   ));
 
-  const designTotal = design ? design.items.reduce((sum, x) => sum + x.quantity, 0) : 0;
-  const designTab = (
-    <div className="card">
-      <div className="card-header d-flex align-items-end gap-3 flex-wrap">
-        <div>
-          <label className="form-label mb-1">Building size</label>
-          <select className="form-select design-size" style={{ minWidth: 180 }} value={designSize}
-            onChange={(e) => { setDesignSize(e.target.value); setDesign(null); }}>
-            <option value="">Choose...</option>
-            {data.sizes.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="form-label mb-1 d-block">Package</label>
-          <div className="btn-group">
-            {(['standard', 'premium'] as const).map((sol) => (
-              <button key={sol} type="button" className={`btn ${designSolution === sol ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => { setDesignSolution(sol); setDesign(null); }}>{sol === 'standard' ? 'Standard' : 'Premium'}</button>
-            ))}
-          </div>
-        </div>
-        <button type="button" className="btn btn-success" disabled={designing} onClick={() => runDesign(null)}>
-          <i className="ti ti-wand me-1"></i>{designing ? 'Designing...' : 'Design Package'}
-        </button>
-        {design?.solution === 'premium' && (
-          <button type="button" className="btn btn-light border" disabled={designing} onClick={() => runDesign(null)}>Change Premium choices</button>
-        )}
-      </div>
-      <div className="card-body">
-        {designError && <div className="alert alert-danger py-2">{designError}</div>}
-        {!design ? (
-          <p className="text-muted mb-0">
-            Choose a building size and Standard or Premium. Standard uses the products ticked <b>Standard only</b> and <b>Both</b>.
-            Premium uses the products ticked <b>Premium only</b>, and asks you about each product ticked <b>Both</b>.
-          </p>
-        ) : (
-          <>
-            <h5 className="mb-3">{design.solution === 'standard' ? 'Standard' : 'Premium'} package - {design.sizeName}</h5>
-            <div className="table-responsive">
-              <table className="table table-bordered align-middle design-result">
-                <thead className="thead-light"><tr><th>Group</th><th>Item</th><th>Categorization</th><th>Rule</th><th className="text-center">Quantity</th></tr></thead>
-                <tbody>
-                  {design.items.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-4">No items for this size and package. Enter quantities on the Package Quantities tab.</td></tr>
-                  ) : design.items.map((x) => (
-                    <tr key={x.itemId}>
-                      <td>{x.groupName}</td><td className="fw-semibold">{x.name}</td><td>{x.productLineName}</td>
-                      <td><UsageBadge usage={x.usage} /></td><td className="text-center">{x.quantity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                {design.items.length > 0 && <tfoot><tr className="fw-bold bg-light"><td colSpan={4}>Total items</td><td className="text-center">{designTotal}</td></tr></tfoot>}
-              </table>
-            </div>
-            {design.leftOut.length > 0 && (
-              <details className="mt-2">
-                <summary className="text-muted">{design.leftOut.length} item(s) with a quantity for {design.sizeName} left out</summary>
-                <ul className="mt-2 mb-0 small">
-                  {design.leftOut.map((x) => (
-                    <li key={x.itemId}>{x.name} ({x.quantity}) - {x.usage === 'none' ? 'not categorised' : x.usage === 'both' ? 'you chose not to use it' : USAGE[x.usage].label}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <>
       <div className="page-header">
@@ -299,7 +204,7 @@ const SolutionPackages: React.FC = () => {
           <li><a href="#" title="Refresh" onClick={(e) => { e.preventDefault(); setCells({}); load(); }}><i className="ti ti-refresh"></i></a></li>
         </ul>
         <div className="page-btn d-flex gap-2">
-          {tab === 'design' ? null : tab === 'packages' ? (
+          {tab === 'packages' ? (
             <>
               <button type="button" className="btn btn-outline-primary" onClick={() => { setFormError(''); setNameForm({ kind: 'size', id: null, name: '' }); }}>
                 <i className="ti ti-columns-3 me-1"></i>Add Building Size
@@ -319,13 +224,11 @@ const SolutionPackages: React.FC = () => {
           <i className="ti ti-table me-1"></i>Package Quantities</a></li>
         <li className="nav-item"><a href="#" className={`nav-link ${tab === 'categorization' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setTab('categorization'); }}>
           <i className="ti ti-category me-1"></i>Product Categorization</a></li>
-        <li className="nav-item"><a href="#" className={`nav-link ${tab === 'design' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setTab('design'); }}>
-          <i className="ti ti-wand me-1"></i>Design Package</a></li>
       </ul>
 
       {pageError && <div className="alert alert-danger py-2">{pageError}</div>}
 
-      {tab === 'design' ? designTab : tab === 'packages' ? (
+      {tab === 'packages' ? (
         <div className="card">
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
             <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -431,7 +334,7 @@ const SolutionPackages: React.FC = () => {
       ) : (
         <div className="card">
           <div className="card-header">
-            <small className="text-muted">Tick the solutions each product is used in. <b>Standard only</b> or <b>Premium only</b>: used only in that package. <b>Both</b>: used in Standard packages straight away; when a Premium package is designed you are asked whether to use it.</small>
+            <small className="text-muted">Tick the solutions each product is used in. <b>Standard only</b> or <b>Premium only</b>: used only in that package. <b>Both</b>: used in Standard and Premium; on a Premium solution (Drawing to Solution) you are asked only when a Premium-only product of the same group can be used instead.</small>
           </div>
           <div className="card-body p-0">
             <div className="table-responsive">
@@ -620,48 +523,6 @@ const SolutionPackages: React.FC = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setItemForm(null)} disabled={saving}>Cancel</button>
                 <button type="button" className="btn btn-primary" onClick={saveItem} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Premium package: confirm the products that are ticked for both solutions */}
-      {confirmAsk && (
-        <div className="modal fade show d-block premium-confirm" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h4 className="modal-title">Premium package - {confirmAsk.sizeName}: confirm products</h4>
-                <button type="button" className="btn-close" onClick={() => setConfirmAsk(null)} />
-              </div>
-              <div className="modal-body">
-                <p className="mb-3">These products are ticked for <b>both</b> Standard and Premium. Tick the ones to use in this Premium package.</p>
-                <div className="d-flex gap-2 mb-2">
-                  <button type="button" className="btn btn-sm btn-light border" onClick={() => setConfirmPicked(new Set(confirmAsk.toConfirm.map((x) => x.itemId)))}>Use all</button>
-                  <button type="button" className="btn btn-sm btn-light border" onClick={() => setConfirmPicked(new Set())}>Use none</button>
-                </div>
-                <div className="list-group">
-                  {confirmAsk.toConfirm.map((x) => {
-                    const alt = premiumAlternatives(x.groupName);
-                    return (
-                      <label key={x.itemId} className="list-group-item d-flex align-items-start gap-2" style={{ cursor: 'pointer' }}>
-                        <input type="checkbox" className="form-check-input mt-1" checked={confirmPicked.has(x.itemId)} aria-label={`Use ${x.name}`}
-                          onChange={(e) => setConfirmPicked((prev) => { const n = new Set(prev); if (e.target.checked) n.add(x.itemId); else n.delete(x.itemId); return n; })} />
-                        <div className="flex-grow-1">
-                          <div className="fw-semibold">{x.name} <span className="text-muted fw-normal">x {x.quantity}</span></div>
-                          <small className="text-muted">{x.groupName} - {x.productLineName}{alt.length > 0 && <> · Premium-only in this group: {alt.join(', ')}</>}</small>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setConfirmAsk(null)} disabled={designing}>Cancel</button>
-                <button type="button" className="btn btn-primary" disabled={designing} onClick={() => runDesign([...confirmPicked])}>
-                  {designing ? 'Designing...' : `Confirm (${confirmPicked.size} of ${confirmAsk.toConfirm.length})`}
-                </button>
               </div>
             </div>
           </div>
