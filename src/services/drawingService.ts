@@ -19,6 +19,8 @@ export interface Extraction {
   warnings: string[]; log: string[]; pointTypes: string[];
 }
 export interface SolutionLineResult {
+  /** no SKU in the inventory (not on the price list): entered by hand on the quotation */
+  notInInventory?: boolean;
   itemId: number; name: string; groupName: string | null; productLineName: string | null; usage: SolutionUsage;
   productName: string | null; quantity: number; baseline: number; source: 'drawing' | 'package' | 'choice' | 'other';
   detail: string; areas: Record<string, number>; productId: number | null;

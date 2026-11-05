@@ -62,7 +62,9 @@ const CustomerHouseInfo: React.FC<{ c: CustomerHouse }> = ({ c }) => {
     </div>
   );
 };
-interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; quantity?: number; description?: string; model?: string; }
+interface ProductResult { id: string; productName: string; sku: string; category: string; price: number; images: string[]; quantity?: number; description?: string; model?: string;
+  /** the catalogue product this SKU is a colour of - its siblings are the other colours */
+  catalogProductId?: number | null; color?: string; }
 
 interface LocalItem {
   productId: number; productName: string; quantity: number; purchasePrice: number;
@@ -70,6 +72,9 @@ interface LocalItem {
   /** "Discount? Yes" ticked for this line (UI only) */
   discountOn?: boolean;
 }
+
+/** a line with no inventory product (productId 0): suggested from a drawing but not in the inventory - its price is typed in */
+const isManual = (item: LocalItem) => !item.productId;
 
 const STATUS_OPTIONS = ['Sent', 'Pending', 'Ordered', 'Converted'];
 const PAYMENT_TYPES = ['Cash', 'Online'];
@@ -174,6 +179,7 @@ const QuotationList: React.FC = () => {
   const [showOldVersions, setShowOldVersions] = useState(true);   // every version is listed (grouped) by default
   const [versions, setVersions] = useState<QuotationDto[] | null>(null);
   const [saveError, setSaveError] = useState('');
+  const [priceError, setPriceError] = useState('');
   const [notice, setNotice] = useState<{ type: 'success' | 'danger'; text: string; saleRef?: string } | null>(null);
 
   /* delete modal */
@@ -309,6 +315,18 @@ const QuotationList: React.FC = () => {
 
   const removeItem = (idx: number) => setItems(items.filter((_, i) => i !== idx));
 
+  /** the SKUs (colours) of the same catalogue product as this line's SKU */
+  const colours = (productId: number) => {
+    const cp = products.find((x) => Number(x.id) === productId)?.catalogProductId;
+    return cp ? products.filter((x) => x.catalogProductId === cp) : [];
+  };
+  /** another colour: that SKU's name and inventory price */
+  const changeSku = (idx: number, skuId: number) => {
+    const sku = products.find((x) => Number(x.id) === skuId);
+    if (!sku) return;
+    setItems(items.map((item, i) => (i === idx ? calcItem({ ...item, productId: skuId, productName: sku.productName, purchasePrice: sku.price }) : item)));
+  };
+
   /* ---- Grand total ---- */
   const itemsTotal = items.reduce((sum, i) => sum + i.totalCost, 0);
   const taxBase = Math.max(0, itemsTotal - form.discount);   // taxes are worked out on the subtotal after discount
@@ -337,6 +355,7 @@ const QuotationList: React.FC = () => {
 
   /* ---- Open add/edit modal ---- */
   const openAddModal = () => {
+    setPriceError('');
     setEditingId(null);
     setEstimateNote(null);
     setForm({ customerId: null, customerName: '', customerImage: '', productId: null, productName: '', productImage: '', reference: '', status: 'Pending', orderTax: 0, discount: 0, shipping: 0, installationCharges: 0, description: '', quotationDate: new Date().toISOString().slice(0, 10) });
@@ -366,16 +385,22 @@ const QuotationList: React.FC = () => {
     const first = found.find((f) => f.p)?.p;
     setForm((f) => ({ ...f, description: estimate.description,
       ...(first ? { productId: parseInt(first.id), productName: first.productName, productImage: first.images?.[0] || '' } : {}) }));
-    // a linked product that was deleted from inventory also has to be added by hand
-    const missing = found.filter((f) => !f.p).map(({ e }) => ({ name: e.productName, quantity: e.quantity }));
-    const note = [...estimate.unlinked, ...missing];
-    setEstimateNote(note.length ? note : null);
+    // suggested but not in the inventory (not in the inventory, or the linked product was deleted): a line of
+    // its own with no product and a blank price - the user types the price in
+    const missing = found.filter((f) => !f.p).map(({ e }) => ({ name: e.productName, quantity: e.quantity, unitPrice: null as number | null }));
+    const manual = [...estimate.unlinked, ...missing];
+    setItems((prev) => [...prev, ...manual.map((u) => calcItem({
+      productId: 0, productName: u.name, quantity: u.quantity, purchasePrice: u.unitPrice || 0,   // its packages-file price, if any
+      discount: 0, taxPercent: 0, taxAmount: 0, unitCost: 0, totalCost: 0,
+    }))]);
+    setEstimateNote(manual.length ? manual : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estimate, loading]);
 
   /** revise = open the form as a new revision (…_R1, _R2 …) of this quotation instead of editing it in place */
   const openEditModal = async (q: QuotationDto, revise = false) => {
     setEstimateNote(null);
+    setPriceError('');
     // Fetch full detail with items
     try {
       const res = await api.get<QuotationDto>(`/quotations/${q.id}`);
@@ -418,7 +443,12 @@ const QuotationList: React.FC = () => {
 
   /* ---- Save quotation ---- */
   /** Submit -> "Edit terms & conditions for this quotation?" */
-  const askTerms = () => setTermsStep('ask');
+  const askTerms = () => {
+    const noPrice = items.filter((i) => isManual(i) && !(i.purchasePrice > 0)).map((i) => i.productName);
+    if (noPrice.length) { setPriceError(`Enter the price of ${noPrice.join(', ')} - not in inventory, so the price has to be typed in.`); return; }
+    setPriceError('');
+    setTermsStep('ask');
+  };
   const startEditingTerms = async () => {
     const standard = await loadTermsContent();
     setStandardTerms(standard);
@@ -836,10 +866,10 @@ const QuotationList: React.FC = () => {
                 <div className="card-body pb-0">
                   {estimateNote && (
                     <div className="alert alert-warning py-2 estimate-note">
-                      <div className="d-flex justify-content-between"><b>Not added from the drawing estimate - no inventory product linked:</b>
+                      <div className="d-flex justify-content-between"><b>Suggested by the drawing reader but not in the inventory - enter their prices below:</b>
                         <button type="button" className="btn btn-link btn-sm p-0 text-muted" onClick={() => setEstimateNote(null)}>Dismiss</button></div>
                       <div className="small">{estimateNote.map((u) => `${u.name} x ${u.quantity}`).join(', ')}</div>
-                      <div className="small text-muted">Search and add the products below, or link them under Inventory &gt; Solution Packages.</div>
+                      <div className="small text-muted">They are added as lines without an inventory product, so no stock is taken for them.</div>
                     </div>
                   )}
                   {/* Form fields */}
@@ -920,8 +950,15 @@ const QuotationList: React.FC = () => {
                         </thead>
                         <tbody>
                           {items.map((item, idx) => (
-                            <tr key={item.productId}>
+                            <tr key={isManual(item) ? `manual-${idx}` : item.productId} className={isManual(item) ? 'manual-line' : undefined}>
                               <td>{item.productName}
+                                {isManual(item) && <div><small className="text-warning manual-note">Suggested by the drawing reader - not in inventory. Enter the price.</small></div>}
+                                {colours(item.productId).length > 1 && (
+                                  <select className="form-select form-select-sm mt-1 sku-colour" style={{ width: 'auto' }} value={item.productId} title="Colour (SKU)"
+                                    onChange={(e) => changeSku(idx, Number(e.target.value))}>
+                                    {colours(item.productId).map((c) => <option key={c.id} value={c.id}>{c.color || c.productName}{c.model ? ` (${c.model})` : ''}</option>)}
+                                  </select>
+                                )}
                                 {productInfo(item.productId).model && <div><small className="text-muted">Model: {productInfo(item.productId).model}</small></div>}
                                 {productInfo(item.productId).description && <div><small className="text-muted d-inline-block text-truncate" style={{ maxWidth: 260 }}>{productInfo(item.productId).description}</small></div>}</td>
                               <td>
@@ -932,7 +969,8 @@ const QuotationList: React.FC = () => {
                                   <span className="quantity-btn" onClick={() => updateItemField(idx, 'quantity', item.quantity + 1)}><i data-feather="plus-circle"></i></span>
                                 </div>
                               </td>
-                              <td><input type="number" className="form-control" style={{ width: 100 }} value={item.purchasePrice || ''} onChange={e => updateItemField(idx, 'purchasePrice', parseFloat(e.target.value) || 0)} /></td>
+                              <td><input type="number" className={`form-control ${isManual(item) && !(item.purchasePrice > 0) ? 'is-invalid' : ''}`} style={{ width: 100 }}
+                                placeholder={isManual(item) ? 'Price' : undefined} value={item.purchasePrice || ''} onChange={e => updateItemField(idx, 'purchasePrice', parseFloat(e.target.value) || 0)} /></td>
                               <td style={{ minWidth: 200 }}>
                                 <div className="d-flex align-items-center gap-2">
                                   <div className="form-check form-check-inline mb-0 me-0">
@@ -1068,6 +1106,7 @@ const QuotationList: React.FC = () => {
                 </div>
               </div>
               <div className="modal-footer">
+                {priceError && <div className="alert alert-danger py-2 mb-0 me-auto price-error">{priceError}</div>}
                 <button type="button" className="btn btn-secondary me-2" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
                 <button type="button" className="btn btn-primary" onClick={askTerms}>{reviseFromId ? `Save version R${form.reference.split('_R').pop()}` : editingId ? t('common.update') : t('common.submit')}</button>
               </div>

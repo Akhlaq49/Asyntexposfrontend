@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import api from '../../services/api';
+import React, { useEffect, useState } from 'react';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import {
-  solutionPackageService as svc, SolutionData, SolutionGroup, SolutionLine, PackageSize, PackageItem, MoveKind, SolutionUsage,
+  solutionPackageService as svc, SolutionData, SolutionGroup, SolutionLine, MoveKind, SolutionUsage,
 } from '../../services/solutionPackageService';
+import { catalogService, CatalogSize } from '../../services/catalogService';
+import CatalogPackages from './catalog/CatalogPackages';
+import CatalogImport from './catalog/CatalogImport';
+import DrawingRules from './catalog/DrawingRules';
 
-type Tab = 'packages' | 'categorization';
+type Tab = 'packages' | 'categorization' | 'import' | 'rules';
 
 /** the rule each categorization tick pattern gives */
 const USAGE: Record<SolutionUsage, { label: string; badge: string; hint: string }> = {
@@ -17,39 +20,32 @@ const USAGE: Record<SolutionUsage, { label: string; badge: string; hint: string 
 const UsageBadge: React.FC<{ usage: SolutionUsage }> = ({ usage }) => (
   <span className={`badge ${USAGE[usage].badge}`} title={USAGE[usage].hint}>{USAGE[usage].label}</span>
 );
-type TierFilter = '' | 'standard' | 'premium' | 'none';
-interface ProductOption { id: number; productName: string }
 
 /** what the name / line / item form is editing */
 type NameForm = { kind: 'group' | 'size'; id: number | null; name: string };
 type LineForm = { id: number | null; groupId: number; name: string; inStandard: boolean; inPremium: boolean };
-type ItemForm = { id: number | null; name: string; productLineId: string; productId: string; quantities: Record<number, string> };
-type DeleteTarget = { kind: 'group' | 'line' | 'size' | 'item'; id: number; label: string; message: string };
+type DeleteTarget = { kind: 'group' | 'line' | 'size'; id: number; label: string; message: string };
 
-const cellKey = (itemId: number, sizeId: number) => `${itemId}:${sizeId}`;
 const errorText = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 
 /**
- * Inventory > Solution Packages, laid out like the two sheets it came from:
- *  - Package quantities: how many of each item a building of each size needs
- *  - Product categorization: which products the Standard and the Premium solution use
+ * Inventory > Solution Packages - the company's product catalogue:
+ *  - Package quantities: how many of each product a building of each size needs, per tier (CatalogPackages)
+ *  - Product categorization: categories and families, and the tiers (Standard / Premium) each family is in
+ *  - Import: the company's categorization and package-items files; names to map
+ *  - Drawing rules: which products each rule of the drawing reader uses
  */
 const SolutionPackages: React.FC = () => {
   const [tab, setTab] = useState<Tab>('packages');
   const [data, setData] = useState<SolutionData>({ groups: [], sizes: [], items: [] });
-  const [products, setProducts] = useState<ProductOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
-  const [search, setSearch] = useState('');
-  const [tier, setTier] = useState<TierFilter>('');
-
-  // edited cells of the quantities grid, saved together
-  const [cells, setCells] = useState<Record<string, string>>({});
-  const [savingCells, setSavingCells] = useState(false);
+  // the catalogue tabs reload when the sizes or the families change here
+  const [catalogKey, setCatalogKey] = useState(0);
+  const [familyProducts, setFamilyProducts] = useState<Record<number, number>>({});
 
   const [nameForm, setNameForm] = useState<NameForm | null>(null);
   const [lineForm, setLineForm] = useState<LineForm | null>(null);
-  const [itemForm, setItemForm] = useState<ItemForm | null>(null);
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<DeleteTarget | null>(null);
@@ -59,78 +55,23 @@ const SolutionPackages: React.FC = () => {
     try { setData(await svc.getAll()); } catch (err) { setPageError(errorText(err, 'Could not load the solution packages.')); }
     setLoading(false);
   };
+  useEffect(() => { load(); }, []);
   useEffect(() => {
-    load();
-    api.get<ProductOption[]>('/products').then((r) => setProducts(Array.isArray(r.data) ? r.data : [])).catch(() => setProducts([]));
-  }, []);
+    catalogService.get().then((c) => {
+      const counts: Record<number, number> = {};
+      c.products.forEach((p) => { if (p.familyId) counts[p.familyId] = (counts[p.familyId] || 0) + 1; });
+      setFamilyProducts(counts);
+    }).catch(() => setFamilyProducts({}));
+  }, [catalogKey]);
 
   /** runs a change; the server answers with all the data again */
   const run = async (action: () => Promise<SolutionData>, onError?: (msg: string) => void) => {
-    try { setData(await action()); setPageError(''); return true; }
+    try { setData(await action()); setPageError(''); setCatalogKey((k) => k + 1); return true; }
     catch (err) { const msg = errorText(err, 'Could not save the change.'); (onError || setPageError)(msg); return false; }
   };
   const move = (kind: MoveKind, id: number, dir: -1 | 1) => run(() => svc.move(kind, id, dir));
 
-  // ── quantities grid ──
-  const qtyOf = (item: PackageItem, sizeId: number) => {
-    const edited = cells[cellKey(item.id, sizeId)];
-    if (edited !== undefined) return edited;
-    const q = item.quantities[String(sizeId)];
-    return q ? String(q) : '';
-  };
-  const changedCells = useMemo(() => Object.entries(cells).filter(([key, value]) => {
-    const [itemId, sizeId] = key.split(':').map(Number);
-    const item = data.items.find((i) => i.id === itemId);
-    return item && (Number(value) || 0) !== (item.quantities[String(sizeId)] || 0);
-  }), [cells, data.items]);
-
-  const saveCells = async () => {
-    if (changedCells.length === 0) return;
-    setSavingCells(true);
-    const ok = await run(() => svc.saveQuantities(changedCells.map(([key, value]) => {
-      const [itemId, sizeId] = key.split(':').map(Number);
-      return { itemId, sizeId, quantity: Math.max(0, Math.floor(Number(value) || 0)) };
-    })));
-    if (ok) setCells({});
-    setSavingCells(false);
-  };
-
-  const visibleItems = data.items.filter((i) => {
-    const q = search.trim().toLowerCase();
-    const matchSearch = !q || [i.name, i.productLineName, i.groupName, i.productName].some((x) => (x || '').toLowerCase().includes(q));
-    const matchTier = !tier || (tier === 'standard' && i.inStandard) || (tier === 'premium' && i.inPremium) || (tier === 'none' && !i.productLineId);
-    return matchSearch && matchTier;
-  });
-  const sizeTotal = (sizeId: number) => visibleItems.reduce((sum, i) => sum + (Number(qtyOf(i, sizeId)) || 0), 0);
-  const uncategorised = data.items.filter((i) => !i.productLineId).length;
-
   // ── forms ──
-  const openItem = (item?: PackageItem) => {
-    setFormError('');
-    setItemForm(item
-      ? { id: item.id, name: item.name, productLineId: item.productLineId ? String(item.productLineId) : '', productId: item.productId ? String(item.productId) : '',
-          quantities: Object.fromEntries(data.sizes.map((s) => [s.id, qtyOf(item, s.id)])) }
-      : { id: null, name: '', productLineId: '', productId: '', quantities: {} });
-  };
-  const saveItem = async () => {
-    if (!itemForm) return;
-    if (!itemForm.name.trim()) { setFormError('Enter the item name.'); return; }
-    setSaving(true); setFormError('');
-    const body = {
-      name: itemForm.name.trim(),
-      productLineId: itemForm.productLineId ? Number(itemForm.productLineId) : null,
-      productId: itemForm.productId ? Number(itemForm.productId) : null,
-      quantities: Object.fromEntries(data.sizes.map((s) => [s.id, Math.max(0, Math.floor(Number(itemForm.quantities[s.id]) || 0))])),
-    };
-    const ok = await run(() => (itemForm.id ? svc.updateItem(itemForm.id, body) : svc.addItem(body)), setFormError);
-    if (ok) {
-      // the form saved this item's cells - drop any unsaved grid edits for it
-      if (itemForm.id) setCells((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(`${itemForm.id}:`))));
-      setItemForm(null);
-    }
-    setSaving(false);
-  };
-
   const openLine = (groupId: number, line?: SolutionLine) => {
     setFormError('');
     setLineForm(line ? { id: line.id, groupId: line.groupId, name: line.name, inStandard: line.inStandard, inPremium: line.inPremium }
@@ -164,32 +105,22 @@ const SolutionPackages: React.FC = () => {
   const confirmDelete = async () => {
     if (!toDelete) return;
     const { kind, id } = toDelete;
-    await run(() => (kind === 'group' ? svc.deleteGroup(id) : kind === 'line' ? svc.deleteLine(id) : kind === 'size' ? svc.deleteSize(id) : svc.deleteItem(id)));
-    setCells((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => {
-      const [itemId, sizeId] = k.split(':').map(Number);
-      return !((kind === 'item' && itemId === id) || (kind === 'size' && sizeId === id));
-    })));
+    await run(() => (kind === 'group' ? svc.deleteGroup(id) : kind === 'line' ? svc.deleteLine(id) : svc.deleteSize(id)));
     setToDelete(null);
   };
 
-  const linkedCount = (lineId: number) => data.items.filter((i) => i.productLineId === lineId).length;
+  const linkedCount = (lineId: number) => familyProducts[lineId] || 0;
   const deleteGroup = (g: SolutionGroup) => setToDelete({ kind: 'group', id: g.id, label: g.name,
-    message: `Delete the group "${g.name}" and its ${g.lines.length} product(s)? Package items that use them become "not categorised".` });
+    message: `Delete the group "${g.name}" and its ${g.lines.length} famil${g.lines.length === 1 ? 'y' : 'ies'}? Products in them get no family.` });
   const deleteLine = (l: SolutionLine) => setToDelete({ kind: 'line', id: l.id, label: l.name,
-    message: `Delete "${l.name}" from the categorization?${linkedCount(l.id) ? ` ${linkedCount(l.id)} package item(s) use it and become "not categorised".` : ''}` });
-  const deleteSize = (s: PackageSize) => setToDelete({ kind: 'size', id: s.id, label: s.name, message: `Delete the "${s.name}" column and all its quantities?` });
-  const deleteItem = (i: PackageItem) => setToDelete({ kind: 'item', id: i.id, label: i.name, message: `Delete "${i.name}" and its quantities from the packages?` });
+    message: `Delete "${l.name}" from the categorization?${linkedCount(l.id) ? ` ${linkedCount(l.id)} product(s) are in it and get no family.` : ''}` });
+  const deleteSize = (s: CatalogSize) => setToDelete({ kind: 'size', id: s.id, label: s.name, message: `Delete the "${s.name}" column? Its package quantities are no longer used.` });
 
   const IconBtn: React.FC<{ icon: string; title: string; onClick: () => void; disabled?: boolean; className?: string }> = ({ icon, title, onClick, disabled, className }) => (
     <button type="button" className={`btn btn-sm btn-light border p-1 lh-1 ${className || ''}`} title={title} disabled={disabled}
       onClick={onClick}><i className={`ti ${icon}`}></i></button>
   );
 
-  const lineOptions = data.groups.map((g) => (
-    <optgroup key={g.id} label={g.name}>
-      {g.lines.map((l) => <option key={l.id} value={l.id}>{l.name}{l.inStandard && l.inPremium ? ' (Standard + Premium)' : l.inPremium ? ' (Premium)' : l.inStandard ? ' (Standard)' : ''}</option>)}
-    </optgroup>
-  ));
 
   return (
     <>
@@ -197,21 +128,18 @@ const SolutionPackages: React.FC = () => {
         <div className="add-item d-flex">
           <div className="page-title">
             <h4 className="fw-bold">Solution Packages</h4>
-            <h6>Items each building size needs, and which products the Standard and Premium solutions use</h6>
+            <h6>Your products, the quantities each building size needs per tier, and which products the Standard and Premium solutions use</h6>
           </div>
         </div>
         <ul className="table-top-head">
-          <li><a href="#" title="Refresh" onClick={(e) => { e.preventDefault(); setCells({}); load(); }}><i className="ti ti-refresh"></i></a></li>
+          <li><a href="#" title="Refresh" onClick={(e) => { e.preventDefault(); load(); setCatalogKey((k) => k + 1); }}><i className="ti ti-refresh"></i></a></li>
         </ul>
         <div className="page-btn d-flex gap-2">
           {tab === 'packages' ? (
-            <>
-              <button type="button" className="btn btn-outline-primary" onClick={() => { setFormError(''); setNameForm({ kind: 'size', id: null, name: '' }); }}>
-                <i className="ti ti-columns-3 me-1"></i>Add Building Size
-              </button>
-              <button type="button" className="btn btn-primary" onClick={() => openItem()}><i className="ti ti-circle-plus me-1"></i>Add Item</button>
-            </>
-          ) : (
+            <button type="button" className="btn btn-outline-primary" onClick={() => { setFormError(''); setNameForm({ kind: 'size', id: null, name: '' }); }}>
+              <i className="ti ti-columns-3 me-1"></i>Add Building Size
+            </button>
+          ) : tab !== 'categorization' ? null : (
             <button type="button" className="btn btn-primary" onClick={() => { setFormError(''); setNameForm({ kind: 'group', id: null, name: '' }); }}>
               <i className="ti ti-circle-plus me-1"></i>Add Group
             </button>
@@ -224,113 +152,30 @@ const SolutionPackages: React.FC = () => {
           <i className="ti ti-table me-1"></i>Package Quantities</a></li>
         <li className="nav-item"><a href="#" className={`nav-link ${tab === 'categorization' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setTab('categorization'); }}>
           <i className="ti ti-category me-1"></i>Product Categorization</a></li>
+        <li className="nav-item"><a href="#" className={`nav-link ${tab === 'import' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setTab('import'); }}>
+          <i className="ti ti-file-import me-1"></i>Import</a></li>
+        <li className="nav-item"><a href="#" className={`nav-link ${tab === 'rules' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setTab('rules'); }}>
+          <i className="ti ti-route me-1"></i>Drawing Rules</a></li>
       </ul>
 
       {pageError && <div className="alert alert-danger py-2">{pageError}</div>}
 
       {tab === 'packages' ? (
-        <div className="card">
-          <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-            <div className="d-flex align-items-center gap-2 flex-wrap">
-              <div className="search-set">
-                <div className="search-input">
-                  <input type="text" className="form-control" placeholder="Search item" value={search} onChange={(e) => setSearch(e.target.value)} />
-                </div>
-              </div>
-              <select className="form-select" style={{ width: 'auto' }} value={tier} onChange={(e) => setTier(e.target.value as TierFilter)}>
-                <option value="">All solutions</option>
-                <option value="standard">Standard solution</option>
-                <option value="premium">Premium solution</option>
-                <option value="none">Not categorised ({uncategorised})</option>
-              </select>
+        <CatalogPackages reloadKey={catalogKey} sizeHeader={(sz, idx, count) => (
+          <>
+            <div className="text-nowrap">{sz.name}</div>
+            <div className="d-flex justify-content-center gap-1 mt-1">
+              <IconBtn icon="ti-chevron-left" title="Move left" disabled={idx === 0} onClick={() => move('sizes', sz.id, -1)} />
+              <IconBtn icon="ti-edit" title="Rename" onClick={() => { setFormError(''); setNameForm({ kind: 'size', id: sz.id, name: sz.name }); }} />
+              <IconBtn icon="ti-trash" title="Delete column" onClick={() => deleteSize(sz)} />
+              <IconBtn icon="ti-chevron-right" title="Move right" disabled={idx === count - 1} onClick={() => move('sizes', sz.id, 1)} />
             </div>
-            <div className="d-flex align-items-center gap-2">
-              {changedCells.length > 0 && <small className="text-warning fw-medium">{changedCells.length} unsaved change(s)</small>}
-              <button type="button" className="btn btn-light border" disabled={changedCells.length === 0 || savingCells} onClick={() => setCells({})}>Discard</button>
-              <button type="button" className="btn btn-success" disabled={changedCells.length === 0 || savingCells} onClick={saveCells}>
-                <i className="ti ti-device-floppy me-1"></i>{savingCells ? 'Saving...' : 'Save Quantities'}
-              </button>
-            </div>
-          </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered align-middle mb-0 solution-grid">
-                <thead className="thead-light">
-                  <tr>
-                    <th style={{ minWidth: 230 }}>Product</th>
-                    {data.sizes.map((s, idx) => (
-                      <th key={s.id} className="text-center" style={{ minWidth: 96 }}>
-                        <div className="text-nowrap">{s.name}</div>
-                        <div className="d-flex justify-content-center gap-1 mt-1">
-                          <IconBtn icon="ti-chevron-left" title="Move left" disabled={idx === 0} onClick={() => move('sizes', s.id, -1)} />
-                          <IconBtn icon="ti-edit" title="Rename" onClick={() => { setFormError(''); setNameForm({ kind: 'size', id: s.id, name: s.name }); }} />
-                          <IconBtn icon="ti-trash" title="Delete column" onClick={() => deleteSize(s)} />
-                          <IconBtn icon="ti-chevron-right" title="Move right" disabled={idx === data.sizes.length - 1} onClick={() => move('sizes', s.id, 1)} />
-                        </div>
-                      </th>
-                    ))}
-                    <th style={{ minWidth: 190 }}>Categorization</th>
-                    <th className="no-sort" style={{ minWidth: 150 }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr><td colSpan={data.sizes.length + 3} className="text-center py-4">Loading...</td></tr>
-                  ) : visibleItems.length === 0 ? (
-                    <tr><td colSpan={data.sizes.length + 3} className="text-center py-4">{data.items.length === 0 ? 'No items yet. Click "Add Item".' : 'No items match.'}</td></tr>
-                  ) : visibleItems.map((item) => {
-                    const pos = data.items.findIndex((i) => i.id === item.id);
-                    return (
-                      <tr key={item.id}>
-                        <td>
-                          <div className="fw-semibold">{item.name}</div>
-                          {item.productName && <small className="text-muted"><i className="ti ti-box me-1"></i>{item.productName}</small>}
-                        </td>
-                        {data.sizes.map((s) => {
-                          const key = cellKey(item.id, s.id);
-                          const value = qtyOf(item, s.id);
-                          const changed = cells[key] !== undefined && (Number(cells[key]) || 0) !== (item.quantities[String(s.id)] || 0);
-                          return (
-                            <td key={s.id} className="p-1">
-                              <input type="number" min={0} step={1} inputMode="numeric" placeholder="0" aria-label={`${item.name} - ${s.name}`}
-                                className={`form-control form-control-sm text-center ${changed ? 'border-warning bg-warning-subtle' : ''}`}
-                                value={value} onChange={(e) => setCells((prev) => ({ ...prev, [key]: e.target.value.replace(/[^0-9]/g, '') }))} />
-                            </td>
-                          );
-                        })}
-                        <td>
-                          {item.productLineId ? (
-                            <>
-                              <div className="small">{item.productLineName}</div>
-                              <UsageBadge usage={item.usage} />
-                            </>
-                          ) : <span className="badge badge-soft-danger">Not categorised</span>}
-                        </td>
-                        <td>
-                          <div className="d-flex gap-1">
-                            <IconBtn icon="ti-arrow-up" title="Move up" disabled={pos === 0} onClick={() => move('items', item.id, -1)} />
-                            <IconBtn icon="ti-arrow-down" title="Move down" disabled={pos === data.items.length - 1} onClick={() => move('items', item.id, 1)} />
-                            <IconBtn icon="ti-edit" title="Edit" onClick={() => openItem(item)} />
-                            <IconBtn icon="ti-trash" title="Delete" onClick={() => deleteItem(item)} />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                {!loading && visibleItems.length > 0 && (
-                  <tfoot>
-                    <tr className="fw-bold bg-light">
-                      <td>Total items</td>
-                      {data.sizes.map((s) => <td key={s.id} className="text-center">{sizeTotal(s.id)}</td>)}
-                      <td colSpan={2}></td>
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
-            </div>
-          </div>
-        </div>
+          </>
+        )} />
+      ) : tab === 'import' ? (
+        <CatalogImport onChanged={() => { load(); setCatalogKey((k) => k + 1); }} />
+      ) : tab === 'rules' ? (
+        <DrawingRules />
       ) : (
         <div className="card">
           <div className="card-header">
@@ -345,7 +190,7 @@ const SolutionPackages: React.FC = () => {
                     <th className="text-center" style={{ width: 160 }}>Standard Solution</th>
                     <th className="text-center" style={{ width: 160 }}>Premium Solution</th>
                     <th style={{ width: 200 }}>Rule</th>
-                    <th className="text-center" style={{ width: 130 }}>Package items</th>
+                    <th className="text-center" style={{ width: 130 }}>Products</th>
                     <th className="no-sort" style={{ width: 160 }}></th>
                   </tr>
                 </thead>
@@ -465,64 +310,6 @@ const SolutionPackages: React.FC = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setLineForm(null)} disabled={saving}>Cancel</button>
                 <button type="button" className="btn btn-primary" onClick={saveLine} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* package item */}
-      {itemForm && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h4 className="modal-title">{itemForm.id ? 'Edit Item' : 'Add Item'}</h4>
-                <button type="button" className="btn-close" onClick={() => setItemForm(null)} />
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Item name <span className="text-danger">*</span></label>
-                  <input className="form-control" autoFocus maxLength={150} placeholder="e.g. Piano Switch 4 Gang" value={itemForm.name}
-                    onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} />
-                </div>
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Categorization product</label>
-                    <select className="form-select" value={itemForm.productLineId} onChange={(e) => setItemForm({ ...itemForm, productLineId: e.target.value })}>
-                      <option value="">Not categorised</option>
-                      {lineOptions}
-                    </select>
-                    <small className="text-muted">Decides if it goes in the Standard or Premium package.</small>
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Inventory product</label>
-                    <select className="form-select" value={itemForm.productId} onChange={(e) => setItemForm({ ...itemForm, productId: e.target.value })}>
-                      <option value="">Not linked</option>
-                      {products.map((p) => <option key={p.id} value={p.id}>{p.productName}</option>)}
-                    </select>
-                    <small className="text-muted">Optional - the product it is sold as.</small>
-                  </div>
-                </div>
-                <label className="form-label">Quantity per building size</label>
-                {data.sizes.length === 0 ? <div className="text-muted small">Add a building size first.</div> : (
-                  <div className="row g-2">
-                    {data.sizes.map((s) => (
-                      <div key={s.id} className="col-6 col-md-3">
-                        <div className="input-group input-group-sm">
-                          <span className="input-group-text" style={{ minWidth: 76 }}>{s.name}</span>
-                          <input type="number" min={0} step={1} className="form-control text-center" placeholder="0" value={itemForm.quantities[s.id] ?? ''}
-                            onChange={(e) => setItemForm({ ...itemForm, quantities: { ...itemForm.quantities, [s.id]: e.target.value.replace(/[^0-9]/g, '') } })} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {formError && <div className="alert alert-danger py-2 mt-3 mb-0">{formError}</div>}
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setItemForm(null)} disabled={saving}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={saveItem} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
               </div>
             </div>
           </div>

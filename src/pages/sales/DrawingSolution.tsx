@@ -15,7 +15,8 @@ const errorText = (err: any, fallback: string) => err?.response?.data?.message |
 export interface DrawingEstimate {
   description: string;
   items: { productId: number; productName: string; quantity: number }[];
-  unlinked: { name: string; quantity: number }[];
+  /** not in the inventory (no SKU): a line of its own; unitPrice = its packages-file price, if any */
+  unlinked: { name: string; quantity: number; unitPrice?: number | null }[];
 }
 
 const POINT_LABELS: Record<string, string> = {
@@ -146,7 +147,7 @@ const DrawingSolution: React.FC = () => {
   // ── exports (all from the same result, so the totals match) ──
   const title = () => extraction?.project.projectName || extraction?.fileName.replace(/\.[^.]+$/, '') || 'Drawing';
   const rows = (r: Suggestion) => r.lines.map((l) => [l.name, l.groupName || '', USAGE_LABEL[l.usage], l.source === 'drawing' ? 'Drawing' : l.source === 'choice' ? 'Your choice' : l.source === 'other' ? 'Other company' : 'Package',
-    l.quantity, l.productName || 'Not linked', money(l.unitPrice), money(l.lineTotal)]);
+    l.quantity, l.productName || 'Not in inventory', l.unitPrice == null ? '' : money(l.unitPrice), l.lineTotal == null ? '' : money(l.lineTotal)]);
   const exportExcel = () => {
     if (!result || !extraction) return;
     const head = [[`${title()} - ${result.plan === 'premium' ? 'Premium' : 'Standard'} solution`], [`Building size: ${result.size?.name || '-'} (${result.size?.reason || ''})`],
@@ -182,10 +183,12 @@ const DrawingSolution: React.FC = () => {
     const byProduct = new Map<number, { productId: number; productName: string; quantity: number }>();
     const unlinked: DrawingEstimate['unlinked'] = [];
     for (const l of result.lines) {
-      if (l.productId == null) { unlinked.push({ name: l.name, quantity: l.quantity }); continue; }
+      // quotation quantities are whole units: a package quantity like 12.5 m of rail is rounded up
+      const quantity = Math.ceil(l.quantity);
+      if (l.productId == null) { unlinked.push({ name: l.name, quantity, unitPrice: l.unitPrice ?? null }); continue; }
       const e = byProduct.get(l.productId);
-      if (e) e.quantity += l.quantity;
-      else byProduct.set(l.productId, { productId: l.productId, productName: l.productName || l.name, quantity: l.quantity });
+      if (e) e.quantity += quantity;
+      else byProduct.set(l.productId, { productId: l.productId, productName: l.productName || l.name, quantity });
     }
     const estimate: DrawingEstimate = {
       description: `${title()} - ${result.plan === 'premium' ? 'Premium' : 'Standard'} solution${result.size ? ` (${result.size.name})` : ''}, estimated from the drawing ${extraction.fileName}`
@@ -465,9 +468,9 @@ const DrawingSolution: React.FC = () => {
                           <td>{sourceBadge(l)}</td>
                           <td className="text-center fw-bold">{l.quantity}</td>
                           <td className="text-center text-muted">{l.baseline || '-'}</td>
-                          <td style={{ whiteSpace: 'normal' }}>{l.productName || <span className="badge badge-soft-danger" title="Link it on Inventory > Solution Packages, or add it to the quotation yourself">Not linked</span>}</td>
-                          <td className="text-end text-nowrap result-price">{l.unitPrice === 0 ? <span className="badge badge-soft-warning" title="This product's price is 0 - set it on the product">No price</span> : money(l.unitPrice)}</td>
-                          <td className="text-end text-nowrap fw-semibold result-line-total">{money(l.lineTotal)}</td>
+                          <td style={{ whiteSpace: 'normal' }}>{l.productName || <span className="badge badge-soft-danger not-in-inventory" title="Suggested by the drawing reader but not in the inventory. On the quotation it is added as a line whose price you type in.">Not in inventory</span>}</td>
+                          <td className="text-end text-nowrap result-price">{l.unitPrice == null ? '' : l.unitPrice === 0 ? <span className="badge badge-soft-warning" title="This product's price is 0 - set it on the product">No price</span> : money(l.unitPrice)}</td>
+                          <td className="text-end text-nowrap fw-semibold result-line-total">{l.lineTotal == null ? '' : money(l.lineTotal)}</td>
                         </tr>
                       ))}
                     </tbody>
