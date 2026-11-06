@@ -139,8 +139,8 @@ const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
 
       // Open wa.me with contact + message (includes PDF link if upload succeeded)
       const whatsappUrl = normalized
-        ? `https://wa.me/${normalized}?text=${encodeURIComponent(messageWithLink)}`
-        : `https://wa.me/?text=${encodeURIComponent(messageWithLink)}`;
+        ? `https://api.whatsapp.com/send?phone=${normalized}&text=${encodeURIComponent(messageWithLink)}`
+        : `https://api.whatsapp.com/send?text=${encodeURIComponent(messageWithLink)}`;
       window.open(whatsappUrl, '_blank');
 
       setDownloadHint(!uploaded); // only show manual attach hint if upload failed

@@ -290,8 +290,8 @@ export async function shareViaWhatsApp(
 
   // Open wa.me with message (includes PDF link if upload succeeded)
   const whatsappUrl = normalized
-    ? `https://wa.me/${normalized}?text=${encodeURIComponent(messageWithLink)}`
-    : `https://wa.me/?text=${encodeURIComponent(messageWithLink)}`;
+    ? `https://api.whatsapp.com/send?phone=${normalized}&text=${encodeURIComponent(messageWithLink)}`
+    : `https://api.whatsapp.com/send?text=${encodeURIComponent(messageWithLink)}`;
   window.open(whatsappUrl, '_blank');
 }
 
