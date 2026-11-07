@@ -51,6 +51,14 @@ const ExpenseList = lazy(() => import('./pages/finance/ExpenseList'))
 const Transactions = lazy(() => import('./pages/finance/Transactions'))
 const BalanceSheet = lazy(() => import('./pages/finance/BalanceSheet'))
 const CapitalLoans = lazy(() => import('./pages/finance/CapitalLoans'))
+// Accounting (double-entry ledger)
+const ChartOfAccounts = lazy(() => import('./pages/accounting/ChartOfAccounts'))
+const Journal = lazy(() => import('./pages/accounting/Journal'))
+const AccountLedger = lazy(() => import('./pages/accounting/AccountLedger'))
+const LedgerTrialBalance = lazy(() => import('./pages/accounting/LedgerTrialBalance'))
+const LedgerProfitLoss = lazy(() => import('./pages/accounting/LedgerProfitLoss'))
+const LedgerBalanceSheet = lazy(() => import('./pages/accounting/LedgerBalanceSheet'))
+const AccountingSettings = lazy(() => import('./pages/accounting/AccountingSettings'))
 const Letterhead = lazy(() => import('./pages/misc/Letterhead'))
 const ExpenseCategory = lazy(() => import('./pages/finance/ExpenseCategory'))
 
@@ -327,6 +335,13 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/balance-sheet" element={<BalanceSheet />} />
           <Route path="/capital-loans" element={<CapitalLoans />} />
+          <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
+          <Route path="/journal" element={<Journal />} />
+          <Route path="/account-ledger/:id" element={<AccountLedger />} />
+          <Route path="/ledger-trial-balance" element={<LedgerTrialBalance />} />
+          <Route path="/ledger-profit-loss" element={<LedgerProfitLoss />} />
+          <Route path="/ledger-balance-sheet" element={<LedgerBalanceSheet />} />
+          <Route path="/accounting-settings" element={<AccountingSettings />} />
           <Route path="/letterhead" element={<Letterhead />} />
           <Route path="/expense-category" element={<ExpenseCategory />} />
 

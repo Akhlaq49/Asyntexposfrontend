@@ -175,6 +175,20 @@ const menuData: MenuSection[] = [
           { title: 'Balance Sheet', path: '/balance-sheet' },
         ],
       },
+      {
+        // double-entry books, built from the documents (backend: Services/LedgerPoster.cs)
+        title: 'Accounting',
+        icon: 'ti-book-2',
+        iconType: 'tabler',
+        children: [
+          { title: 'Chart of Accounts', path: '/chart-of-accounts' },
+          { title: 'Journal', path: '/journal' },
+          { title: 'Trial Balance', path: '/ledger-trial-balance' },
+          { title: 'Profit & Loss', path: '/ledger-profit-loss' },
+          { title: 'Balance Sheet (books)', path: '/ledger-balance-sheet' },
+          { title: 'Accounting Settings', path: '/accounting-settings' },
+        ],
+      },
     ],
   },
   {
