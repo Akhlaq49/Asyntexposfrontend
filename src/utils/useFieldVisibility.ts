@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getFormFieldConfigs, FormFieldConfig } from '../services/formFieldConfigService';
+import { getFormFieldConfigs, FormFieldConfig } from '../services/SYST/formFieldConfigService';
 
 /**
  * Hook to check field visibility for a given form.

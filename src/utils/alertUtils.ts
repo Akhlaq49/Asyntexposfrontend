@@ -17,13 +17,3 @@ export const showError = (message: string, title: string = 'Error'): Promise<voi
   });
 };
 
-export const showConfirm = (
-  title: string,
-  message: string = '',
-  ..._rest: string[]
-): Promise<{ isConfirmed: boolean }> => {
-  return new Promise((resolve) => {
-    const confirmed = confirm(`${title}\n${message}`);
-    resolve({ isConfirmed: confirmed });
-  });
-};

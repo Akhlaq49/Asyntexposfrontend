@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/SECU/authService';
 
 interface AdminDeleteModalProps {
   show: boolean;

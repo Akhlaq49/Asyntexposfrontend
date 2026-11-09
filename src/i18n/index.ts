@@ -7,7 +7,7 @@ import ur from './locales/ur.json';
 import ar from './locales/ar.json';
 
 // RTL languages
-export const RTL_LANGUAGES = ['ur', 'ar'];
+const RTL_LANGUAGES = ['ur', 'ar'];
 
 // Supported languages config
 export const LANGUAGES = [

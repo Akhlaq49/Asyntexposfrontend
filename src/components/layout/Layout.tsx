@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import ProtectedRoute from '../auth/ProtectedRoute';
-import AiBot from '../AiBot';
+import ProtectedRoute from '../SECU/ProtectedRoute';
+import AiBot from '../AGNT/AiBot';
 
 interface LayoutProps {
   children: React.ReactNode;

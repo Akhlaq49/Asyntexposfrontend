@@ -14,7 +14,7 @@ const row = (label: string, value: number, opts: { minus?: boolean; total?: bool
 
 /* ---------------- sale invoice ---------------- */
 
-export interface PrintableSale {
+interface PrintableSale {
   id: number; reference: string; customerName: string; biller?: string; saleDate: string;
   status?: string; paymentStatus?: string; notes?: string | null;
   orderTax: number; discount: number; shipping: number; grandTotal: number; paid: number; due: number;
@@ -65,7 +65,7 @@ export async function printSaleInvoice(sale: PrintableSale) {
 
 /* ---------------- purchase ---------------- */
 
-export interface PrintablePurchase {
+interface PrintablePurchase {
   id: number; reference: string; supplierName: string; supplierRef?: string; date: string; status: string; paymentStatus: string;
   orderTax: number; discount: number; shipping: number; total: number; paid: number; due: number; notes?: string;
   items?: { productName: string; quantity: number; purchasePrice: number; discount: number; taxAmount: number; totalCost: number }[];
@@ -110,7 +110,7 @@ export async function printPurchase(purchase: PrintablePurchase) {
 
 /* ---------------- sales return ---------------- */
 
-export interface PrintableSalesReturn {
+interface PrintableSalesReturn {
   id: number; reference: string; customerName: string; returnDate: string; status: string; paymentStatus: string;
   orderTax: number; discount: number; shipping: number; grandTotal: number; paid: number; due: number;
   items: { productName: string; netUnitPrice: number; quantity: number; discount: number; taxPercent: number; subtotal: number }[];
@@ -143,7 +143,7 @@ export async function printSalesReturn(ret: PrintableSalesReturn) {
 
 /* ---------------- expense voucher ---------------- */
 
-export interface PrintableExpense { reference: string; expenseName: string; categoryName: string; description: string; date: string; amount: number; status: string }
+interface PrintableExpense { reference: string; expenseName: string; categoryName: string; description: string; date: string; amount: number; status: string }
 
 export function printExpense(e: PrintableExpense) {
   printDocument(`Expense ${e.reference}`, 'EXPENSE VOUCHER', e.reference, `

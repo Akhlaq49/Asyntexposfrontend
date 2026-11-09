@@ -1,0 +1,25 @@
+/* Action buttons show their name ("Edit", "Delete", "Revision", ...) instead of only an icon */
+.btn.btn-action {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 0.25rem 0.6rem;
+  white-space: nowrap;
+}
+/* page toolbar (PDF / Excel / Refresh / Collapse): the theme makes these 35px squares */
+.table-top-head li a.btn-action {
+  width: auto;
+  height: 35px;
+  padding: 4px 12px;
+}
+/* a wide table keeps its Actions column in view at the right edge */
+.table-responsive .action-col {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: #ffffff;
+  box-shadow: -6px 0 6px -6px rgba(0, 0, 0, 0.2);
+}
+.table-responsive thead .action-col {
+  background: #e6eaed; /* the theme's table header colour */
+}

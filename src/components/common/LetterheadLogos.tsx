@@ -1,7 +1,7 @@
 import React from 'react';
 
 /** Letterhead logos shown at the top-left / top-right corners of every printable document. */
-export const LETTERHEAD_LOGOS = {
+const LETTERHEAD_LOGOS = {
   left: '/assets/img/receipt-left.jpeg',
   right: '/assets/img/receipt-right.jpeg',
 };

@@ -12,7 +12,7 @@ interface PrintQuotation {
   customerAddress?: string | null; customerCity?: string | null; customerBuildingType?: string | null; customerBuildingSpace?: string | null; customerBuildingStage?: string | null;
 }
 /** product description / model, printed on the quotation (instead of the SKU) */
-export interface PrintProductInfo { id: string | number; description?: string; model?: string }
+interface PrintProductInfo { id: string | number; description?: string; model?: string }
 
 /**
  * One quotation as a customer document on the letterhead (used on Quotations and Staff Approvals).
@@ -62,6 +62,6 @@ export async function printQuotation(quotationId: number, products?: PrintProduc
         <tr class="total"><th colspan="${labelCols}" class="r">Grand total</th><th class="r">${printMoney(q.grandTotal)}</th></tr>
       </tfoot></table>
     ${q.description ? `<p style="margin-top:14px"><strong>Note:</strong> ${esc(q.description)}</p>` : ''}
-    <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
-    ${termsHtml}`, win, { stamp: true });
+    ${termsHtml}
+    <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>`, win, { stamp: true });   // signatures and the stamp last, after the terms
 }

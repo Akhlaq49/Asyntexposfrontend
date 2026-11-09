@@ -3,11 +3,9 @@ import jsPDF from 'jspdf';
 import api, { MEDIA_BASE_URL } from '../services/api';
 import {
   sendWhatsAppTextAndDocument,
-  sendWhatsAppText,
-  sendWhatsAppDocument,
   getWhatsAppConfig,
   uploadSharePdf,
-} from '../services/whatsappService';
+} from '../services/MESG/whatsappService';
 
 /**
  * Normalize a phone number to international format for WhatsApp.
@@ -333,37 +331,4 @@ export async function sendViaWhatsAppCloudApi(
   }
 }
 
-/**
- * Send only a text message via WhatsApp Cloud API.
- */
-export async function sendTextViaWhatsAppCloudApi(
-  phoneNumber: string,
-  message: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    await sendWhatsAppText(phoneNumber, message);
-    return { success: true, error: undefined };
-  } catch (err: any) {
-    return { success: false, error: err?.response?.data?.error || err?.message || 'Unknown error' };
-  }
-}
 
-/**
- * Send only a document via WhatsApp Cloud API.
- */
-export async function sendDocViaWhatsAppCloudApi(
-  element: HTMLElement,
-  filename: string,
-  phoneNumber: string,
-  caption?: string,
-  options?: { width?: number; orientation?: 'portrait' | 'landscape' }
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const blob = await generatePdfFromElement(element, filename, options);
-    const normalizedPhone = normalizePhone(phoneNumber);
-    await sendWhatsAppDocument(normalizedPhone, blob, `${filename}.pdf`, caption);
-    return { success: true, error: undefined };
-  } catch (err: any) {
-    return { success: false, error: err?.response?.data?.error || err?.message || 'Unknown error' };
-  }
-}

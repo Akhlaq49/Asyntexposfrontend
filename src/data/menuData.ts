@@ -1,4 +1,4 @@
-export interface SubMenuItem {
+interface SubMenuItem {
   title: string;
   path: string;
   external?: boolean;
@@ -151,6 +151,8 @@ const menuData: MenuSection[] = [
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
       // items per building size + Standard / Premium categorization (used by the package calculation)
       { title: 'Solution Packages', icon: 'ti-packages', iconType: 'tabler', path: '/solution-packages' },
+      // what the company pays for each product: purchase orders start from it, quotations show their profit against it
+      { title: 'Purchase Prices', icon: 'ti-receipt-2', iconType: 'tabler', path: '/purchase-prices' },
     ],
   },
   {
@@ -220,7 +222,6 @@ const menuData: MenuSection[] = [
           { title: 'Sold Stock', path: '/sold-stock' },
         ],
       },
-      { title: 'Invoice Report', icon: 'ti-businessplan', iconType: 'tabler', path: '/invoice-report' },
       {
         title: 'Supplier Report',
         icon: 'ti-user-star',

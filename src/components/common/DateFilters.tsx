@@ -9,7 +9,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const dayKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 /** Parses API dates: ISO ("2026-10-23T00:00:00") or display text ("23 Oct 2026") */
-export const parseAnyDate = (value?: string | null): Date | null => {
+const parseAnyDate = (value?: string | null): Date | null => {
   if (!value) return null;
   const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
@@ -17,7 +17,7 @@ export const parseAnyDate = (value?: string | null): Date | null => {
   return isNaN(d.getTime()) ? null : d;
 };
 
-export const isDateFilterSet = (f: DateFilterValue) => !!(f.month || f.from || f.to);
+const isDateFilterSet = (f: DateFilterValue) => !!(f.month || f.from || f.to);
 
 export const matchesDateFilter = (value: string | null | undefined, f: DateFilterValue) => {
   if (!isDateFilterSet(f)) return true;

@@ -1,8 +1,6 @@
 import Swal from 'sweetalert2';
 import api from '../services/api';
 
-/** A converted quotation waiting for its goods: no stock taken out, not counted as a sale yet */
-export const QUEUED = 'Queued';
 export const isQueued = (status?: string | null) => (status || '').trim().toLowerCase() === 'queued';
 
 const rs = (n: number) => 'Rs ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
@@ -55,7 +53,7 @@ export interface QueueOrder {
   saleId: number; reference: string; quotationId?: number | null; quotationReference?: string | null; customerName: string; queuedAt: string;
   grandTotal: number; paid: number; due: number; paymentStatus: string; stage: QueueStage; lines: QueueLine[]; purchaseOrders: QueuePo[];
 }
-export interface SoldOrder { saleId: number; reference: string; quotationReference?: string | null; customerName: string; saleDate: string; grandTotal: number; paid: number; due: number }
+interface SoldOrder { saleId: number; reference: string; quotationReference?: string | null; customerName: string; saleDate: string; grandTotal: number; paid: number; due: number }
 export const getSaleQueue = async () => (await api.get<{ queue: QueueOrder[]; sold: SoldOrder[] }>('/sales/queue')).data;
 /** the purchase orders of a queued order that still count (not cancelled) */
 export const activePurchaseOrders = (o: QueueOrder) => o.purchaseOrders.filter((p) => p.status !== 'Cancelled');

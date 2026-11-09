@@ -10,12 +10,12 @@ export interface AppliedTax {
   amount: number;
 }
 
-export interface TaxTypeOption { id: number; name: string; isActive: boolean }
+interface TaxTypeOption { id: number; name: string; isActive: boolean }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Recalculates every tax amount for a new base (and drops rows with no type or rate) */
-export const calcTaxes = (taxes: AppliedTax[], base: number): AppliedTax[] =>
+const calcTaxes = (taxes: AppliedTax[], base: number): AppliedTax[] =>
   taxes.map((t) => ({ ...t, percent: Math.min(100, Math.max(0, t.percent || 0)), amount: round2(Math.max(0, base) * Math.min(100, Math.max(0, t.percent || 0)) / 100) }));
 
 /** Rows ready to save: a tax type picked and a rate above 0 */
@@ -26,7 +26,7 @@ export const taxTotal = (taxes: AppliedTax[]) => round2(taxes.reduce((sum, t) =>
 
 let taxTypesCache: Promise<TaxTypeOption[]> | null = null;
 /** Active tax types (loaded once per page visit; call refreshTaxTypes() after editing them) */
-export const loadTaxTypes = () => {
+const loadTaxTypes = () => {
   if (!taxTypesCache) taxTypesCache = api.get<TaxTypeOption[]>('/tax-types', { params: { activeOnly: true } }).then((r) => r.data).catch(() => { taxTypesCache = null; return []; });
   return taxTypesCache;
 };
@@ -121,10 +121,8 @@ const TaxSelector: React.FC<TaxSelectorProps> = ({ base, value, onChange, baseLa
                 <input className="form-control" readOnly value={fmt(t.amount)} />
               </div>
               <div className="col-md-1">
-                <button type="button" className="btn btn-outline-danger w-100" title="Remove this tax"
-                  onClick={() => { const rows = value.filter((_, n) => n !== i); setRows(rows); if (rows.length === 0) setApply(false); }}>
-                  <i className="ti ti-trash"></i>
-                </button>
+                <button type="button" className="btn btn-sm btn-outline-danger w-100 btn-action" title="Remove this tax"
+                  onClick={() => { const rows = value.filter((_, n) => n !== i); setRows(rows); if (rows.length === 0) setApply(false); }}>Remove</button>
               </div>
             </div>
           ))}

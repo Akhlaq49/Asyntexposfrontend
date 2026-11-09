@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { rolePermissionService } from '../services/rolePermissionService';
-import { tenantMenuService } from '../services/tenantMenuService';
+import { rolePermissionService } from '../services/SECU/rolePermissionService';
+import { tenantMenuService } from '../services/SYST/tenantMenuService';
 
 interface PermissionContextType {
   allowedKeys: Set<string>;

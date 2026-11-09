@@ -21,7 +21,7 @@ export function openPrintWindow(): Window | null {
  * Pass `target` (from openPrintWindow) when the window was opened before the data loaded.
  */
 /** The company's round stamp, printed on the "Authorised signature" line of documents sent to customers / suppliers */
-export const COMPANY_STAMP = '/assets/img/company-stamp.png';
+const COMPANY_STAMP = '/assets/img/company-stamp.png';
 
 export function printDocument(title: string, heading: string, subheading: string, bodyHtml: string, target?: Window | null,
   options?: { /** print the company stamp on the authorised signature (else the company's signature line) */ stamp?: boolean }) {
