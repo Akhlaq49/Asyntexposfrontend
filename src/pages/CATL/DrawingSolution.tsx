@@ -7,6 +7,7 @@ import {
   drawingService, checkFile, Extraction, ReadProgress, DrawingArea, Suggestion, Choices, SUPPORTED_LINES, SolutionLineResult,
 } from '../../services/CATL/drawingService';
 import { solutionPackageService, PackageSize } from '../../services/CATL/solutionPackageService';
+import { downloadBreakdown, floorColor, solutionBreakdown } from '../../utils/solutionBreakdown';
 
 type Plan = 'standard' | 'premium';
 const money = (n: number | null | undefined) => (n == null ? '-' : `PKR ${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
@@ -17,6 +18,8 @@ export interface DrawingEstimate {
   items: { productId: number; productName: string; quantity: number }[];
   /** not in the inventory (no SKU): a line of its own; unitPrice = its packages-file price, if any */
   unlinked: { name: string; quantity: number; unitPrice?: number | null }[];
+  /** installation, testing and commissioning charges (entered on the product breakdown) */
+  installation?: number;
 }
 
 const POINT_LABELS: Record<string, string> = {
@@ -58,6 +61,8 @@ const DrawingSolution: React.FC = () => {
   const [otherUses, setOtherUses] = useState<'' | 'yes' | 'no'>('');
   const [otherCompany, setOtherCompany] = useState('');
   const [otherAreas, setOtherAreas] = useState<Set<string>>(new Set());
+  // installation, testing and commissioning charges: on the product breakdown and the quotation
+  const [installation, setInstallation] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -71,7 +76,7 @@ const DrawingSolution: React.FC = () => {
     if (!file) { setFileError('Choose the drawing file.'); return; }
     const problem = checkFile(file);
     if (problem) { setFileError(problem); return; }
-    setReading(true); setProgress(null); setFileError(''); setResult(null); setAsking(null); setPlan(null); setError(''); setOtherUses(''); setOtherCompany(''); setOtherAreas(new Set());
+    setReading(true); setProgress(null); setFileError(''); setResult(null); setAsking(null); setPlan(null); setError(''); setOtherUses(''); setOtherCompany(''); setOtherAreas(new Set()); setInstallation('');
     try { const ex = await drawingService.extract(file, setProgress, () => left.current); if (!left.current) setExtraction(ex); }
     catch (err) { if (left.current) return; setExtraction(null); setFileError(errorText(err, 'The drawing could not be read.')); }
     setReading(false); setProgress(null);
@@ -177,6 +182,16 @@ const DrawingSolution: React.FC = () => {
     doc.save(`${title()} - ${result.plan} solution.pdf`);
   };
 
+  // the product breakdown per area (the quotation sheet layout), from the same result
+  const installationAmount = Math.max(0, Math.round(Number(installation) || 0));
+  const breakdown = useMemo(() => (result && extraction ? solutionBreakdown(result.lines, extraction.floors, installationAmount) : null),
+    [result, extraction, installationAmount]);
+  const clientName = () => (extraction?.project.client || title()).trim();
+  const exportBreakdown = () => {
+    if (!breakdown || !result) return;
+    downloadBreakdown(breakdown, clientName(), `${clientName()} - ${result.plan} breakdown.xlsx`);
+  };
+
   /** the estimate goes to the normal quotation form; prices, discounts and taxes are set there */
   const createQuotation = () => {
     if (!result || !extraction) return;
@@ -193,7 +208,7 @@ const DrawingSolution: React.FC = () => {
     const estimate: DrawingEstimate = {
       description: `${title()} - ${result.plan === 'premium' ? 'Premium' : 'Standard'} solution${result.size ? ` (${result.size.name})` : ''}, estimated from the drawing ${extraction.fileName}`
         + (otherBrand ? `. The client uses ${otherBrand.company} automation in ${otherBrand.areas.length} area(s) - Matter gateways included` : ''),
-      items: [...byProduct.values()], unlinked,
+      items: [...byProduct.values()], unlinked, installation: installationAmount || undefined,
     };
     navigate('/quotation-list', { state: { drawingEstimate: estimate } });
   };
@@ -487,6 +502,59 @@ const DrawingSolution: React.FC = () => {
                 {result.leftOut.length > 0 && (
                   <details className="mt-2 small"><summary className="text-muted">{result.leftOut.length} item(s) left out</summary>
                     <ul className="mb-0 mt-1">{result.leftOut.map((l) => <li key={l.itemId}>{l.name} ({l.quantity}) - {l.reason}</li>)}</ul></details>
+                )}
+                {breakdown && breakdown.rows.length > 0 && (
+                  <div className="mt-4 solution-breakdown">
+                    <div className="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-2">
+                      <div>
+                        <h5 className="mb-0">Product breakdown per area</h5>
+                        <small className="text-muted">Each product with its unit price, quantity and total, and how many go to each area of each floor</small>
+                      </div>
+                      <div className="d-flex align-items-end gap-2 flex-wrap">
+                        <div>
+                          <label className="form-label small mb-1" htmlFor="breakdown-installation">Installation, testing &amp; commissioning (PKR)</label>
+                          <input id="breakdown-installation" type="number" min={0} step={1} className="form-control form-control-sm breakdown-installation" style={{ width: 210 }}
+                            placeholder="e.g. 130000" value={installation} onChange={(e) => setInstallation(e.target.value)} />
+                        </div>
+                        <button type="button" className="btn btn-light border breakdown-excel" onClick={exportBreakdown}>
+                          <img src="/assets/img/icons/excel.svg" alt="" width={16} className="me-1" />Breakdown Excel</button>
+                      </div>
+                    </div>
+                    <div className="table-responsive">
+                      <table className="table table-bordered table-sm align-middle text-nowrap breakdown-table">
+                        <thead className="thead-light">
+                          <tr>
+                            <th rowSpan={2} style={{ minWidth: 220 }}>Product</th><th rowSpan={2} className="text-end">Unit price</th>
+                            <th rowSpan={2} className="text-center">Qty</th><th rowSpan={2} className="text-end">Total</th>
+                            {breakdown.floors.map((f, i) => <th key={f.name} colSpan={f.areas.length} className="text-center breakdown-floor" style={{ background: `#${floorColor(i).floor}` }}>{f.name}</th>)}
+                          </tr>
+                          <tr>{breakdown.floors.flatMap((f, i) => f.areas.map((a) => <th key={`${f.name}/${a}`} className="text-center small fw-normal" style={{ background: `#${floorColor(i).room}` }}>{a}</th>))}</tr>
+                        </thead>
+                        <tbody>
+                          {breakdown.rows.map((r) => (
+                            <tr key={r.product}>
+                              <td style={{ whiteSpace: 'normal' }}>{r.product}</td>
+                              <td className="text-end">{r.unitPrice == null ? <span className="badge badge-soft-warning" title="Not in the inventory, or its price is 0">No price</span> : money(r.unitPrice)}</td>
+                              <td className="text-center fw-bold">{r.quantity}{!r.inAreas && <span className="text-muted" title="Not all of it is in a particular room">*</span>}{r.spread && <sup className="text-info ms-1" title="The drawing didn't place this product in rooms: it is spread over the rooms that suit it">~</sup>}</td>
+                              <td className="text-end fw-semibold">{r.total == null ? '' : money(r.total)}</td>
+                              {r.byArea.map((v, k) => <td key={k} className="text-center">{v || ''}</td>)}
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          {([['Subtotal', breakdown.subtotal, 'breakdown-subtotal'], ['Installation, testing & commissioning', breakdown.installation, 'breakdown-installation-amount'], ['Total', breakdown.total, 'breakdown-total']] as const).map(([label, v, cls]) => (
+                            <tr key={label} className={label === 'Total' ? 'fw-bold bg-light' : ''}>
+                              <td colSpan={3} className="text-end">{label}</td><td className={`text-end ${cls}`}>{money(v)}</td>
+                              {breakdown.floors.length > 0 && <td colSpan={breakdown.floors.reduce((n, f) => n + f.areas.length, 0)}></td>}
+                            </tr>
+                          ))}
+                        </tfoot>
+                      </table>
+                    </div>
+                    {breakdown.rows.some((r) => r.spread) && <small className="text-muted d-block"><span className="text-info">~</span> The drawing didn&apos;t place these products in rooms, so they are spread over the rooms that suit them (switches in every room, panels and curtains in lounges, gas sensor in the kitchen ...). Change the numbers in the Excel if needed.</small>}
+                    {breakdown.rows.some((r) => !r.inAreas) && <small className="text-muted d-block">* Not all of it is in a particular room (e.g. an EV charger).</small>}
+                    {!breakdown.priced && <small className="text-warning d-block">Some products have no price - they are not in the inventory or their price is 0.</small>}
+                  </div>
                 )}
               </div>
             </div>

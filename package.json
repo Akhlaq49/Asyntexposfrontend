@@ -24,7 +24,8 @@
     "react-i18next": "^16.5.4",
     "react-router-dom": "^6.28.0",
     "sweetalert2": "^11.26.20",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "1.2.0"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

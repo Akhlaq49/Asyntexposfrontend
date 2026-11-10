@@ -1,0 +1,490 @@
+<title>Smartinn POS User Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a colour-coded journey. Hero + route map of 9 steps, then one colour-banded chapter per step, with a sticky chapter rail on wide screens. */
+:root {
+  --bg: #f6f7fb;
+  --paper: #ffffff;
+  --ink: #1b2033;
+  --muted: #5d6478;
+  --line: #e2e5ef;
+  --hero-a: #1f2a6b;
+  --hero-b: #3a2a7a;
+  --hero-ink: #ffffff;
+  --s1: #4f46e5; --s2: #0e7490; --s3: #b45309; --s4: #059669; --s5: #db2777;
+  --s6: #2563eb; --s7: #dc5b1f; --s8: #7c3aed; --s9: #0f766e; --sh: #c2410c;
+  --display: "Sora", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11131c; --paper: #1a1d2a; --ink: #eceef6; --muted: #a3a9bd; --line: #2c3042;
+    --hero-a: #1b2156; --hero-b: #2e2263; --hero-ink: #ffffff;
+    --s1: #6f68f0; --s2: #1a93b0; --s3: #c97a1e; --s4: #18a87a; --s5: #e04b93;
+    --s6: #3f7ff0; --s7: #e46a30; --s8: #9466f0; --s9: #179a8c; --sh: #d6602a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11131c; --paper: #1a1d2a; --ink: #eceef6; --muted: #a3a9bd; --line: #2c3042;
+  --hero-a: #1b2156; --hero-b: #2e2263; --hero-ink: #ffffff;
+  --s1: #6f68f0; --s2: #1a93b0; --s3: #c97a1e; --s4: #18a87a; --s5: #e04b93;
+  --s6: #3f7ff0; --s7: #e46a30; --s8: #9466f0; --s9: #179a8c; --sh: #d6602a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.6; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* hero */
+.hero { background: linear-gradient(135deg, var(--hero-a), var(--hero-b)); color: var(--hero-ink); position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; right: -120px; bottom: -300px; width: 520px; height: 520px; border-radius: 50%;
+  background: conic-gradient(from 90deg, #4f46e5, #0e7490, #059669, #db2777, #dc5b1f, #7c3aed, #4f46e5); opacity: .3; filter: blur(30px); }
+.hero .wrap { padding-block: 56px 60px; position: relative; z-index: 1; display: grid; gap: 18px; }
+.eyebrow { font: 600 13px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.hero h1 { font-size: clamp(34px, 6vw, 56px); font-weight: 800; letter-spacing: -.02em; }
+.hero p { max-width: 60ch; margin: 0; font-size: 19px; opacity: .92; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.legend > span { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
+.legend b { font-family: var(--display); }
+.legend .demo { display: inline-block; font: 600 13px/1.5 var(--display); padding: 0 8px; border-radius: 6px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.55); border-bottom-width: 2px; }
+
+/* route map */
+.route { margin-top: -30px; position: relative; z-index: 2; }
+.route ol { list-style: none; margin: 0; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 12px 30px -18px rgba(20,25,60,.35); display: grid; grid-template-columns: repeat(9, minmax(0,1fr)); gap: 8px; }
+.route li { min-width: 0; }
+.route a { display: grid; gap: 6px; justify-items: center; text-align: center; text-decoration: none; color: var(--ink); padding: 10px 4px; border-radius: 12px; position: relative; }
+.route a:hover, .route a:focus-visible { background: color-mix(in srgb, var(--c) 12%, transparent); outline: none; }
+.route li:not(:last-child) a::after { content: ""; position: absolute; top: 31px; right: -9px; width: 10px; height: 2px; background: var(--line); }
+.dot { width: 42px; height: 42px; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; font: 700 17px var(--display); box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 20%, transparent); }
+.route small { font: 600 13px/1.25 var(--display); }
+.route em { font-style: normal; font-size: 12px; color: var(--muted); line-height: 1.2; }
+.phase { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 4px 0; font-size: 14px; color: var(--muted); }
+.phase b { color: var(--ink); }
+
+/* main grid */
+.main { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 36px; padding-block: 40px 64px; align-items: start; }
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 4px; }
+.rail a { display: flex; gap: 10px; align-items: center; color: var(--muted); text-decoration: none; padding: 7px 10px; border-radius: 10px; font-size: 15px; font-weight: 500; }
+.rail a i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.rail a:hover, .rail a:focus-visible { background: var(--paper); color: var(--ink); outline: none; }
+.rail p { font: 600 12px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px 10px; }
+.chapters { display: grid; gap: 28px; min-width: 0; }
+
+/* chapter */
+.ch { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; scroll-margin-top: 20px; }
+.ch-head { color: #fff; padding: 22px 26px; display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 18px; align-items: center;
+  background: linear-gradient(120deg, var(--c), color-mix(in srgb, var(--c) 72%, #000)); }
+.ch-num { grid-row: span 2; width: 58px; height: 58px; border-radius: 16px; background: rgba(255,255,255,.18); display: grid; place-items: center; font: 800 26px var(--display); }
+.ch-head h2 { font-size: clamp(22px, 3vw, 28px); font-weight: 700; }
+.ch-head .where { font-size: 15px; opacity: .92; }
+.ch-body { padding: 24px 26px 28px; display: grid; gap: 22px; }
+.lead { margin: 0; font-size: 18px; max-width: 68ch; }
+.part { display: grid; gap: 10px; border-left: 3px solid color-mix(in srgb, var(--c) 45%, transparent); padding-left: 18px; min-width: 0; }
+.part h3 { font-size: 18px; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.part h3 .sub { font: 500 14px var(--body); color: var(--muted); }
+.part h3 .k { color: var(--c); }
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 8px; max-width: 72ch; }
+ol.steps li { counter-increment: st; display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 10px; }
+ol.steps li::before { content: counter(st); width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--c); color: var(--c); display: grid; place-items: center; font: 700 13px var(--display); margin-top: 1px; }
+.part p { margin: 0; max-width: 72ch; }
+.btn { display: inline-block; font: 600 .84em/1.55 var(--display); padding: 0 8px; border-radius: 6px; background: color-mix(in srgb, var(--c) 14%, var(--paper)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); border-bottom-width: 2px; white-space: nowrap; }
+.menu { font-weight: 600; color: var(--c); }
+.note { background: color-mix(in srgb, var(--c) 9%, var(--paper)); border-radius: 12px; padding: 12px 16px; font-size: 16px; max-width: 72ch; margin: 0; }
+.note b:not(.btn) { color: var(--c); }
+
+/* flow strip */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.flow span { background: color-mix(in srgb, var(--c) 14%, var(--paper)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); font: 600 14px var(--display); padding: 6px 12px; border-radius: 10px; }
+.flow i { color: var(--c); font-style: normal; font-weight: 800; }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
+th { text-align: left; font: 600 13px var(--display); letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--c); padding: 12px 14px; }
+td { padding: 11px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+tr:nth-child(even) td { background: color-mix(in srgb, var(--c) 6%, var(--paper)); }
+td:first-child { font-weight: 600; }
+
+footer { text-align: center; color: var(--muted); font-size: 14px; padding-block: 0 40px; }
+
+@media (max-width: 980px) {
+  .main { grid-template-columns: minmax(0,1fr); }
+  .rail { display: none; }
+  .route ol { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .route li a::after { display: none; }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .route ol { padding: 10px; gap: 4px; }
+  .route em { display: none; }
+  .ch-head { padding: 18px; }
+  .ch-num { width: 46px; height: 46px; font-size: 21px; }
+  .ch-body { padding: 18px; }
+  .part { padding-left: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Smartinn POS · Step-by-step guide</div>
+    <h1>User Manual</h1>
+    <p>Follow the steps in order. Every step uses what you set up at the steps before it, so you never get stuck halfway.</p>
+    <div class="legend">
+      <span><b>Set up once:</b> steps 1–5</span>
+      <span><b>Every day:</b> steps 6–9</span>
+      <span>Buttons on screen look like <b class="demo">This</b></span>
+    </div>
+  </div>
+</header>
+
+<nav class="wrap route" aria-label="Route through the software">
+  <ol>
+    <li><a href="#s1" style="--c:var(--s1)"><span class="dot">1</span><small>Sign in</small><em>Everyone</em></a></li>
+    <li><a href="#s2" style="--c:var(--s2)"><span class="dot">2</span><small>Users &amp; roles</small><em>Admin</em></a></li>
+    <li><a href="#s3" style="--c:var(--s3)"><span class="dot">3</span><small>Letterhead</small><em>Admin</em></a></li>
+    <li><a href="#s4" style="--c:var(--s4)"><span class="dot">4</span><small>Products</small><em>Admin / store</em></a></li>
+    <li><a href="#s5" style="--c:var(--s5)"><span class="dot">5</span><small>Customers &amp; suppliers</small><em>Staff</em></a></li>
+    <li><a href="#s6" style="--c:var(--s6)"><span class="dot">6</span><small>Buying</small><em>Purchase staff</em></a></li>
+    <li><a href="#s7" style="--c:var(--s7)"><span class="dot">7</span><small>Selling</small><em>Sales staff</em></a></li>
+    <li><a href="#s8" style="--c:var(--s8)"><span class="dot">8</span><small>Money</small><em>Accounts</em></a></li>
+    <li><a href="#s9" style="--c:var(--s9)"><span class="dot">9</span><small>Reports</small><em>Owner</em></a></li>
+  </ol>
+  <div class="phase"><span><b>Setup</b> · do once, in this order</span><span><b>Daily work</b> · buying, selling, money, reports</span></div>
+</nav>
+
+<div class="wrap main">
+  <aside class="rail" aria-label="Chapters">
+    <p>Chapters</p>
+    <a href="#s1" style="--c:var(--s1)"><i></i>1 · Sign in</a>
+    <a href="#s2" style="--c:var(--s2)"><i></i>2 · Users &amp; roles</a>
+    <a href="#s3" style="--c:var(--s3)"><i></i>3 · Letterhead</a>
+    <a href="#s4" style="--c:var(--s4)"><i></i>4 · Products</a>
+    <a href="#s5" style="--c:var(--s5)"><i></i>5 · Customers &amp; suppliers</a>
+    <a href="#s6" style="--c:var(--s6)"><i></i>6 · Buying stock</a>
+    <a href="#s7" style="--c:var(--s7)"><i></i>7 · Selling</a>
+    <a href="#s8" style="--c:var(--s8)"><i></i>8 · Money</a>
+    <a href="#s9" style="--c:var(--s9)"><i></i>9 · Reports</a>
+    <a href="#help" style="--c:var(--sh)"><i></i>Quick help</a>
+  </aside>
+
+  <main class="chapters">
+
+    <section class="ch" id="s1" style="--c:var(--s1)">
+      <div class="ch-head"><div class="ch-num">1</div><h2>Sign in and find your way</h2><div class="where">For everyone · needs your email and password</div></div>
+      <div class="ch-body">
+        <div class="part">
+          <ol class="steps">
+            <li><span>Open the software link in your browser (Chrome works best).</span></li>
+            <li><span>Type your <b>email address</b> and <b>password</b>, then click <b class="btn">Sign In</b>.</span></li>
+            <li><span>You land on the <b>Dashboard</b>: today's sales, purchases and dues at a glance.</span></li>
+            <li><span>Use the <b>left menu</b> to move between modules. Click a heading such as <span class="menu">Sales</span> to see its pages.</span></li>
+            <li><span>Every list page has the same tools at the top: <b class="btn">PDF</b> <b class="btn">Excel</b> <b class="btn">Print</b> <b class="btn">Refresh</b> and a search box.</span></li>
+            <li><span>Each row in a list has named buttons such as <b class="btn">View</b> <b class="btn">Edit</b> <b class="btn">Delete</b> <b class="btn">Print</b>.</span></li>
+            <li><span><b class="btn">Add New</b> at the top of the screen is a shortcut to add a product, quotation, customer, supplier, expense or user.</span></li>
+          </ol>
+        </div>
+        <p class="note">To sign out, click the red <b class="btn">Logout</b> button at the top right, then <b class="btn">Yes</b>.</p>
+      </div>
+    </section>
+
+    <section class="ch" id="s2" style="--c:var(--s2)">
+      <div class="ch-head"><div class="ch-num">2</div><h2>Users and roles</h2><div class="where">Admin only · needs step 1</div></div>
+      <div class="ch-body">
+        <p class="lead">Give each staff member their own sign-in, and decide which menus each role can see.</p>
+        <div class="part">
+          <h3><span class="k">2.1</span> Set what each role can see <span class="sub">User Management → Roles &amp; Permissions</span></h3>
+          <ol class="steps">
+            <li><span>Pick a role in <b>Select Role</b>, for example Sales.</span></li>
+            <li><span>Tick the menus that role may use. <b class="btn">Select All</b> ticks everything.</span></li>
+            <li><span>Click <b class="btn">Save Permissions</b>. The Admin role always has full access.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">2.2</span> Add users <span class="sub">User Management → Users · needs 2.1</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">Add User</b>.</span></li>
+            <li><span>Fill in <b>User Name</b>, <b>Email</b>, <b>Phone</b>, <b>Password</b> and <b>Confirm Password</b> (at least 6 characters).</span></li>
+            <li><span>Choose the <b>Role</b>, set <b>Status</b> to Active, and save.</span></li>
+            <li><span>To change a user later, click <b class="btn">Edit</b> on their row. Leave the password blank to keep it.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">2.3</span> Hide unused menus <span class="sub">User Management → Menu Configuration · optional</span></h3>
+          <p>Turn off menus your company does not use, so nobody sees them.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s3" style="--c:var(--s3)">
+      <div class="ch-head"><div class="ch-num">3</div><h2>Company letterhead</h2><div class="where">Documents → Letterhead · needs step 1</div></div>
+      <div class="ch-body">
+        <p class="lead">Print a letter on company paper whenever you need one. Nothing else depends on this step.</p>
+        <div class="part">
+          <ol class="steps">
+            <li><span>Go to <span class="menu">Documents → Letterhead</span>.</span></li>
+            <li><span>For blank paper, click <b class="btn">No</b>, then <b class="btn">Print blank letterhead</b>.</span></li>
+            <li><span>For a letter, click <b class="btn">Yes</b>. Fill in <b>Ref</b> (for example OTA/2026/015) and <b>Date</b>, type the letter and pick a <b>Text size</b>.</span></li>
+            <li><span>Click <b class="btn">Print letter</b>. The logo, address bar and stamps are added for you. <b class="btn">Clear</b> starts over.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s4" style="--c:var(--s4)">
+      <div class="ch-head"><div class="ch-num">4</div><h2>Product setup</h2><div class="where">Inventory menu · needs step 1</div></div>
+      <div class="ch-body">
+        <p class="lead">Do these in order. A product needs its unit, category and brand to exist first.</p>
+        <div class="part">
+          <h3><span class="k">4.1</span> The lists products use <span class="sub">Inventory menu</span></h3>
+          <ol class="steps">
+            <li><span><b>Units</b>: how you count items (Piece, Meter, Box).</span></li>
+            <li><span><b>Category</b>: groups such as Switches, Locks, Cameras.</span></li>
+            <li><span><b>Brands</b>: the makers you sell, for example Sonoff or Tuya.</span></li>
+            <li><span><b>Tax Types</b>: the taxes you charge, with their percentage.</span></li>
+            <li><span><b>Warranties</b>: warranty periods, for example 1 Year.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">4.2</span> Products <span class="sub">Inventory → Create Product · needs 4.1</span></h3>
+          <ol class="steps">
+            <li><span>Enter <b>Product Name</b>, <b>SKU</b>, <b>Model</b> and <b>Color</b>.</span></li>
+            <li><span>Choose <b>Category</b>, <b>Brand</b>, <b>Unit</b> and <b>Warranty</b>.</span></li>
+            <li><span>Enter the selling <b>Price</b> and the opening <b>Quantity</b> in stock.</span></li>
+            <li><span>Add a <b>Description</b> and images if you like, then save.</span></li>
+            <li><span>See all products in <span class="menu">Inventory → Products</span>. Use <b class="btn">Edit</b> to change one.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">4.3</span> Purchase prices <span class="sub">Inventory → Purchase Prices · needs 4.2</span></h3>
+          <ol class="steps">
+            <li><span>Find a product with the search box.</span></li>
+            <li><span>Type what you pay the supplier in <b>Purchase price</b>. The <b>Margin</b> against the end-user price shows straight away.</span></li>
+            <li><span>Click <b class="btn">Save</b>. <b class="btn">Undo changes</b> clears unsaved edits.</span></li>
+          </ol>
+          <p class="note">Purchase orders start from these prices, and quotations show their <b>profit</b> against them.</p>
+        </div>
+        <div class="part">
+          <h3><span class="k">4.4</span> Solution packages <span class="sub">Inventory → Solution Packages · needs 4.2</span></h3>
+          <p>This tells the system which products make up a Standard and a Premium smart-home solution.</p>
+          <ol class="steps">
+            <li><span><b class="btn">Product Categorization</b>: put each product in a group and tick <b>Standard solution</b> and/or <b>Premium solution</b>.</span></li>
+            <li><span><b class="btn">Package Quantities</b>: how many of each item a building of each size needs.</span></li>
+            <li><span><b class="btn">Drawing Rules</b>: which product goes with which point on a drawing (a light point needs a switch).</span></li>
+            <li><span><b class="btn">Import</b>: load all of this from an Excel file instead of typing it.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s5" style="--c:var(--s5)">
+      <div class="ch-head"><div class="ch-num">5</div><h2>Customers and suppliers</h2><div class="where">Peoples menu · needs step 1</div></div>
+      <div class="ch-body">
+        <p class="lead">Add a customer before you quote them, and a supplier before you order from them.</p>
+        <div class="part">
+          <h3><span class="k">5.1</span> Customers <span class="sub">Peoples → Customers</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">Add Customer</b>.</span></li>
+            <li><span>Enter the name, phone, WhatsApp, email, CNIC, city and address.</span></li>
+            <li><span>Fill in the building: <b>Building type</b> (House, Villa, Apartment), <b>Space</b> (10 Marla, 1 Kanal) and <b>Stage of the building</b>.</span></li>
+            <li><span>Save. Use <b class="btn">Call</b> or <b class="btn">WhatsApp</b> on a customer's row to contact them.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">5.2</span> Suppliers <span class="sub">Peoples → Suppliers</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">Add Supplier</b>.</span></li>
+            <li><span>Enter the name, phone, email, city and address, then save.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s6" style="--c:var(--s6)">
+      <div class="ch-head"><div class="ch-num">6</div><h2>Buying stock</h2><div class="where">Purchases menu · needs steps 4 and 5</div></div>
+      <div class="ch-body">
+        <div class="flow"><span>Purchase order</span><i>→</i><span>Receive goods</span><i>→</i><span>Pay supplier</span><i>→</i><span>Return (if needed)</span></div>
+        <div class="part">
+          <h3><span class="k">6.1</span> Make a purchase order <span class="sub">Purchases → Purchase Order</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">New Purchase Order</b>, or click <b class="btn">Purchase Order</b> on a quotation (step 7) to order exactly what it needs.</span></li>
+            <li><span>Choose the supplier, the <b>Order date</b> and the <b>Expected delivery</b> date.</span></li>
+            <li><span>Add the products and quantities. Prices fill in from Purchase Prices. Add <b>Shipping</b> if any.</span></li>
+            <li><span>Add <b>Notes for supplier</b> if needed.</span></li>
+            <li><span>Click <b class="btn">Save as Draft</b> to finish later, or <b class="btn">Save &amp; Mark Ordered</b> when it is sent. A draft is sent later with <b class="btn">Mark Ordered</b>.</span></li>
+            <li><span>Click <b class="btn">Print</b> to give the order to the supplier.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">6.2</span> Receive the goods <span class="sub">same page · needs 6.1</span></h3>
+          <ol class="steps">
+            <li><span>When goods arrive, click <b class="btn">Receive</b> on the order.</span></li>
+            <li><span>Enter the <b>Qty received</b> for each product and the <b>Date received</b>. Part deliveries are fine; receive the rest later.</span></li>
+            <li><span>If you pay now, enter <b>Amount paid now</b> and the <b>Method</b>. <b class="btn">Paid in full</b> fills the whole amount.</span></li>
+            <li><span>Click <b class="btn">Receive into stock</b>. Stock goes up and the receipt appears in <span class="menu">Purchases</span>.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">6.3</span> Pay the supplier later <span class="sub">Purchases → Purchases · needs 6.2</span></h3>
+          <ol class="steps">
+            <li><span>Find the purchase and click <b class="btn">Pay</b>.</span></li>
+            <li><span>Enter the amount and method, then save. <b class="btn">Payments</b> shows what has been paid.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">6.4</span> Return goods to a supplier <span class="sub">Purchases → Purchase Return · needs 6.2</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">Return a purchase</b>.</span></li>
+            <li><span>Type the <b>Purchase reference</b> and click <b class="btn">Find</b>.</span></li>
+            <li><span>Enter <b>Returning now</b> for each product and a <b>Reason / notes</b>.</span></li>
+            <li><span>If the supplier refunds you, enter <b>Refunded by the supplier now</b> and the <b>Refund method</b>.</span></li>
+            <li><span>Click <b class="btn">Save return</b>. Stock goes down. <b class="btn">Print</b> gives a return slip.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s7" style="--c:var(--s7)">
+      <div class="ch-head"><div class="ch-num">7</div><h2>Selling</h2><div class="where">Sales menu · needs steps 4 and 5</div></div>
+      <div class="ch-body">
+        <div class="flow"><span>Drawing</span><i>→</i><span>Quotation</span><i>→</i><span>Approval</span><i>→</i><span>Order goods</span><i>→</i><span>Sale &amp; invoice</span><i>→</i><span>Return (if needed)</span></div>
+        <div class="part">
+          <h3><span class="k">7.1</span> Get a solution from the drawing <span class="sub">Sales → Drawing to Solution · optional</span></h3>
+          <ol class="steps">
+            <li><span><b>Upload the drawing</b>: choose the customer's electrical drawing (PDF) and click <b class="btn">Read Drawing</b>. Wait until reading finishes.</span></li>
+            <li><span><b>Check what was read</b>: look over the floors, rooms and points, and correct anything wrong.</span></li>
+            <li><span><b>Choose the solution</b>: pick <b>Standard</b> or <b>Premium</b>, and say whether the client already uses another company's automation products.</span></li>
+            <li><span>Read the <b>Product breakdown per area</b>: every product with its quantity per floor (each floor in its own colour) and room. Enter the installation charges.</span></li>
+            <li><span>Click <b class="btn">Breakdown Excel</b>, <b class="btn">Excel</b> or <b class="btn">PDF</b> to send it, or <b class="btn">Create Quotation</b> to turn it into a quotation.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">7.2</span> Make the quotation <span class="sub">Sales → Quotation</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">Add Quotation</b>, or arrive here from 7.1 with the products already filled in.</span></li>
+            <li><span>Choose the customer, add the products and quantities, and check the prices.</span></li>
+            <li><span>Click <b class="btn">Submit</b>. <b class="btn">No, save quotation</b> keeps your standard terms; <b class="btn">Yes, edit terms</b> changes them for this quotation only.</span></li>
+            <li><span>To change a saved quotation, click <b class="btn">Revision</b>. Each revision is a new version (R1, R2 …); <b>Show all versions</b> lists them.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">7.3</span> Approval <span class="sub">needs 7.2</span></h3>
+          <ol class="steps">
+            <li><span>Staff click <b class="btn">Send for Approval</b>. The quotation shows <b class="btn">Approval Pending</b> until an admin answers.</span></li>
+            <li><span>The admin opens <span class="menu">Sales → Staff Approvals</span>, checks it and clicks <b class="btn">Approve</b> or <b class="btn">Discard</b>.</span></li>
+            <li><span>Once approved, staff can <b class="btn">Print</b> it. Admins can print and convert their own quotations straight away.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">7.4</span> Order the goods <span class="sub">needs 7.3</span></h3>
+          <p>Click <b class="btn">Purchase Order</b> on the quotation. It opens a purchase order with the quotation's products. Then follow step 6.</p>
+        </div>
+        <div class="part">
+          <h3><span class="k">7.5</span> Confirm the sale <span class="sub">needs 7.3</span></h3>
+          <ol class="steps">
+            <li><span>When the customer agrees, click <b class="btn">Convert to Sale</b> on the quotation.</span></li>
+            <li><span>Enter any <b>Advance received now</b> and the <b>Payment method</b>, then confirm.</span></li>
+            <li><span>The order now waits in <span class="menu">Sales → POS Orders</span> as <b>In sale queue</b>.</span></li>
+            <li><span>When the goods have arrived (6.2), click <b class="btn">Convert to sale</b> on that order. Stock goes down.</span></li>
+            <li><span>Click <b class="btn">Print invoice</b> to give the customer the bill.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">7.6</span> Sales return <span class="sub">Sales → Sales Return · needs 7.5</span></h3>
+          <ol class="steps">
+            <li><span>Click <b class="btn">Return a sale</b>.</span></li>
+            <li><span>Type the <b>Sale reference</b> (for example SL001) and click <b class="btn">Find</b>.</span></li>
+            <li><span>Enter <b>Returning now</b> for each product, then save. Stock goes back up.</span></li>
+            <li><span>Click <b class="btn">Print return</b> for the customer's copy.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s8" style="--c:var(--s8)">
+      <div class="ch-head"><div class="ch-num">8</div><h2>Money</h2><div class="where">Finance menu · needs steps 6 and 7</div></div>
+      <div class="ch-body">
+        <p class="lead">Sales and purchases post their payments here by themselves. You only add what happens outside them.</p>
+        <div class="part">
+          <h3><span class="k">8.1</span> Expenses <span class="sub">Finance → Expenses</span></h3>
+          <ol class="steps">
+            <li><span>First, in <b>Expense Category</b>, click <b class="btn">Add Category</b> and add groups such as Rent, Fuel, Salaries.</span></li>
+            <li><span>Then in <b>Expenses</b>, add each expense with its category, amount, date and payment method.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">8.2</span> Capital &amp; Loans <span class="sub">Finance → Balance Sheet → Capital &amp; Loans</span></h3>
+          <p>Record money the owner puts in or takes out, loans taken or repaid, and business equipment bought. Click <b class="btn">View Balance Sheet</b> to see the result.</p>
+        </div>
+        <div class="part">
+          <h3><span class="k">8.3</span> Check the money <span class="sub">needs 8.1 and 8.2</span></h3>
+          <ol class="steps">
+            <li><span><b>Transactions</b>: every payment in and out. Filter by <b>Money in</b> or <b>Money out</b>.</span></li>
+            <li><span><b>Balance Sheet</b>: what the business owns, owes and what belongs to the owner.</span></li>
+          </ol>
+        </div>
+        <div class="part">
+          <h3><span class="k">8.4</span> Accounting books <span class="sub">Finance → Accounting · for your accountant</span></h3>
+          <p>The books fill in automatically from every sale, purchase, return, expense and payment.</p>
+          <ol class="steps">
+            <li><span><b>Chart of Accounts</b>: the accounts and their balances. <b class="btn">Add Account</b> adds one under a group.</span></li>
+            <li><span><b>Journal</b>: every accounting entry. Click an account to see its ledger.</span></li>
+            <li><span><b>Trial Balance</b>, <b>Profit &amp; Loss</b> and <b>Balance Sheet (books)</b>: the standard reports for any period.</span></li>
+            <li><span><b>Accounting Settings</b>: set a lock date so closed months can't be changed.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="s9" style="--c:var(--s9)">
+      <div class="ch-head"><div class="ch-num">9</div><h2>Reports</h2><div class="where">Reports menu · needs steps 6 to 8</div></div>
+      <div class="ch-body">
+        <p class="lead">Reports read everything entered at steps 4–8. Filter any of them by date and save as <b class="btn">PDF</b> or <b class="btn">Excel</b>.</p>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Report</th><th>Shows</th></tr></thead>
+            <tbody>
+              <tr><td>Sales Report · Best Seller</td><td>What sold, how much, and the top products</td></tr>
+              <tr><td>Purchase report</td><td>What was bought and from whom</td></tr>
+              <tr><td>Inventory Report · Stock History · Sold Stock</td><td>Stock in hand and every stock movement</td></tr>
+              <tr><td>Supplier Report · Supplier Due Report</td><td>Purchases per supplier and what you still owe</td></tr>
+              <tr><td>Customer Report · Customer Due Report</td><td>Sales per customer and what they still owe you</td></tr>
+              <tr><td>Product Report</td><td>Sales and stock per product</td></tr>
+              <tr><td>Expense Report</td><td>Spending by category</td></tr>
+              <tr><td>Tax Report</td><td>Tax charged on sales and paid on purchases</td></tr>
+              <tr><td>Profit &amp; Loss · Annual Report</td><td>Profit for a period, and the year at a glance</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch" id="help" style="--c:var(--sh)">
+      <div class="ch-head"><div class="ch-num">?</div><h2>Quick help</h2><div class="where">Common problems and the step that fixes them</div></div>
+      <div class="ch-body">
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Problem</th><th>What to do</th></tr></thead>
+            <tbody>
+              <tr><td>A menu is missing</td><td>Your role doesn't allow it. Ask the admin to tick it in Roles &amp; Permissions (2.1).</td></tr>
+              <tr><td>A product isn't in the list when quoting or ordering</td><td>Create it first in Inventory (4.2).</td></tr>
+              <tr><td>A customer or supplier can't be chosen</td><td>Add them first in Peoples (step 5).</td></tr>
+              <tr><td>A price shows 0 on a quotation or drawing breakdown</td><td>Set the product's price (4.2) or purchase price (4.3).</td></tr>
+              <tr><td>Convert to Sale is greyed out</td><td>The quotation needs an admin's approval first (7.3).</td></tr>
+              <tr><td>A queued order can't be converted to a sale</td><td>The goods haven't been received yet. Receive the purchase order first (6.2).</td></tr>
+              <tr><td>Can't print a quotation</td><td>Staff can print only after approval (7.3).</td></tr>
+              <tr><td>Something was saved by mistake</td><td>Use Revision on a quotation, or a return for a sale or purchase. Ask the admin before deleting anything.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="wrap">Smartinn POS · User Manual · November 2026</footer>

@@ -389,7 +389,7 @@ const QuotationList: React.FC = () => {
       discount: 0, taxPercent: 0, taxAmount: 0, unitCost: p!.price, totalCost: p!.price * e.quantity,
     })));
     const first = found.find((f) => f.p)?.p;
-    setForm((f) => ({ ...f, description: estimate.description,
+    setForm((f) => ({ ...f, description: estimate.description, installationCharges: estimate.installation || 0,
       ...(first ? { productId: parseInt(first.id), productName: first.productName, productImage: first.images?.[0] || '' } : {}) }));
     // suggested but not in the inventory (not in the inventory, or the linked product was deleted): a line of
     // its own with no product and a blank price - the user types the price in
