@@ -24,6 +24,36 @@ export interface LedgerCheck {
   entries: number; unbalanced: { id: number; voucherType: string; voucherId: number; reference: string | null }[]; stockMismatches: StockMismatch[];
 }
 
+/** Journal voucher: an entry typed in by hand (backend: Controllers/ACCT/JournalVouchersController.cs) */
+export type PartyType = 'Customer' | 'Supplier' | 'Lender';
+export interface VoucherAccount { id: number; code: string; name: string; rootType: RootType; partyType: PartyType | null }
+export interface VoucherLine { id?: number; lineNo?: number; accountId: number; code?: string; account?: string; debit: number; credit: number; partyType?: PartyType | null; partyId: number | null; partyName: string | null; note: string | null }
+export interface Voucher {
+  id: number; date: string; reference: string; description: string; createdBy: string | null; createdAt: string; updatedAt: string;
+  reversalOfId: number | null; reversalOfReference: string | null; reversedById: number | null; reversedByReference: string | null;
+  total: number; lines: VoucherLine[];
+}
+export interface VoucherPage { total: number; page: number; pageSize: number; vouchers: Voucher[] }
+export interface SaveVoucher { date: string; description: string; lines: Omit<VoucherLine, 'id' | 'lineNo' | 'code' | 'account' | 'partyType'>[] }
+
+export const voucherService = {
+  list: (p: { from?: string; to?: string; search?: string; page?: number; pageSize?: number }) =>
+    api.get<VoucherPage>('/accounting/vouchers', { params: p }).then((r) => r.data),
+  get: (id: number) => api.get<Voucher>(`/accounting/vouchers/${id}`).then((r) => r.data),
+  accounts: () => api.get<VoucherAccount[]>('/accounting/vouchers/accounts').then((r) => r.data),
+  create: (b: SaveVoucher) => api.post<Voucher>('/accounting/vouchers', b).then((r) => r.data),
+  update: (id: number, b: SaveVoucher) => api.put<Voucher>(`/accounting/vouchers/${id}`, b).then((r) => r.data),
+  remove: (id: number) => api.delete(`/accounting/vouchers/${id}`),
+  reverse: (id: number, b: { date: string; description?: string }) => api.post<Voucher>(`/accounting/vouchers/${id}/reverse`, b).then((r) => r.data),
+};
+
+/** Debit and credit totals of the lines being typed in (rounded to paisa) and whether they balance */
+export const voucherTotals = (lines: { debit: number | string; credit: number | string }[]) => {
+  const sum = (k: 'debit' | 'credit') => Math.round(lines.reduce((s, l) => s + (Number(l[k]) || 0), 0) * 100) / 100;
+  const debit = sum('debit'), credit = sum('credit');
+  return { debit, credit, difference: Math.round((debit - credit) * 100) / 100, balanced: debit > 0 && debit === credit };
+};
+
 export const accountingService = {
   accounts: () => api.get<LedgerAccount[]>('/accounting/accounts').then((r) => r.data),
   addAccount: (b: { code: string; name: string; parentId: number }) => api.post<LedgerAccount[]>('/accounting/accounts', b).then((r) => r.data),
@@ -44,6 +74,7 @@ export const ROOT_LABEL: Record<RootType, string> = { Asset: 'Assets', Liability
 export const VOUCHER_LABEL: Record<string, string> = {
   Sale: 'Sale', SalePayment: 'Customer payment', SalesReturn: 'Sales return', Purchase: 'Purchase', PurchasePayment: 'Supplier payment',
   PurchaseReturn: 'Purchase return', PurchaseReturnRefund: 'Supplier refund', Expense: 'Expense', FinanceEntry: 'Capital & loans',
+  JournalVoucher: 'Journal voucher',
 };
 export const localDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 export const monthStart = () => { const d = new Date(); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)); };

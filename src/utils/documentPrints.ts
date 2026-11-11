@@ -141,6 +141,27 @@ export async function printSalesReturn(ret: PrintableSalesReturn) {
     <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>`, win, { stamp: true });
 }
 
+/* ---------------- journal voucher ---------------- */
+
+interface PrintableJournalVoucher {
+  reference: string; date: string; description: string; createdBy: string | null; reversalOfReference: string | null; reversedByReference: string | null;
+  lines: { code?: string; account?: string; partyName: string | null; note: string | null; debit: number; credit: number }[];
+}
+
+export function printJournalVoucher(v: PrintableJournalVoucher) {
+  const debit = v.lines.reduce((s, l) => s + l.debit, 0), credit = v.lines.reduce((s, l) => s + l.credit, 0);
+  const cell = (n: number) => (n ? printMoney(n) : '');
+  printDocument(`Journal voucher ${v.reference}`, 'JOURNAL VOUCHER', v.reference, `
+    <table class="info" style="margin-bottom:14px"><tbody>
+      <tr><th>Date</th><td>${esc(day(v.date))}</td><th>Prepared by</th><td>${esc(v.createdBy || '-')}</td></tr>
+      <tr><th>Description</th><td colspan="3">${esc(v.description)}${v.reversalOfReference ? ` (reversal of ${esc(v.reversalOfReference)})` : ''}${v.reversedByReference ? ` (reversed by ${esc(v.reversedByReference)})` : ''}</td></tr>
+    </tbody></table>
+    <table><thead><tr><th style="width:36px">#</th><th>Account</th><th>Party / note</th><th class="r" style="width:140px">Debit</th><th class="r" style="width:140px">Credit</th></tr></thead>
+      <tbody>${v.lines.map((l, i) => `<tr><td>${i + 1}</td><td>${esc([l.code, l.account].filter(Boolean).join(' '))}</td><td>${esc([l.partyName, l.note].filter(Boolean).join(' · '))}</td><td class="r">${cell(l.debit)}</td><td class="r">${cell(l.credit)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr class="total"><th colspan="3" class="r">Total</th><th class="r">${printMoney(debit)}</th><th class="r">${printMoney(credit)}</th></tr></tfoot></table>
+    <div class="sign"><div>Prepared by</div><div>Checked by</div><div>Authorised signature</div></div>`);
+}
+
 /* ---------------- expense voucher ---------------- */
 
 interface PrintableExpense { reference: string; expenseName: string; categoryName: string; description: string; date: string; amount: number; status: string }

@@ -29,5 +29,6 @@ describe('menu permissions', () => {
     const map = buildPathToKeyMap();
     expect(map['/chart-of-accounts']).toBe('Finance/Accounting');
     expect(map['/ledger-trial-balance']).toBe('Finance/Accounting');
+    expect(map['/journal-vouchers']).toBe('Finance/Accounting');
   });
 });

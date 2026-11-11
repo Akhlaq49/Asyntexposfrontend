@@ -185,6 +185,7 @@ const menuData: MenuSection[] = [
         children: [
           { title: 'Chart of Accounts', path: '/chart-of-accounts' },
           { title: 'Journal', path: '/journal' },
+          { title: 'Journal Vouchers', path: '/journal-vouchers' },   // entries posted by hand (reclass, correction, accrual)
           { title: 'Trial Balance', path: '/ledger-trial-balance' },
           { title: 'Profit & Loss', path: '/ledger-profit-loss' },
           { title: 'Balance Sheet (books)', path: '/ledger-balance-sheet' },

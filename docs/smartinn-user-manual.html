@@ -438,6 +438,18 @@ footer { text-align: center; color: var(--muted); font-size: 14px; padding-block
             <li><span><b>Accounting Settings</b>: set a lock date so closed months can't be changed.</span></li>
           </ol>
         </div>
+        <div class="part">
+          <h3><span class="k">8.5</span> Journal vouchers <span class="sub">Finance → Accounting → Journal Vouchers · needs 8.4</span></h3>
+          <p>Post an entry yourself when no other screen does it: moving an amount posted to the wrong account (reclass), depreciation, amortization, accruals, or moving a balance from one customer or supplier to another. No money moves.</p>
+          <ol class="steps">
+            <li><span>Click <b class="btn">New Voucher</b>. Enter the <b>Date</b> and a <b>Description</b> saying why, for example "Reclass rent wrongly posted to Office expenses".</span></li>
+            <li><span>On each line, choose the <b>Account</b> and type the amount in <b>Debit</b> or <b>Credit</b>. <b class="btn">Add line</b> adds more lines.</span></li>
+            <li><span>For Receivable, Payable or Loans, also choose the <b>customer</b>, <b>supplier</b> or <b>lender</b>.</span></li>
+            <li><span>Check the totals show <b>Balanced</b>, then click <b class="btn">Save &amp; Post</b>. The voucher gets a number (JV-0001) and goes straight into the books.</span></li>
+            <li><span>To undo a voucher but keep a record, click <b class="btn">Reverse</b> and pick the date. To print it, click <b class="btn">Print</b>.</span></li>
+          </ol>
+          <p class="note"><b>Stock</b> can't be used in a voucher: its value comes from purchases and sales. Dates on or before the lock date can't be used either.</p>
+        </div>
       </div>
     </section>
 
@@ -479,6 +491,8 @@ footer { text-align: center; color: var(--muted); font-size: 14px; padding-block
               <tr><td>A queued order can't be converted to a sale</td><td>The goods haven't been received yet. Receive the purchase order first (6.2).</td></tr>
               <tr><td>Can't print a quotation</td><td>Staff can print only after approval (7.3).</td></tr>
               <tr><td>Something was saved by mistake</td><td>Use Revision on a quotation, or a return for a sale or purchase. Ask the admin before deleting anything.</td></tr>
+              <tr><td>An amount went to the wrong account</td><td>Move it with a journal voucher (8.5): debit the right account, credit the wrong one.</td></tr>
+              <tr><td>Save &amp; Post is greyed out on a voucher</td><td>Total debits and credits aren't equal yet. The difference shows under the lines (8.5).</td></tr>
             </tbody>
           </table>
         </div>

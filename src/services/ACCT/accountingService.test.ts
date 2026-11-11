@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { amount, errorText, localDate, money, monthStart, showDate, VOUCHER_LABEL, yearStart, ROOT_LABEL } from './accountingService';
+import { amount, errorText, localDate, money, monthStart, showDate, VOUCHER_LABEL, yearStart, ROOT_LABEL, voucherTotals } from './accountingService';
 
 describe('accounting formatting', () => {
   it.each([
@@ -34,9 +34,21 @@ describe('accounting formatting', () => {
   ])('error text %#', (err, text) => expect(errorText(err, 'fallback')).toBe(text));
 });
 
+describe('voucher totals', () => {
+  it('balances only when debits equal credits and are more than zero', () => {
+    expect(voucherTotals([{ debit: '500', credit: '' }, { debit: '', credit: '500' }])).toEqual({ debit: 500, credit: 500, difference: 0, balanced: true });
+    expect(voucherTotals([{ debit: '500', credit: '' }, { debit: '', credit: '250' }]).difference).toBe(250);
+    expect(voucherTotals([{ debit: '', credit: '' }, { debit: '', credit: '' }]).balanced).toBe(false);
+  });
+
+  it('adds paisa without floating point drift', () => {
+    expect(voucherTotals([{ debit: 0.1, credit: 0 }, { debit: 0.2, credit: 0 }, { debit: 0, credit: 0.3 }]).balanced).toBe(true);
+  });
+});
+
 describe('labels', () => {
   it('every document type of the ledger has a label', () => {
-    const backend = ['Sale', 'SalePayment', 'SalesReturn', 'Purchase', 'PurchasePayment', 'PurchaseReturn', 'PurchaseReturnRefund', 'Expense', 'FinanceEntry'];
+    const backend = ['Sale', 'SalePayment', 'SalesReturn', 'Purchase', 'PurchasePayment', 'PurchaseReturn', 'PurchaseReturnRefund', 'Expense', 'FinanceEntry', 'JournalVoucher'];
     expect(backend.filter((v) => !VOUCHER_LABEL[v])).toEqual([]);
   });
 

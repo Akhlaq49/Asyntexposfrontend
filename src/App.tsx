@@ -50,6 +50,7 @@ const CapitalLoans = lazy(() => import('./pages/FINC/CapitalLoans'))
 // Accounting (double-entry ledger)
 const ChartOfAccounts = lazy(() => import('./pages/ACCT/ChartOfAccounts'))
 const Journal = lazy(() => import('./pages/ACCT/Journal'))
+const JournalVouchers = lazy(() => import('./pages/ACCT/JournalVouchers'))
 const AccountLedger = lazy(() => import('./pages/ACCT/AccountLedger'))
 const LedgerTrialBalance = lazy(() => import('./pages/ACCT/LedgerTrialBalance'))
 const LedgerProfitLoss = lazy(() => import('./pages/ACCT/LedgerProfitLoss'))
@@ -187,6 +188,7 @@ function App() {
           <Route path="/capital-loans" element={<CapitalLoans />} />
           <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
           <Route path="/journal" element={<Journal />} />
+          <Route path="/journal-vouchers" element={<JournalVouchers />} />
           <Route path="/account-ledger/:id" element={<AccountLedger />} />
           <Route path="/ledger-trial-balance" element={<LedgerTrialBalance />} />
           <Route path="/ledger-profit-loss" element={<LedgerProfitLoss />} />
