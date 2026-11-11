@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
@@ -48,6 +49,7 @@ const fmt = (n: number) => `PKR ${n.toLocaleString(undefined, { minimumFractionD
 /* ======================== Component ======================== */
 const QuotationList: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [quotations, setQuotations] = useState<QuotationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<CustomerResult[]>([]);
@@ -383,6 +385,12 @@ const QuotationList: React.FC = () => {
                           <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); openEditModal(q); }}>
                             <i data-feather="edit" className="feather-edit"></i>
                           </a>
+                          {q.status !== 'Ordered' && (
+                            <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded text-success" href="#" title="Convert to sale"
+                              onClick={e => { e.preventDefault(); navigate(`/pos?quotation=${q.id}`); }}>
+                              <i className="ti ti-shopping-cart-share"></i>
+                            </a>
+                          )}
                           <a className="me-2 p-2 mb-0 d-flex align-items-center border rounded" href="#" onClick={e => { e.preventDefault(); setDeleteId(q.id); setShowDeleteModal(true); }}>
                             <i data-feather="trash-2" className="feather-trash-2"></i>
                           </a>

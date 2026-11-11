@@ -4,7 +4,7 @@ import { rolePermissionService } from '../../services/rolePermissionService';
 import { getMenuKeysBySection } from '../../utils/menuKeys';
 import { usePermissions } from '../../context/PermissionContext';
 
-const ROLES = ['Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
+const ROLES = ['Manager', 'Pharmacist', 'Cashier', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
 
 const allSections = getMenuKeysBySection();
 
@@ -82,6 +82,37 @@ const RolesPermissions: React.FC = () => {
     }
   };
 
+  // Ready-made access for pharmacy staff. Cashiers get no Profit & Margin key, which also hides trade prices.
+  const PHARMACY_PRESETS: Record<string, string[]> = {
+    Cashier: ['Main/Dashboard', 'Sales/POS', 'Sales/Sales', 'Sales/Sales Return', 'Sales/Customer Accounts', 'Peoples/Customers'],
+    Pharmacist: [
+      'Main/Dashboard', 'Sales/POS', 'Sales/Sales', 'Sales/Sales Return', 'Sales/Quotation', 'Peoples/Customers',
+      'Inventory/Products', 'Inventory/Near Expiry', 'Inventory/Expired Products', 'Inventory/Low Stocks', 'Inventory/Print Barcode',
+      'Stock/Manage Stock', 'Stock/Stock Adjustment', 'Stock/Stock Transfer', 'Stock/Requisitions', 'Stock/Stock Ledger',
+      'Inventory/Medicine Catalogue', 'Sales/Customer Accounts',
+      'Purchases/Purchases', 'Purchases/Reorder List', 'Purchases/Purchase Return', 'Reports/Pharmacy Reports',
+    ],
+    Manager: [
+      'Main/Dashboard', 'Sales/POS', 'Sales/Sales', 'Sales/Invoices', 'Sales/Sales Return', 'Sales/Quotation', 'Sales/Till Sessions',
+      'Peoples/Customers', 'Peoples/Suppliers', 'Promo/Coupons',
+      'Inventory/Products', 'Inventory/Create Product', 'Inventory/Near Expiry', 'Inventory/Expired Products', 'Inventory/Low Stocks',
+      'Inventory/Category', 'Inventory/Sub Category', 'Inventory/Brands', 'Inventory/Units', 'Inventory/Print Barcode',
+      'Stock/Manage Stock', 'Stock/Stock Adjustment', 'Stock/Stock Transfer', 'Stock/Requisitions', 'Stock/Stock Ledger', 'Stock/Head Office',
+      'Inventory/Medicine Catalogue', 'Sales/Customer Accounts', 'Sales/Price Levels',
+      'Purchases/Purchases', 'Purchases/Reorder List', 'Purchases/Purchase Return', 'Purchases/Supplier Payments',
+      'Finance & Accounts/Expenses', 'Finance & Accounts/Income',
+      'Reports/Sales Report', 'Reports/Purchase report', 'Reports/Inventory Report', 'Reports/Supplier Report', 'Reports/Customer Report',
+      'Reports/Product Report', 'Reports/Pharmacy Reports', 'Reports/Profit & Margin', 'Reports/Expense Report', 'Reports/Tax Report',
+    ],
+  };
+  const applyPreset = () => {
+    const preset = PHARMACY_PRESETS[selectedRole];
+    if (!preset) return;
+    const available = new Set(visibleSections.flatMap((s) => s.items.map((i) => i.key)));
+    setCheckedKeys(new Set(preset.filter((k) => available.has(k))));
+    setMessage({ type: 'success', text: `Pharmacy preset applied for ${selectedRole}. Review it, then save.` });
+  };
+
   // Save
   const handleSave = async () => {
     if (!selectedRole) return;
@@ -129,11 +160,16 @@ const RolesPermissions: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4 d-flex align-items-center mt-3 mt-md-0">
+            <div className="col-md-4 d-flex align-items-center gap-2 mt-3 mt-md-0">
               {selectedRole && (
                 <span className="badge bg-primary-transparent fs-13 px-3 py-2">
                   <i className="ti ti-shield-check me-1"></i>{selectedRole}
                 </span>
+              )}
+              {PHARMACY_PRESETS[selectedRole] && (
+                <button type="button" className="btn btn-sm btn-outline-primary" onClick={applyPreset}>
+                  Use pharmacy preset
+                </button>
               )}
             </div>
             <div className="col-md-4 text-md-end mt-3 mt-md-0">

@@ -15,6 +15,29 @@ const Subscription = lazy(() => import('./pages/misc/Subscription'))
 const Packages = lazy(() => import('./pages/misc/Packages'))
 const Domain = lazy(() => import('./pages/misc/Domain'))
 const PurchaseTransaction = lazy(() => import('./pages/purchases/PurchaseTransaction'))
+// Pharmacy
+const NearExpiry = lazy(() => import('./pages/pharmacy/NearExpiry'))
+const SupplierPayments = lazy(() => import('./pages/pharmacy/SupplierPayments'))
+const ReorderList = lazy(() => import('./pages/pharmacy/ReorderList'))
+const PharmacyReports = lazy(() => import('./pages/pharmacy/PharmacyReports'))
+const TillSessions = lazy(() => import('./pages/pharmacy/TillSessions'))
+const PharmacySettingsPage = lazy(() => import('./pages/pharmacy/PharmacySettingsPage'))
+const AuditLog = lazy(() => import('./pages/pharmacy/AuditLog'))
+const Locations = lazy(() => import('./pages/suite/Locations'))
+const HeadOffice = lazy(() => import('./pages/suite/HeadOffice'))
+const StockLedger = lazy(() => import('./pages/suite/StockLedger'))
+const Transfers = lazy(() => import('./pages/suite/Transfers'))
+const StockRequests = lazy(() => import('./pages/suite/StockRequests'))
+const CustomerAccounts = lazy(() => import('./pages/suite/CustomerAccounts'))
+const PriceLevels = lazy(() => import('./pages/suite/PriceLevels'))
+const MedicineCatalogue = lazy(() => import('./pages/suite/MedicineCatalogue'))
+const OnlineChannels = lazy(() => import('./pages/suite/OnlineChannels'))
+const Manufacturing = lazy(() => import('./pages/suite/Manufacturing'))
+const RestaurantSetup = lazy(() => import('./pages/suite/RestaurantSetup'))
+const RestaurantPOS = lazy(() => import('./pages/suite/RestaurantPOS'))
+const KitchenDisplay = lazy(() => import('./pages/suite/KitchenDisplay'))
+const SizeColourReport = lazy(() => import('./pages/suite/SizeColourReport'))
+const ReceiptPage = lazy(() => import('./pages/sales/ReceiptPage'))
 
 // Inventory
 const ProductList = lazy(() => import('./pages/inventory/ProductList'))
@@ -375,7 +398,12 @@ function App() {
           {/* Stock */}
           <Route path="/manage-stocks" element={<ManageStocks />} />
           <Route path="/stock-adjustment" element={<StockAdjustment />} />
-          <Route path="/stock-transfer" element={<StockTransfer />} />
+          <Route path="/stock-transfer" element={<Transfers />} />
+          <Route path="/stock-transfer-old" element={<StockTransfer />} />
+          <Route path="/locations" element={<Locations />} />
+          <Route path="/head-office" element={<HeadOffice />} />
+          <Route path="/stock-ledger" element={<StockLedger />} />
+          <Route path="/stock-requests" element={<StockRequests />} />
           <Route path="/stock-history" element={<StockHistory />} />
           <Route path="/sold-stock" element={<SoldStock />} />
 
@@ -392,6 +420,23 @@ function App() {
           <Route path="/sales-returns" element={<SalesReturns />} />
           <Route path="/quotation-list" element={<QuotationList />} />
           <Route path="/pos" element={<POS />} />
+          <Route path="/sale-receipt/:id" element={<ReceiptPage />} />
+          <Route path="/till-sessions" element={<TillSessions />} />
+          <Route path="/near-expiry" element={<NearExpiry />} />
+          <Route path="/reorder" element={<ReorderList />} />
+          <Route path="/supplier-payments" element={<SupplierPayments />} />
+          <Route path="/pharmacy-reports/:report" element={<PharmacyReports />} />
+          <Route path="/pharmacy-settings" element={<PharmacySettingsPage />} />
+          <Route path="/audit-log" element={<AuditLog />} />
+          <Route path="/customer-accounts" element={<CustomerAccounts />} />
+          <Route path="/price-levels" element={<PriceLevels />} />
+          <Route path="/medicine-catalogue" element={<MedicineCatalogue />} />
+          <Route path="/online-channels" element={<OnlineChannels />} />
+          <Route path="/manufacturing" element={<Manufacturing />} />
+          <Route path="/restaurant-setup" element={<RestaurantSetup />} />
+          <Route path="/pos-restaurant" element={<RestaurantPOS />} />
+          <Route path="/pos-kitchen" element={<KitchenDisplay />} />
+          <Route path="/size-colour-report" element={<SizeColourReport />} />
 
           {/* Promo */}
           <Route path="/coupons" element={<Coupons />} />

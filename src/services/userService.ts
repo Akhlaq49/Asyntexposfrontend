@@ -8,6 +8,9 @@ export interface UserDto {
   role: string;
   isActive: boolean;
   createdAt: string;
+  locationId?: number | null;
+  restrictToLocation?: boolean;
+  language?: string;
 }
 
 export interface CreateUserPayload {
@@ -17,6 +20,8 @@ export interface CreateUserPayload {
   password: string;
   role: string;
   isActive: boolean;
+  locationId?: number | null;
+  restrictToLocation?: boolean;
 }
 
 export interface UpdateUserPayload {
@@ -26,6 +31,8 @@ export interface UpdateUserPayload {
   password?: string;
   role: string;
   isActive: boolean;
+  locationId?: number | null;
+  restrictToLocation?: boolean;
 }
 
 export const userService = {

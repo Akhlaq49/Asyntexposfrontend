@@ -1,11 +1,12 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { userService, UserDto, CreateUserPayload, UpdateUserPayload } from '../../services/userService';
 import { useTranslation } from 'react-i18next';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
+import { LocationSelect, useLocations } from '../../components/suite/Pickers';
 
-const ROLES = ['Admin', 'Manager', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
+const ROLES = ['Admin', 'Manager', 'Pharmacist', 'Cashier', 'Salesman', 'Supervisor', 'Store Keeper', 'Delivery Biker', 'Maintenance', 'Quality Analyst', 'Accountant', 'Purchase', 'User'];
 
 const Users: React.FC = () => {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ const Users: React.FC = () => {
 
   // ── Add modal ──
   const [showAdd, setShowAdd] = useState(false);
+  const locations = useLocations();
   const [addForm, setAddForm] = useState<CreateUserPayload>({ fullName: '', email: '', phone: '', password: '', role: 'User', isActive: true });
   const [addConfirmPw, setAddConfirmPw] = useState('');
   const [addError, setAddError] = useState('');
@@ -101,7 +103,7 @@ const Users: React.FC = () => {
   // ── Edit user ──
   const openEdit = (user: UserDto) => {
     setEditId(user.id);
-    setEditForm({ fullName: user.fullName, email: user.email, phone: user.phone || '', password: '', role: user.role, isActive: user.isActive });
+    setEditForm({ fullName: user.fullName, email: user.email, phone: user.phone || '', password: '', role: user.role, isActive: user.isActive, locationId: user.locationId ?? null, restrictToLocation: !!user.restrictToLocation });
     setEditConfirmPw('');
     setEditError('');
     setShowEdit(true);
@@ -355,6 +357,22 @@ const Users: React.FC = () => {
                           </div>
                         </div>
                         <div className="col-lg-12">
+                          <div className="row g-2 mb-3">
+                            <div className="col-md-7">
+                              <label className="form-label">Branch</label>
+                              <LocationSelect locations={locations} value={addForm.locationId ?? ''} allowAll="Any branch"
+                                onChange={(v) => setAddForm({ ...addForm, locationId: v || null, restrictToLocation: v ? addForm.restrictToLocation : false })} ariaLabel="Branch" />
+                            </div>
+                            <div className="col-md-5 d-flex align-items-end">
+                              <label className="form-check mb-2">
+                                <input type="checkbox" className="form-check-input" disabled={!addForm.locationId} checked={!!addForm.restrictToLocation}
+                                  onChange={(e) => setAddForm({ ...addForm, restrictToLocation: e.target.checked })} />
+                                <span className="form-check-label">Only this branch</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-lg-12">
                           <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
                             <span className="status-label">{t('users.status')}</span>
                             <div className="form-check form-switch">
@@ -433,6 +451,22 @@ const Users: React.FC = () => {
                           <div className="mb-3">
                             <label className="form-label">{t('users.confirm_password')}</label>
                             <input type="password" className="form-control" value={editConfirmPw} onChange={(e) => setEditConfirmPw(e.target.value)} />
+                          </div>
+                        </div>
+                        <div className="col-lg-12">
+                          <div className="row g-2 mb-3">
+                            <div className="col-md-7">
+                              <label className="form-label">Branch</label>
+                              <LocationSelect locations={locations} value={editForm.locationId ?? ''} allowAll="Any branch"
+                                onChange={(v) => setEditForm({ ...editForm, locationId: v || null, restrictToLocation: v ? editForm.restrictToLocation : false })} ariaLabel="Branch" />
+                            </div>
+                            <div className="col-md-5 d-flex align-items-end">
+                              <label className="form-check mb-2">
+                                <input type="checkbox" className="form-check-input" disabled={!editForm.locationId} checked={!!editForm.restrictToLocation}
+                                  onChange={(e) => setEditForm({ ...editForm, restrictToLocation: e.target.checked })} />
+                                <span className="form-check-label">Only this branch</span>
+                              </label>
+                            </div>
                           </div>
                         </div>
                         <div className="col-lg-12">

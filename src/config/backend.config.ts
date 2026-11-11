@@ -7,10 +7,12 @@
 // -----------------------------------------------------------------------------
 
 // --- Local .NET backend ---
- //export const BACKEND_URL = 'http://localhost:5193';
+// VITE_BACKEND_URL (e.g. for browser tests) overrides it without editing this file.
+export const BACKEND_URL: string =
+  ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_BACKEND_URL) || 'http://localhost:5193';
 
 // --- Live / production backend ---
-export const BACKEND_URL = 'https://apis.asyntexconsultancy.com';
+//export const BACKEND_URL = 'https://apis.asyntexconsultancy.com';
 
 // Derived URLs — do not edit.
 export const API_BASE_URL = `${BACKEND_URL.replace(/\/+$/, '')}/api`;

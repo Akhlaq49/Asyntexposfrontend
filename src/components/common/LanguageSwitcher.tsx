@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, LanguageCode } from '../../i18n';
+import suite from '../../services/suiteService';
 
 const LanguageSwitcher: React.FC = () => {
   const { i18n, t } = useTranslation();
@@ -15,7 +16,18 @@ const LanguageSwitcher: React.FC = () => {
   const handleLanguageChange = (code: LanguageCode) => {
     i18n.changeLanguage(code);
     setOpen(false);
+    // Remember the choice on the account so it follows the user to any computer.
+    suite.setLanguage(code).catch(() => undefined);
   };
+
+  // On first load after sign-in, use the language saved on the account.
+  useEffect(() => {
+    if (!localStorage.getItem('token')) return;
+    suite.preferences().then((p) => {
+      if (p.language && p.language !== i18n.language && LANGUAGES.some((l) => l.code === p.language)) i18n.changeLanguage(p.language);
+    }).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleToggle = useCallback((e: React.MouseEvent) => {
     e.preventDefault();

@@ -112,6 +112,8 @@ const menuData: MenuSection[] = [
     items: [
       { title: 'Products', icon: 'box', iconType: 'feather', path: '/product-list' },
       { title: 'Create Product', icon: 'ti-table-plus', iconType: 'tabler', path: '/add-product' },
+      { title: 'Medicine Catalogue', icon: 'ti-pill', iconType: 'tabler', path: '/medicine-catalogue' },
+      { title: 'Near Expiry', icon: 'ti-calendar-exclamation', iconType: 'tabler', path: '/near-expiry' },
       { title: 'Expired Products', icon: 'ti-progress-alert', iconType: 'tabler', path: '/expired-products' },
       { title: 'Low Stocks', icon: 'ti-trending-up-2', iconType: 'tabler', path: '/low-stocks' },
       { title: 'Category', icon: 'ti-list-details', iconType: 'tabler', path: '/category-list' },
@@ -130,6 +132,24 @@ const menuData: MenuSection[] = [
       { title: 'Manage Stock', icon: 'ti-stack-3', iconType: 'tabler', path: '/manage-stocks' },
       { title: 'Stock Adjustment', icon: 'ti-stairs-up', iconType: 'tabler', path: '/stock-adjustment' },
       { title: 'Stock Transfer', icon: 'ti-stack-pop', iconType: 'tabler', path: '/stock-transfer' },
+      { title: 'Requisitions', icon: 'ti-clipboard-list', iconType: 'tabler', path: '/stock-requests' },
+      { title: 'Stock Ledger', icon: 'ti-list-search', iconType: 'tabler', path: '/stock-ledger' },
+      { title: 'Head Office', icon: 'ti-building-community', iconType: 'tabler', path: '/head-office' },
+      { title: 'Branches & Warehouses', icon: 'ti-building-store', iconType: 'tabler', path: '/locations' },
+    ],
+  },
+  {
+    header: 'Manufacturing',
+    items: [
+      { title: 'Manufacturing', icon: 'ti-building-factory-2', iconType: 'tabler', path: '/manufacturing' },
+    ],
+  },
+  {
+    header: 'Restaurant',
+    items: [
+      { title: 'Restaurant POS', icon: 'ti-tools-kitchen-2', iconType: 'tabler', path: '/pos-restaurant' },
+      { title: 'Kitchen Display', icon: 'ti-chef-hat', iconType: 'tabler', path: '/pos-kitchen' },
+      { title: 'Restaurant Setup', icon: 'ti-settings-2', iconType: 'tabler', path: '/restaurant-setup' },
     ],
   },
   {
@@ -217,6 +237,10 @@ const menuData: MenuSection[] = [
       { title: 'Sales Return', icon: 'ti-receipt-refund', iconType: 'tabler', path: '/sales-returns' },
       { title: 'Quotation', icon: 'ti-files', iconType: 'tabler', path: '/quotation-list' },
       { title: 'POS', icon: 'ti-device-laptop', iconType: 'tabler', path: '/pos' },
+      { title: 'Till Sessions', icon: 'ti-cash-register', iconType: 'tabler', path: '/till-sessions' },
+      { title: 'Customer Accounts', icon: 'ti-address-book', iconType: 'tabler', path: '/customer-accounts' },
+      { title: 'Price Levels', icon: 'ti-tags', iconType: 'tabler', path: '/price-levels' },
+      { title: 'Online Channels', icon: 'ti-world-share', iconType: 'tabler', path: '/online-channels' },
     ],
   },
   {
@@ -239,8 +263,9 @@ const menuData: MenuSection[] = [
     header: 'Purchases',
     items: [
       { title: 'Purchases', icon: 'ti-shopping-bag', iconType: 'tabler', path: '/purchase-list' },
-      { title: 'Purchase Order', icon: 'ti-file-unknown', iconType: 'tabler', path: '/purchase-order-report' },
+      { title: 'Reorder List', icon: 'ti-file-unknown', iconType: 'tabler', path: '/reorder' },
       { title: 'Purchase Return', icon: 'ti-file-upload', iconType: 'tabler', path: '/purchase-returns' },
+      { title: 'Supplier Payments', icon: 'ti-cash', iconType: 'tabler', path: '/supplier-payments' },
     ],
   },
   {
@@ -373,6 +398,22 @@ const menuData: MenuSection[] = [
           { title: 'Product Quantity Alert', path: '/product-quantity-alert' },
         ],
       },
+      {
+        title: 'Pharmacy Reports',
+        icon: 'ti-report-medical',
+        iconType: 'tabler',
+        children: [
+          { title: 'Daily Sales', path: '/pharmacy-reports/daily-sales' },
+          { title: 'Slow-moving Stock', path: '/pharmacy-reports/dead-stock' },
+          { title: 'Credit Ageing', path: '/pharmacy-reports/credit-ageing' },
+          { title: 'Branch Sales', path: '/pharmacy-reports/branch-sales' },
+          { title: 'Controlled Register', path: '/pharmacy-reports/controlled-register' },
+          { title: 'Prescription Log', path: '/pharmacy-reports/prescription-log' },
+        ],
+      },
+      // Separate item so cost and profit can be withheld from cashiers through Roles & Permissions.
+      { title: 'Profit & Margin', icon: 'ti-percentage', iconType: 'tabler', path: '/pharmacy-reports/item-margin' },
+      { title: 'Size & Colour Sales', icon: 'ti-shirt', iconType: 'tabler', path: '/size-colour-report' },
       { title: 'Expense Report', icon: 'ti-file-vector', iconType: 'tabler', path: '/expense-report' },
       { title: 'Income Report', icon: 'ti-chart-ppf', iconType: 'tabler', path: '/income-report' },
       { title: 'Tax Report', icon: 'ti-chart-dots-2', iconType: 'tabler', path: '/tax-reports' },
@@ -421,6 +462,8 @@ const menuData: MenuSection[] = [
     items: [
       { title: 'Users', icon: 'ti-shield-up', iconType: 'tabler', path: '/users' },
       { title: 'Roles & Permissions', icon: 'ti-jump-rope', iconType: 'tabler', path: '/roles-permissions' },
+      { title: 'Activity Log', icon: 'ti-history', iconType: 'tabler', path: '/audit-log' },
+      { title: 'Pharmacy Settings', icon: 'ti-settings', iconType: 'tabler', path: '/pharmacy-settings' },
       { title: 'Menu Configuration', icon: 'ti-layout-list', iconType: 'tabler', path: '/tenant-menu-config' },
       { title: 'Web Content', icon: 'ti-world', iconType: 'tabler', path: '/web-content-manager' },
       { title: 'Delete Account Request', icon: 'ti-trash-x', iconType: 'tabler', path: '/delete-account' },

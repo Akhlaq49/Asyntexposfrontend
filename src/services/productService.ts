@@ -30,6 +30,18 @@ export interface ProductPayload {
   expiryDate: string;
   // Images
   images: File[];
+  // Pharmacy
+  genericName?: string;
+  strength?: string;
+  dosageForm?: string;
+  rackLocation?: string;
+  isPrescriptionOnly?: boolean;
+  isControlled?: boolean;
+  purchasePrice?: number;
+  unitsPerStrip?: number;
+  stripsPerBox?: number;
+  refillDays?: number;
+  batchNo?: string;
 }
 
 export interface ProductResponse {
@@ -60,6 +72,23 @@ export interface ProductResponse {
   manufacturedDate: string;
   expiryDate: string;
   images: string[];
+  genericName?: string;
+  strength?: string;
+  dosageForm?: string;
+  rackLocation?: string;
+  isPrescriptionOnly?: boolean;
+  isControlled?: boolean;
+  purchasePrice?: number;
+  unitsPerStrip?: number;
+  stripsPerBox?: number;
+  refillDays?: number;
+  sellOnline?: boolean;
+  articleNo?: string | null;
+  season?: string | null;
+  hasVariants?: boolean;
+  isMenuItem?: boolean;
+  kitchenStationId?: number | null;
+  medicineMasterId?: number | null;
   createdAt: string;
   updatedAt: string;
 }

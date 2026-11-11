@@ -13,6 +13,11 @@ import {
   type DropdownOption,
 } from '../../services/productService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
+import MedicineFields, { emptyMedicineFields, medicineFromProduct, medicinePayload, MedicineFieldValues } from '../../components/pharmacy/MedicineFields';
+import { usePermissions } from '../../context/PermissionContext';
+import ProductBatchesPanel from '../../components/pharmacy/ProductBatchesPanel';
+import ProductSuitePanels from '../../components/suite/ProductSuitePanels';
+
 
 const EditProduct: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +26,9 @@ const EditProduct: React.FC = () => {
   const { isVisible } = useFieldVisibility('AddProduct');
 
   const [loading, setLoading] = useState(true);
+  const { canAccessPath } = usePermissions();
+  const showCost = canAccessPath('/pharmacy-reports/item-margin');
+  const [medicine, setMedicine] = useState<MedicineFieldValues>(emptyMedicineFields);
 
   // Dropdown options state
   const [stores, setStores] = useState<DropdownOption[]>([]);
@@ -135,6 +143,7 @@ const EditProduct: React.FC = () => {
           manufacturedDate: product.manufacturedDate || '',
           expiryDate: product.expiryDate || '',
         });
+        setMedicine(medicineFromProduct(product));
 
         // Set existing images
         if (product.images && product.images.length > 0) {
@@ -245,6 +254,7 @@ const EditProduct: React.FC = () => {
         discountValue: Number(form.discountValue) || 0,
         quantityAlert: Number(form.quantityAlert) || 0,
         images: imageFiles,
+        ...medicinePayload(medicine),
       });
       setSuccess(true);
       setTimeout(() => navigate('/product-list'), 1500);
@@ -751,6 +761,10 @@ const EditProduct: React.FC = () => {
                 </div>
               )}
             </div>
+
+            <MedicineFields value={medicine} onChange={setMedicine} retailPrice={Number(form.price) || undefined} showCost={showCost} />
+            {id && <ProductBatchesPanel productId={id} showCost={showCost} />}
+            {id && <ProductSuitePanels productId={Number(id)} productName={form.productName} retailPrice={Number(form.price) || 0} isMedicine={!!medicine.genericName} />}
 
             {/* === Section 3: Images === */}
             <div className="accordion-item border mb-4">

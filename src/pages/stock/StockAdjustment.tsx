@@ -22,7 +22,12 @@ interface StockAdjustmentDto {
   quantity: number;
   notes: string | null;
   date: string;
+  reason?: string | null;
+  batchNo?: string | null;
 }
+
+/** Why stock was adjusted. Use a negative quantity to remove stock. */
+const ADJUST_REASONS = ['Count correction', 'Damage', 'Breakage', 'Theft', 'Expired write-off', 'Other'];
 
 interface ProductResult {
   id: string;
@@ -53,14 +58,14 @@ const StockAdjustment: React.FC = () => {
 
   /* add modal */
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addForm, setAddForm] = useState({ warehouse: '', store: '', person: '', productId: 0, referenceNumber: '', quantity: 1, notes: '' });
+  const [addForm, setAddForm] = useState({ warehouse: '', store: '', person: '', productId: 0, referenceNumber: '', quantity: 1, notes: '', reason: 'Count correction' });
   const [addSearchTerm, setAddSearchTerm] = useState('');
   const [addShowDropdown, setAddShowDropdown] = useState(false);
   const addSearchRef = useRef<HTMLDivElement>(null);
 
   /* edit modal */
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ id: 0, warehouse: '', store: '', person: '', productId: 0, referenceNumber: '', quantity: 1, notes: '' });
+  const [editForm, setEditForm] = useState({ id: 0, warehouse: '', store: '', person: '', productId: 0, referenceNumber: '', quantity: 1, notes: '', reason: 'Count correction' });
   const [editSearchTerm, setEditSearchTerm] = useState('');
   const [editShowDropdown, setEditShowDropdown] = useState(false);
   const [editSelectedProduct, setEditSelectedProduct] = useState<ProductResult | null>(null);
@@ -147,7 +152,7 @@ const StockAdjustment: React.FC = () => {
       : [];
 
   /* ---- Add ---- */
-  const resetAdd = () => { setAddForm({ warehouse: '', store: '', person: '', productId: 0, referenceNumber: '', quantity: 1, notes: '' }); setAddSearchTerm(''); };
+  const resetAdd = () => { setAddForm({ warehouse: '', store: '', person: '', productId: 0, referenceNumber: '', quantity: 1, notes: '', reason: 'Count correction' }); setAddSearchTerm(''); };
 
   const handleAddSave = async () => {
     if (!addForm.warehouse || !addForm.store || !addForm.productId) return;
@@ -161,7 +166,7 @@ const StockAdjustment: React.FC = () => {
 
   /* ---- Edit ---- */
   const openEditModal = (entry: StockAdjustmentDto) => {
-    setEditForm({ id: entry.id, warehouse: entry.warehouse, store: entry.store, person: entry.person, productId: entry.productId, referenceNumber: entry.referenceNumber, quantity: entry.quantity, notes: entry.notes || '' });
+    setEditForm({ id: entry.id, warehouse: entry.warehouse, store: entry.store, person: entry.person, productId: entry.productId, referenceNumber: entry.referenceNumber, quantity: entry.quantity, notes: entry.notes || '', reason: entry.reason || 'Other' });
     setEditSearchTerm(entry.productName);
     const prod = products.find((p) => parseInt(p.id) === entry.productId) || null;
     setEditSelectedProduct(prod);
@@ -179,6 +184,7 @@ const StockAdjustment: React.FC = () => {
         referenceNumber: editForm.referenceNumber,
         quantity: editForm.quantity,
         notes: editForm.notes,
+        reason: editForm.reason,
       });
       await fetchData();
     } catch { /* ignore */ }
@@ -311,6 +317,7 @@ const StockAdjustment: React.FC = () => {
                     <th>{t('stocks.product')}</th>
                     <th>{t('stocks.date')}</th>
                     <th>{t('stocks.person')}</th>
+                    <th>Reason</th>
                     <th>{t('stocks.qty')}</th>
                     <th className="no-sort"></th>
                   </tr>
@@ -336,6 +343,7 @@ const StockAdjustment: React.FC = () => {
                       </td>
                       <td>{entry.date}</td>
                       <td>{entry.person}</td>
+                      <td>{entry.reason || ''}{entry.batchNo ? <div className="fs-12 text-muted">Batch {entry.batchNo}</div> : null}</td>
                       <td>{entry.quantity}</td>
                       <td className="d-flex">
                         <div className="d-flex align-items-center edit-delete-action">
@@ -405,6 +413,15 @@ const StockAdjustment: React.FC = () => {
                       <label className="form-label">{t('stocks.responsible_person')}<span className="text-danger ms-1">*</span></label>
                       <input type="text" className="form-control" value={addForm.person} onChange={(e) => setAddForm((p) => ({ ...p, person: e.target.value }))} placeholder={t('stocks.enter_person')} />
                     </div>
+                  </div>
+                </div>
+                <div className="col-lg-12">
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="adj-add-reason">Reason<span className="text-danger ms-1">*</span></label>
+                    <select id="adj-add-reason" className="form-select" value={addForm.reason} onChange={(e) => setAddForm((p) => ({ ...p, reason: e.target.value }))}>
+                      {ADJUST_REASONS.map((r) => <option key={r}>{r}</option>)}
+                    </select>
+                    <div className="form-text">Use a negative quantity to remove stock (e.g. -5 for five damaged units).</div>
                   </div>
                 </div>
                 <div className="col-lg-12">
@@ -522,6 +539,14 @@ const StockAdjustment: React.FC = () => {
                     <div className="mb-3">
                       <label className="form-label">{t('stocks.responsible_person')}<span className="text-danger ms-1">*</span></label>
                       <input type="text" className="form-control" value={editForm.person} onChange={(e) => setEditForm((p) => ({ ...p, person: e.target.value }))} placeholder={t('stocks.enter_person')} />
+                    </div>
+                  </div>
+                  <div className="col-lg-12">
+                    <div className="mb-3">
+                      <label className="form-label" htmlFor="adj-edit-reason">Reason</label>
+                      <select id="adj-edit-reason" className="form-select" value={editForm.reason} onChange={(e) => setEditForm((p) => ({ ...p, reason: e.target.value }))}>
+                        {ADJUST_REASONS.map((r) => <option key={r}>{r}</option>)}
+                      </select>
                     </div>
                   </div>
                   <div className="col-lg-12">

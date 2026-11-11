@@ -4,6 +4,7 @@ import api, { mediaUrl } from '../../services/api';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
+import BillReturnModal from '../../components/pharmacy/BillReturnModal';
 
 /* ---------- Types ---------- */
 interface SalesReturnItemDto {
@@ -70,6 +71,7 @@ const SalesReturns: React.FC = () => {
 
   /* add/edit modal */
   const [showModal, setShowModal] = useState(false);
+  const [showBillReturn, setShowBillReturn] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     customerId: null as number | null, customerName: '', customerImage: '',
@@ -248,12 +250,16 @@ const SalesReturns: React.FC = () => {
             <h6>{t('sales_returns.subtitle')}</h6>
           </div>
         </div>
-        <div className="page-btn">
-          <a href="#" className="btn btn-primary" onClick={e => { e.preventDefault(); openAddModal(); }}>
+        <div className="page-btn d-flex gap-2">
+          <button type="button" className="btn btn-primary" onClick={() => setShowBillReturn(true)}>
+            <i className="ti ti-receipt-refund me-1"></i>Return from bill
+          </button>
+          <a href="#" className="btn btn-outline-primary" onClick={e => { e.preventDefault(); openAddModal(); }}>
             <i className="ti ti-circle-plus me-1"></i>{t('sales_returns.add_return')}
           </a>
         </div>
       </div>
+      <BillReturnModal show={showBillReturn} onClose={() => setShowBillReturn(false)} onSaved={() => { setShowBillReturn(false); fetchData(); }} />
 
       {/* ---- Card ---- */}
       <div className="card">

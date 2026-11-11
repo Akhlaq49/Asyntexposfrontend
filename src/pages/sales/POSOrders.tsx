@@ -652,6 +652,7 @@ const POSOrders: React.FC = () => {
                         </a>
                         <ul className="dropdown-menu">
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}><i data-feather="eye" className="info-img"></i>{t('sales.sale_detail')}</a></li>
+                          <li><a className="dropdown-item" href={`/sale-receipt/${s.id}`} target="_blank" rel="noreferrer"><i className="ti ti-printer info-img"></i>Receipt / reprint</a></li>
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openEditModal(s); }}><i data-feather="edit" className="info-img"></i>{t('sales.edit_sale')}</a></li>
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}><i data-feather="dollar-sign" className="info-img"></i>{t('sales.show_payments')}</a></li>
                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}><i data-feather="plus-circle" className="info-img"></i>{t('sales.create_payment')}</a></li>
@@ -745,6 +746,7 @@ const POSOrders: React.FC = () => {
                                         </a>
                                         <ul className="dropdown-menu dropdown-menu-end">
                                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openDetail(s); }}>{t('sales.sale_detail')}</a></li>
+                                          <li><a className="dropdown-item" href={`/sale-receipt/${s.id}`} target="_blank" rel="noreferrer">Receipt / reprint</a></li>
                                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openPayments(s); }}>{t('sales.show_payments')}</a></li>
                                           <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); openCreatePayment(s.id); }}>{t('sales.create_payment')}</a></li>
                                         </ul>

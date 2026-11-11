@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getDashboardData, DashboardData } from '../services/dashboardService';
+import ExpiryAlert from '../components/pharmacy/ExpiryAlert';
 
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -96,6 +97,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
+      <ExpiryAlert />
       {/* Page Header */}
       <div className="page-header">
         <div className="add-item d-flex">

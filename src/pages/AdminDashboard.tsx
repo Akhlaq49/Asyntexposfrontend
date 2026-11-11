@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getPosDashboardData, PosDashboardData } from '../services/dashboardService';
+import ExpiryAlert from '../components/pharmacy/ExpiryAlert';
 
 const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <>
+      <ExpiryAlert />
       <div className="d-lg-flex align-items-center justify-content-between mb-4">
         <div>
           <h2 className="mb-1">{t('admin_dashboard.welcome')}</h2>

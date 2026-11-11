@@ -12,6 +12,9 @@ import { getProducts, ProductResponse } from '../../services/productService';
 import { recordPurchaseExpense } from '../../services/financeService';
 import { showSuccess, showError } from '../../utils/alertUtils';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
+import { LocationSelect, useLocations } from '../../components/suite/Pickers';
+import VariantGridEntry from '../../components/suite/VariantGridEntry';
+
 
 const PurchaseList: React.FC = () => {
   const { t } = useTranslation();
@@ -48,7 +51,10 @@ const PurchaseList: React.FC = () => {
     total: 0,
     paid: 0,
     notes: '',
+    locationId: '' as number | '',
   });
+  const locations = useLocations();
+  const [gridProduct, setGridProduct] = useState<{ id: number; productName: string; purchasePrice?: number } | null>(null);
 
   const [lineItems, setLineItems] = useState<PurchaseItem[]>([]);
   const [newItem, setNewItem] = useState<{
@@ -61,6 +67,10 @@ const PurchaseList: React.FC = () => {
     taxAmount: number;
     unitCost: number;
     totalCost: number;
+    batchNo: string;
+    expiryDate: string;
+    bonusQuantity: number;
+    purchaseUnit: 'Unit' | 'Strip' | 'Box';
   }>({
     productName: '',
     quantity: 1,
@@ -70,6 +80,10 @@ const PurchaseList: React.FC = () => {
     taxAmount: 0,
     unitCost: 0,
     totalCost: 0,
+    batchNo: '',
+    expiryDate: '',
+    bonusQuantity: 0,
+    purchaseUnit: 'Unit',
   });
 
   // Delete modal
@@ -183,6 +197,7 @@ const PurchaseList: React.FC = () => {
       total: purchase.total,
       paid: purchase.paid,
       notes: purchase.notes || '',
+      locationId: (purchase as any).locationId ?? '',
     });
     setLineItems(purchase.items || []);
     setShowEditModal(true);
@@ -214,6 +229,7 @@ const PurchaseList: React.FC = () => {
       total: 0,
       paid: 0,
       notes: '',
+      locationId: '',
     });
     setLineItems([]);
     setNewItem({
@@ -225,6 +241,10 @@ const PurchaseList: React.FC = () => {
       taxAmount: 0,
       unitCost: 0,
       totalCost: 0,
+      batchNo: '',
+      expiryDate: '',
+      bonusQuantity: 0,
+      purchaseUnit: 'Unit',
     });
     setProductSearch('');
     setShowProductDropdown(false);
@@ -234,6 +254,10 @@ const PurchaseList: React.FC = () => {
   const addLineItem = () => {
     if (!newItem.productName) {
       showError('Please select a product');
+      return;
+    }
+    if (newItem.expiryDate && new Date(newItem.expiryDate) < new Date(new Date().toDateString())) {
+      showError('This batch has already expired. Check the expiry date.');
       return;
     }
 
@@ -259,6 +283,10 @@ const PurchaseList: React.FC = () => {
       taxAmount: 0,
       unitCost: 0,
       totalCost: 0,
+      batchNo: '',
+      expiryDate: '',
+      bonusQuantity: 0,
+      purchaseUnit: 'Unit',
     });
     setProductSearch('');
     setShowProductDropdown(false);
@@ -279,11 +307,23 @@ const PurchaseList: React.FC = () => {
   }, [lineItems, formData.orderTax, formData.discount, formData.shipping]);
 
   const selectProduct = (product: ProductResponse) => {
+    if (product.hasVariants) {
+      // Sized / coloured articles are received through the grid.
+      setGridProduct({ id: Number(product.id), productName: product.productName, purchasePrice: Number(product.purchasePrice) || undefined });
+      setProductSearch('');
+      setShowProductDropdown(false);
+      return;
+    }
+    // Medicines are usually bought by the box; price defaults to the last trade price for that unit.
+    const perBox = Math.max(1, Number(product.unitsPerStrip) || 1) * Math.max(1, Number(product.stripsPerBox) || 1);
+    const unit: 'Unit' | 'Box' = perBox > 1 ? 'Box' : 'Unit';
+    const unitPrice = Number(product.purchasePrice) || Number(product.price) || 0;
     setNewItem({
       ...newItem,
       productId: parseInt(product.id),
       productName: product.productName,
-      purchasePrice: product.price,
+      purchasePrice: Math.round(unitPrice * (unit === 'Box' ? perBox : 1) * 100) / 100,
+      purchaseUnit: unit,
       quantity: 1,
     });
     setProductSearch(product.productName);
@@ -299,9 +339,11 @@ const PurchaseList: React.FC = () => {
     try {
       const payload = {
         ...formData,
+        locationId: formData.locationId || undefined,
         items: lineItems.map(item => ({
           productId: item.productId,
-          productName: item.productName,
+          productName: item.variantLabel ? `${item.productName} (${item.variantLabel})` : item.productName,
+          variantId: item.variantId ?? undefined,
           quantity: item.quantity,
           purchasePrice: item.purchasePrice,
           discount: item.discount,
@@ -309,6 +351,10 @@ const PurchaseList: React.FC = () => {
           taxAmount: item.taxAmount,
           unitCost: item.unitCost,
           totalCost: item.totalCost,
+          batchNo: item.batchNo || undefined,
+          expiryDate: item.expiryDate || undefined,
+          bonusQuantity: item.bonusQuantity || 0,
+          purchaseUnit: item.purchaseUnit || 'Unit',
         })),
       };
 
@@ -602,6 +648,12 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-4">
                     <div className="mb-3">
+                      <label className="form-label">Receive at</label>
+                      <LocationSelect locations={locations} value={formData.locationId} onChange={(v) => setFormData({ ...formData, locationId: v })} allowAll="My branch" ariaLabel="Receive at" />
+                    </div>
+                  </div>
+                  <div className="col-lg-4">
+                    <div className="mb-3">
                       <label className="form-label">
                         {t('purchases.date')} <span className="text-danger">*</span>
                       </label>
@@ -727,12 +779,40 @@ const PurchaseList: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="row mb-3 g-2">
+                  <div className="col-lg-2">
+                    <select className="form-select" aria-label="Purchase unit" value={newItem.purchaseUnit}
+                      onChange={(e) => setNewItem({ ...newItem, purchaseUnit: e.target.value as 'Unit' | 'Strip' | 'Box' })}>
+                      <option value="Unit">per unit</option>
+                      <option value="Strip">per strip</option>
+                      <option value="Box">per box</option>
+                    </select>
+                  </div>
+                  <div className="col-lg-3">
+                    <input type="text" className="form-control" placeholder="Batch no." aria-label="Batch number"
+                      value={newItem.batchNo} onChange={(e) => setNewItem({ ...newItem, batchNo: e.target.value })} />
+                  </div>
+                  <div className="col-lg-3">
+                    <input type="date" className="form-control" aria-label="Expiry date" title="Expiry date"
+                      value={newItem.expiryDate} onChange={(e) => setNewItem({ ...newItem, expiryDate: e.target.value })} />
+                  </div>
+                  <div className="col-lg-2">
+                    <input type="number" min={0} className="form-control" placeholder="Bonus qty" aria-label="Bonus (free) quantity"
+                      title="Free units from the distributor, e.g. the 1 in 10 + 1"
+                      value={newItem.bonusQuantity || ''} onChange={(e) => setNewItem({ ...newItem, bonusQuantity: parseFloat(e.target.value) || 0 })} />
+                  </div>
+                  <div className="col-lg-2 d-flex align-items-center">
+                    <small className="text-muted">Qty, bonus and price are in the chosen unit.</small>
+                  </div>
+                </div>
+
                 {/* Line Items Table */}
                 <div className="table-responsive">
                   <table className="table table-sm">
                     <thead>
                       <tr>
                         <th>{t('purchases.product')}</th>
+                        <th>Batch / expiry</th>
                         <th>{t('purchases.qty')}</th>
                         <th>{t('purchases.price_col')}</th>
                         <th>{t('purchases.discount_col')}</th>
@@ -746,8 +826,9 @@ const PurchaseList: React.FC = () => {
                     <tbody>
                       {lineItems.map((item, index) => (
                         <tr key={index}>
-                          <td>{item.productName}</td>
-                          <td>{item.quantity}</td>
+                          <td>{item.productName}{item.variantLabel ? <span className="text-muted"> ({item.variantLabel})</span> : null}</td>
+                          <td className="fs-12">{item.batchNo || '—'}{item.expiryDate ? <><br />exp {String(item.expiryDate).slice(0, 10)}</> : null}</td>
+                          <td>{item.quantity}{item.purchaseUnit && item.purchaseUnit !== 'Unit' ? ` ${item.purchaseUnit.toLowerCase()}` : ''}{item.bonusQuantity ? ` + ${item.bonusQuantity} free` : ''}</td>
                           <td>${item.purchasePrice.toFixed(2)}</td>
                           <td>${item.discount.toFixed(2)}</td>
                           <td>{item.taxPercentage}%</td>
@@ -910,6 +991,12 @@ const PurchaseList: React.FC = () => {
                   </div>
                   <div className="col-lg-4">
                     <div className="mb-3">
+                      <label className="form-label">Receive at</label>
+                      <LocationSelect locations={locations} value={formData.locationId} onChange={(v) => setFormData({ ...formData, locationId: v })} allowAll="My branch" ariaLabel="Receive at" />
+                    </div>
+                  </div>
+                  <div className="col-lg-4">
+                    <div className="mb-3">
                       <label className="form-label">
                         {t('purchases.date')} <span className="text-danger">*</span>
                       </label>
@@ -1035,12 +1122,40 @@ const PurchaseList: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="row mb-3 g-2">
+                  <div className="col-lg-2">
+                    <select className="form-select" aria-label="Purchase unit" value={newItem.purchaseUnit}
+                      onChange={(e) => setNewItem({ ...newItem, purchaseUnit: e.target.value as 'Unit' | 'Strip' | 'Box' })}>
+                      <option value="Unit">per unit</option>
+                      <option value="Strip">per strip</option>
+                      <option value="Box">per box</option>
+                    </select>
+                  </div>
+                  <div className="col-lg-3">
+                    <input type="text" className="form-control" placeholder="Batch no." aria-label="Batch number"
+                      value={newItem.batchNo} onChange={(e) => setNewItem({ ...newItem, batchNo: e.target.value })} />
+                  </div>
+                  <div className="col-lg-3">
+                    <input type="date" className="form-control" aria-label="Expiry date" title="Expiry date"
+                      value={newItem.expiryDate} onChange={(e) => setNewItem({ ...newItem, expiryDate: e.target.value })} />
+                  </div>
+                  <div className="col-lg-2">
+                    <input type="number" min={0} className="form-control" placeholder="Bonus qty" aria-label="Bonus (free) quantity"
+                      title="Free units from the distributor, e.g. the 1 in 10 + 1"
+                      value={newItem.bonusQuantity || ''} onChange={(e) => setNewItem({ ...newItem, bonusQuantity: parseFloat(e.target.value) || 0 })} />
+                  </div>
+                  <div className="col-lg-2 d-flex align-items-center">
+                    <small className="text-muted">Qty, bonus and price are in the chosen unit.</small>
+                  </div>
+                </div>
+
                 {/* Line Items Table */}
                 <div className="table-responsive">
                   <table className="table table-sm">
                     <thead>
                       <tr>
                         <th>{t('purchases.product')}</th>
+                        <th>Batch / expiry</th>
                         <th>{t('purchases.qty')}</th>
                         <th>{t('purchases.price_col')}</th>
                         <th>{t('purchases.discount_col')}</th>
@@ -1054,8 +1169,9 @@ const PurchaseList: React.FC = () => {
                     <tbody>
                       {lineItems.map((item, index) => (
                         <tr key={index}>
-                          <td>{item.productName}</td>
-                          <td>{item.quantity}</td>
+                          <td>{item.productName}{item.variantLabel ? <span className="text-muted"> ({item.variantLabel})</span> : null}</td>
+                          <td className="fs-12">{item.batchNo || '—'}{item.expiryDate ? <><br />exp {String(item.expiryDate).slice(0, 10)}</> : null}</td>
+                          <td>{item.quantity}{item.purchaseUnit && item.purchaseUnit !== 'Unit' ? ` ${item.purchaseUnit.toLowerCase()}` : ''}{item.bonusQuantity ? ` + ${item.bonusQuantity} free` : ''}</td>
                           <td>${item.purchasePrice.toFixed(2)}</td>
                           <td>${item.discount.toFixed(2)}</td>
                           <td>{item.taxPercentage}%</td>
@@ -1177,6 +1293,12 @@ const PurchaseList: React.FC = () => {
         )}
 
       <AdminDeleteModal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={confirmDeletePurchase} />
+      <VariantGridEntry product={gridProduct} onClose={() => setGridProduct(null)}
+        onAdd={(lines) => setLineItems((prev) => [...prev, ...lines.map((l) => ({
+          productId: l.productId, productName: l.productName, variantId: l.variantId, variantLabel: l.variantLabel,
+          quantity: l.quantity, purchasePrice: l.unitCost, discount: 0, taxPercentage: 0, taxAmount: 0,
+          unitCost: l.unitCost, totalCost: Math.round(l.unitCost * l.quantity * 100) / 100, bonusQuantity: 0, purchaseUnit: 'Unit' as const,
+        }))])} />
     </>
   );
 };

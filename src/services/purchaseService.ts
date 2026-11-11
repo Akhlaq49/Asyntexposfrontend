@@ -11,6 +11,13 @@ export interface PurchaseItem {
   taxAmount: number;
   unitCost: number;
   totalCost: number;
+  batchNo?: string;
+  expiryDate?: string;
+  manufacturedDate?: string;
+  bonusQuantity?: number;
+  purchaseUnit?: 'Unit' | 'Strip' | 'Box';
+  variantId?: number | null;
+  variantLabel?: string;
 }
 
 export interface Purchase {
@@ -55,6 +62,11 @@ export interface CreatePurchasePayload {
     taxAmount: number;
     unitCost: number;
     totalCost: number;
+    batchNo?: string;
+    expiryDate?: string;
+    manufacturedDate?: string;
+    bonusQuantity?: number;
+    purchaseUnit?: string;
   }[];
 }
 

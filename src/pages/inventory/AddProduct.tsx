@@ -12,11 +12,17 @@ import {
 } from '../../services/productService';
 import { recordPurchaseExpense } from '../../services/financeService';
 import { useFieldVisibility } from '../../utils/useFieldVisibility';
+import MedicineFields, { emptyMedicineFields, medicinePayload, MedicineFieldValues } from '../../components/pharmacy/MedicineFields';
+import { usePermissions } from '../../context/PermissionContext';
+
 
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isVisible } = useFieldVisibility('AddProduct');
+  const { canAccessPath } = usePermissions();
+  const showCost = canAccessPath('/pharmacy-reports/item-margin');
+  const [medicine, setMedicine] = useState<MedicineFieldValues>(emptyMedicineFields);
 
   // Dropdown options state
   const [stores, setStores] = useState<DropdownOption[]>([]);
@@ -188,11 +194,13 @@ const AddProduct: React.FC = () => {
         discountValue: Number(form.discountValue) || 0,
         quantityAlert: Number(form.quantityAlert) || 0,
         images: imageFiles,
+        ...medicinePayload(medicine),
       });
 
-      // Record inventory value as a finance expense if product has quantity & price
+      // Record inventory value as a finance expense if product has quantity & price.
+      // Opening stock is valued at trade price when it is known.
       const qty = Number(form.quantity) || 0;
-      const price = Number(form.price) || 0;
+      const price = Number(medicine.purchasePrice) || Number(form.price) || 0;
       if (qty > 0 && price > 0) {
         recordPurchaseExpense({
           amount: qty * price,
@@ -257,6 +265,7 @@ const AddProduct: React.FC = () => {
             <h4 className="fw-bold">Create Product</h4>
             <h6>Create new product</h6>
           </div>
+          <a href="/medicine-catalogue" className="btn btn-outline-primary btn-sm ms-3 align-self-center"><i className="ti ti-pill me-1" />Add from medicine catalogue</a>
         </div>
         <ul className="table-top-head">
           <li>
@@ -699,6 +708,8 @@ const AddProduct: React.FC = () => {
                 </div>
               )}
             </div>
+
+            <MedicineFields value={medicine} onChange={setMedicine} retailPrice={Number(form.price) || undefined} showCost={showCost} />
 
             {/* === Section 3: Images === */}
             <div className="accordion-item border mb-4">

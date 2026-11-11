@@ -17,6 +17,7 @@ import WhatsAppSendModal from '../../components/WhatsAppSendModal';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
+import MedicationHistory from '../../components/pharmacy/MedicationHistory';
 
 const emptyForm: { name: string; so: string; cnic: string; phone: string; email: string; address: string; city: string; status: 'active' | 'inactive' } = { name: '', so: '', cnic: '', phone: '', email: '', address: '', city: '', status: 'active' };
 
@@ -546,6 +547,10 @@ const Customers: React.FC = () => {
                       {viewCustomer.address && <tr><td className="text-muted"><i className="ti ti-map-pin me-2"></i>{t('customers.address')}</td><td className="text-end fw-medium">{viewCustomer.address}</td></tr>}
                     </tbody>
                   </table>
+                </div>
+                <div className="text-start mt-3">
+                  <h6 className="mb-2"><i className="ti ti-pill me-1"></i>Medication history</h6>
+                  <MedicationHistory customerId={viewCustomer.id} />
                 </div>
               </div>
               <div className="modal-footer">
