@@ -12,6 +12,12 @@ const Journal: React.FC = () => {
   const [page, setPage] = useState(1);
   const [data, setData] = useState<JournalPage | null>(null);
   const [error, setError] = useState('');
+  // collapsed: one row per entry; clicking an entry's row opens or closes just that one
+  const [collapsed, setCollapsed] = useState(false);
+  const [toggled, setToggled] = useState<Set<number>>(new Set());
+  const isOpen = (id: number) => collapsed === toggled.has(id);
+  const toggle = (id: number) => setToggled((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const setAll = (c: boolean) => { setCollapsed(c); setToggled(new Set()); };
 
   useEffect(() => {
     const t = setTimeout(() => svc.journal({ from, to, voucherType: voucherType || undefined, search: search || undefined, page, pageSize: 50 })
@@ -32,6 +38,12 @@ const Journal: React.FC = () => {
         </select>
         <input className="form-control" style={{ width: 220 }} placeholder="Reference or description" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         {data && <span className="ms-auto text-muted small">{data.total} entr{data.total === 1 ? 'y' : 'ies'}</span>}
+        <div className="btn-group btn-group-sm" role="group" aria-label="Show entry lines">
+          <button type="button" className={`btn ${!collapsed && toggled.size === 0 ? 'btn-primary' : 'btn-outline-primary'} journal-expand`} onClick={() => setAll(false)}>
+            <i className="ti ti-arrows-maximize me-1" />Expand all</button>
+          <button type="button" className={`btn ${collapsed && toggled.size === 0 ? 'btn-primary' : 'btn-outline-primary'} journal-collapse`} onClick={() => setAll(true)}>
+            <i className="ti ti-arrows-minimize me-1" />Collapse all</button>
+        </div>
       </div></div>
       {error && <div className="alert alert-danger py-2">{error}</div>}
       <div className="card"><div className="card-body p-0">
@@ -41,12 +53,14 @@ const Journal: React.FC = () => {
             : data.entries.length === 0 ? <tbody><tr><td colSpan={5} className="text-center py-4 text-muted">No entries in this period.</td></tr></tbody>
             : data.entries.map((e) => (
               <tbody key={e.id} className="border-bottom" data-entry={e.id}>
-                <tr className="table-light">
-                  <td className="text-nowrap">{showDate(e.date)}</td>
-                  <td colSpan={4}><span className="badge bg-light text-dark border me-2">{VOUCHER_LABEL[e.voucherType] || e.voucherType}</span>
+                <tr className="table-light" role="button" title={isOpen(e.id) ? 'Hide the lines' : 'Show the lines'} onClick={() => toggle(e.id)}>
+                  <td className="text-nowrap"><i className={`ti ${isOpen(e.id) ? 'ti-chevron-down' : 'ti-chevron-right'} me-1 text-muted`} />{showDate(e.date)}</td>
+                  <td colSpan={2}><span className="badge bg-light text-dark border me-2">{VOUCHER_LABEL[e.voucherType] || e.voucherType}</span>
                     <b>{e.reference}</b> <span className="text-muted">{e.description}</span></td>
+                  {isOpen(e.id) ? <td colSpan={2} />
+                    : <><td className="text-end text-muted small">{amount(e.lines.reduce((s, l) => s + l.debit, 0))}</td><td className="text-end text-muted small">{amount(e.lines.reduce((s, l) => s + l.credit, 0))}</td></>}
                 </tr>
-                {e.lines.map((l, i) => (
+                {isOpen(e.id) && e.lines.map((l, i) => (
                   <tr key={i}>
                     <td></td>
                     <td style={{ paddingLeft: l.credit ? 40 : 12 }}><Link to={`/account-ledger/${l.accountId}`} className="text-reset"><span className="text-muted me-1">{l.code}</span>{l.account}</Link></td>
