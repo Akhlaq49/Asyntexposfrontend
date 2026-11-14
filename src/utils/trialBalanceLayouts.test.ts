@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { TrialBalance } from '../services/ACCT/accountingService';
-import { buildTrialBalanceView, formatTbValue, tbExportTable } from './trialBalanceLayouts';
+import type { AccountBalances, Comparison, TrialBalance } from '../services/ACCT/accountingService';
+import { buildAccumulatedView, buildComparisonView, buildTrialBalanceView, comparisonDates, formatTbValue, tbExportTable } from './trialBalanceLayouts';
 
 const row = (id: number, code: string, name: string, rootType: TrialBalance['rows'][number]['rootType'], opening: number, debit: number, credit: number) => {
   const closing = opening + debit - credit;
@@ -52,6 +52,51 @@ describe('trial balance layouts', () => {
     expect(formatTbValue(-100, 'signed')).toBe('100.00 Cr');
     expect(formatTbValue(0, 'signed')).toBe('');
     expect(formatTbValue(-100, 'amount')).toBe('100.00');
+  });
+
+  it('comparison: reporting, comparison, difference and change %, with total debits = total credits', () => {
+    const cmp: Comparison = { from: '2026-03-01', to: '2026-03-31', cmpFrom: '2025-03-01', cmpTo: '2025-03-31', rows: [
+      { id: 1, code: '111001', name: 'Cash', rootType: 'Asset', current: 4825, comparison: 4900, difference: -75, percent: -1.5 },
+      { id: 3, code: '611000', name: 'Rent', rootType: 'Expense', current: 75, comparison: 0, difference: 75, percent: null },
+      { id: 0, code: '', name: 'Profit of earlier periods', rootType: 'Equity', current: 100, comparison: 100, difference: 0, percent: 0 },
+      { id: 2, code: '411000', name: 'Owner capital', rootType: 'Equity', current: -5000, comparison: -5000, difference: 0, percent: 0 },
+    ] };
+    const v = buildComparisonView(cmp, true);
+    expect(v.columns.map((c) => c.label)).toEqual(['Reporting period', 'Comparison period', 'Difference', 'Change %']);
+    expect(v.sections.map((s) => s.title)).toEqual(['Assets', 'Equity', 'Expenses']);
+    expect(v.sections[1].lines.map((l) => l.name)).toEqual(['Owner capital', 'Profit of earlier periods']);   // non-account line last
+    expect(v.sections[2].lines[0].values[3]).toBeNaN();                                                       // no % when nothing to compare with
+    expect(v.totals[0].values.slice(0, 2)).toEqual([5000, 5000]);
+    expect(v.totals[1].values.slice(0, 2)).toEqual([5000, 5000]);
+    expect(v.totals[0].values[3]).toBeNaN();
+    expect(formatTbValue(-1.5, 'percent')).toBe('-1.5%');
+    expect(formatTbValue(12.5, 'percent')).toBe('+12.5%');
+  });
+
+  it('accumulated: debit columns add to the debit total only, credit columns to the credit total', () => {
+    const acc: AccountBalances = { from: '2026-03-01', to: '2026-03-31', fiscalYearStart: '2026-01-01', rows: [
+      { id: 1, code: '111001', name: 'Cash', rootType: 'Asset', carryforward: 4900, previousPeriods: 0, accumulatedPrevious: 4900, debit: 0, credit: 75, cumulativeDebit: 0, cumulativeCredit: 75, accumulated: 4825 },
+      { id: 3, code: '611000', name: 'Rent', rootType: 'Expense', carryforward: 0, previousPeriods: 0, accumulatedPrevious: 0, debit: 75, credit: 0, cumulativeDebit: 75, cumulativeCredit: 0, accumulated: 75 },
+      { id: 2, code: '411000', name: 'Owner capital', rootType: 'Equity', carryforward: -5000, previousPeriods: 0, accumulatedPrevious: -5000, debit: 0, credit: 0, cumulativeDebit: 0, cumulativeCredit: 0, accumulated: -5000 },
+      { id: 0, code: '', name: 'Profit of earlier years (carried forward)', rootType: 'Equity', carryforward: 100, previousPeriods: 0, accumulatedPrevious: 100, debit: 0, credit: 0, cumulativeDebit: 0, cumulativeCredit: 0, accumulated: 100 },
+    ] };
+    const v = buildAccumulatedView(acc, false);
+    expect(v.columns).toHaveLength(8);
+    const [debits, credits] = v.totals;
+    expect(debits.values[0]).toBe(5000);                 // carried forward: 4,900 + 100
+    expect(credits.values[0]).toBe(5000);
+    expect(debits.values[3]).toBe(75);                   // this period debit
+    expect(credits.values[3]).toBeNaN();
+    expect(credits.values[4]).toBe(75);                  // this period credit
+    expect(debits.values[7]).toBe(credits.values[7]);    // accumulated balance
+  });
+
+  it('comparison dates: same period last year, previous whole months, previous days', () => {
+    expect(comparisonDates('2026-03-01', '2026-03-31', 'lastYear')).toEqual({ cmpFrom: '2025-03-01', cmpTo: '2025-03-31' });
+    expect(comparisonDates('2024-02-01', '2024-02-29', 'lastYear')).toEqual({ cmpFrom: '2023-02-01', cmpTo: '2023-02-28' });
+    expect(comparisonDates('2026-03-01', '2026-03-31', 'previous')).toEqual({ cmpFrom: '2026-02-01', cmpTo: '2026-02-28' });
+    expect(comparisonDates('2026-01-01', '2026-03-31', 'previous')).toEqual({ cmpFrom: '2025-10-01', cmpTo: '2025-12-31' });
+    expect(comparisonDates('2026-03-10', '2026-03-16', 'previous')).toEqual({ cmpFrom: '2026-03-03', cmpTo: '2026-03-09' });
   });
 
   it('export keeps numbers and adds group headings, subtotals and totals', () => {

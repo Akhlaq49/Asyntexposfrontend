@@ -30,5 +30,6 @@ describe('menu permissions', () => {
     expect(map['/chart-of-accounts']).toBe('Finance/Accounting');
     expect(map['/ledger-trial-balance']).toBe('Finance/Accounting');
     expect(map['/journal-vouchers']).toBe('Finance/Accounting');
+    expect(map['/gl-balances']).toBe('Finance/Accounting');
   });
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader';
-import { accountingService as svc, LedgerCheck, VOUCHER_LABEL, showDate, errorText } from '../../services/ACCT/accountingService';
+import { accountingService as svc, LedgerCheck, VOUCHER_LABEL, MONTHS, showDate, errorText } from '../../services/ACCT/accountingService';
 
 /**
  * Accounting > Settings: the lock date (nothing dated on or before it can be added, changed or deleted), the health
@@ -20,6 +20,10 @@ const AccountingSettings: React.FC = () => {
     try { show(await svc.saveSettings(value)); setMsg(value ? `Locked up to ${showDate(value)}.` : 'Nothing is locked.'); setError(''); }
     catch (e) { setError(errorText(e, 'Could not save the lock date.')); }
   };
+  const saveYear = async (month: number) => {
+    try { show(await svc.saveSettings(data?.lockDate ? data.lockDate.slice(0, 10) : null, month)); setMsg(`The financial year now starts in ${MONTHS[month - 1]}.`); setError(''); }
+    catch (e) { setError(errorText(e, 'Could not save the financial year.')); }
+  };
   const rebuild = async () => {
     setBusy(true);
     try { show(await svc.rebuild()); setMsg('The ledger was rebuilt from the documents.'); setError(''); }
@@ -35,7 +39,7 @@ const AccountingSettings: React.FC = () => {
       {data && (
         <div className="row g-3">
           <div className="col-lg-6"><div className="card h-100">
-            <div className="card-header"><h5 className="mb-0">Lock date</h5></div>
+            <div className="card-header"><h5 className="mb-0">Lock date &amp; financial year</h5></div>
             <div className="card-body">
               <p className="text-muted small">Once a period is checked (for example a month or year is finished), lock it: sales, purchases, payments,
                 returns and expenses dated on or before the lock date can no longer be added, changed or deleted.</p>
@@ -45,6 +49,17 @@ const AccountingSettings: React.FC = () => {
                 {data.lockDate && <button className="btn btn-light border lock-clear" onClick={() => save(null)}>Unlock</button>}
               </div>
               <div className="mt-2 small">{data.lockDate ? <>Locked up to <b>{showDate(data.lockDate)}</b>.</> : 'Nothing is locked.'}</div>
+              <hr />
+              <h6 className="mb-1">Financial year</h6>
+              <p className="text-muted small mb-2">The month your financial year starts in (for example July for July to June). The accumulated
+                balances and GL balances start each year here: balance sheet accounts carry their balance into the new year, income and
+                expenses start again at zero and their earlier total shows as profit of earlier years.</p>
+              <div className="d-flex gap-2 align-items-center">
+                <label className="mb-0 small">Starts in</label>
+                <select className="form-select fiscal-year-month" style={{ width: 180 }} value={data.fiscalYearStartMonth || 1} onChange={(e) => saveYear(Number(e.target.value))}>
+                  {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                </select>
+              </div>
             </div>
           </div></div>
           <div className="col-lg-6"><div className="card h-100">

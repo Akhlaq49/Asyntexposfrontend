@@ -19,8 +19,23 @@ export interface BsParty { name: string; partyId: number | null; balance: number
 export interface BsRow { accountId: number; code: string; name: string; amount: number; parties: BsParty[] | null }
 export interface BalanceSheet { asOf: string; assets: BsRow[]; liabilities: BsRow[]; equity: BsRow[]; totalAssets: number; totalLiabilities: number; totalEquity: number; totalLiabilitiesAndEquity: number; balanced: boolean }
 export interface StockMismatch { productId: number; productName: string; sku: string | null; quantity: number; fromMovements: number; difference: number }
+/** Year-based reports: amounts are signed, + debit / - credit (backend: LedgerReports, "year-based reports") */
+export interface AccountBalanceRow {
+  id: number; code: string; name: string; rootType: RootType; carryforward: number; previousPeriods: number; accumulatedPrevious: number;
+  debit: number; credit: number; cumulativeDebit: number; cumulativeCredit: number; accumulated: number;
+}
+export interface AccountBalances { from: string; to: string; fiscalYearStart: string; rows: AccountBalanceRow[] }
+export interface ComparisonRow { id: number; code: string; name: string; rootType: RootType; current: number; comparison: number; difference: number; percent: number | null }
+export interface Comparison { from: string; to: string; cmpFrom: string; cmpTo: string; rows: ComparisonRow[] }
+export interface GlPeriod { period: number; from: string; to: string; debit: number; credit: number; balance: number; cumulative: number }
+export interface GlBalances {
+  fiscalYear: number; fiscalYearStart: string; fiscalYearEnd: string; accounts: { id: number; code: string; name: string; rootType: RootType }[];
+  carryforward: number; periods: GlPeriod[]; totals: { debit: number; credit: number; balance: number; closing: number };
+}
+export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 export interface LedgerCheck {
-  lockDate: string | null; rebuiltAt: string | null; lastError: string | null; needsRebuild: boolean | null; rulesVersion: number | null;
+  lockDate: string | null; fiscalYearStartMonth: number; rebuiltAt: string | null; lastError: string | null; needsRebuild: boolean | null; rulesVersion: number | null;
   entries: number; unbalanced: { id: number; voucherType: string; voucherId: number; reference: string | null }[]; stockMismatches: StockMismatch[];
 }
 
@@ -66,7 +81,12 @@ export const accountingService = {
   profitAndLoss: (p: { from: string; to: string; basis: string }) => api.get<ProfitLoss>('/accounting/profit-and-loss', { params: p }).then((r) => r.data),
   balanceSheet: (asOf: string) => api.get<BalanceSheet>('/accounting/balance-sheet', { params: { asOf } }).then((r) => r.data),
   settings: () => api.get<LedgerCheck>('/accounting/settings').then((r) => r.data),
-  saveSettings: (lockDate: string | null) => api.put<LedgerCheck>('/accounting/settings', { lockDate }).then((r) => r.data),
+  saveSettings: (lockDate: string | null, fiscalYearStartMonth?: number) =>
+    api.put<LedgerCheck>('/accounting/settings', { lockDate, fiscalYearStartMonth }).then((r) => r.data),
+  accountBalances: (p: { from: string; to: string }) => api.get<AccountBalances>('/accounting/account-balances', { params: p }).then((r) => r.data),
+  comparison: (p: { from: string; to: string; cmpFrom: string; cmpTo: string }) => api.get<Comparison>('/accounting/comparison', { params: p }).then((r) => r.data),
+  glBalances: (accountIds: number[], year: number) =>
+    api.get<GlBalances>('/accounting/gl-balances', { params: { accounts: accountIds.join(','), year } }).then((r) => r.data),
   rebuild: () => api.post<LedgerCheck>('/accounting/rebuild').then((r) => r.data),
 };
 
