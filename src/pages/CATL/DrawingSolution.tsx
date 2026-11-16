@@ -77,8 +77,16 @@ const DrawingSolution: React.FC = () => {
     const problem = checkFile(file);
     if (problem) { setFileError(problem); return; }
     setReading(true); setProgress(null); setFileError(''); setResult(null); setAsking(null); setPlan(null); setError(''); setOtherUses(''); setOtherCompany(''); setOtherAreas(new Set()); setInstallation('');
+    // the reader may have been started (or stopped) since the page was opened: the warning above follows it
+    drawingService.status().then(setRunning).catch(() => setRunning(false));
     try { const ex = await drawingService.extract(file, setProgress, () => left.current); if (!left.current) setExtraction(ex); }
-    catch (err) { if (left.current) return; setExtraction(null); setFileError(errorText(err, 'The drawing could not be read.')); }
+    catch (err: any) {
+      if (left.current) return;
+      setExtraction(null);
+      // no answer at all from the POS backend: it isn't the drawing's fault
+      setFileError(err?.response ? errorText(err, 'The drawing could not be read.')
+        : 'The POS could not be reached while reading the drawing. Check that it is running and try again.');
+    }
     setReading(false); setProgress(null);
   };
 

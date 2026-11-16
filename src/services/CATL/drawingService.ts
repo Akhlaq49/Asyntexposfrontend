@@ -74,16 +74,20 @@ export const drawingService = {
     const form = new FormData();
     form.append('file', file);
     const { jobId } = (await api.post<{ jobId: string }>('/drawings/extract', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 180000 })).data;
-    let errors = 0;
+    // a short outage (the POS backend or the reader restarting, a network hiccup) doesn't lose the reading: the
+    // reading carries on in the reader, so the checks go on for up to 2 minutes without an answer
+    let failingSince = 0;
     for (;;) {
       await wait(2000);
       if (stop?.()) throw failure('Stopped.');
       let job: ReadJob;
-      try { job = (await api.get<ReadJob>(`/drawings/extract/${jobId}`, { timeout: 30000 })).data; errors = 0; }
+      try { job = (await api.get<ReadJob>(`/drawings/extract/${jobId}`, { timeout: 30000 })).data; failingSince = 0; }
       catch (err: any) {
-        // a short network hiccup doesn't lose the reading; a missing job or a stopped service does
-        if (err?.response?.status === 404 || ++errors >= 5) throw err;
-        continue;
+        if (err?.response?.status === 404) throw err;     // the reader no longer has this reading (it was restarted)
+        if (!failingSince) failingSince = Date.now();
+        if (Date.now() - failingSince < 120000) continue;
+        throw failure(err?.response?.data?.message ||
+          'Lost contact with the drawing reader while it was reading the drawing. Check that the POS and the drawing reader are running, then read the drawing again.');
       }
       if (job.status === 'done' && job.result) return job.result;
       if (job.status === 'failed') throw failure(job.detail || 'The drawing could not be read.');
