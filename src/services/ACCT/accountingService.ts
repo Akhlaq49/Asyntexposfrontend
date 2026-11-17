@@ -76,6 +76,8 @@ export const accountingService = {
   deleteAccount: (id: number) => api.delete<LedgerAccount[]>(`/accounting/accounts/${id}`).then((r) => r.data),
   journal: (p: { from?: string; to?: string; voucherType?: string; search?: string; page?: number; pageSize?: number }) =>
     api.get<JournalPage>('/accounting/journal', { params: p }).then((r) => r.data),
+  /** one voucher (journal entry) with all its lines */
+  entry: (entryId: number) => api.get<JournalEntryRow>(`/accounting/journal/${entryId}`).then((r) => r.data),
   ledger: (accountId: number, p: { from?: string; to?: string; party?: string }) => api.get<AccountLedger>(`/accounting/ledger/${accountId}`, { params: p }).then((r) => r.data),
   trialBalance: (p: { from?: string; to?: string }) => api.get<TrialBalance>('/accounting/trial-balance', { params: p }).then((r) => r.data),
   profitAndLoss: (p: { from: string; to: string; basis: string }) => api.get<ProfitLoss>('/accounting/profit-and-loss', { params: p }).then((r) => r.data),
