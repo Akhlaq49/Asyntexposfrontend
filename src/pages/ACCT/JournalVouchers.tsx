@@ -6,6 +6,7 @@ import {
   ROOT_LABEL, RootType, amount, money, showDate, yearStart, localDate, errorText,
 } from '../../services/ACCT/accountingService';
 import { getParties, Party } from '../../services/PRTY/partyService';
+import { getCustomers } from '../../services/PRTY/customerService';
 import { printJournalVoucher } from '../../utils/documentPrints';
 
 /**
@@ -48,12 +49,16 @@ const JournalVouchers: React.FC = () => {
     return () => clearTimeout(t);
   }, [from, to, search, page, reload]);
 
-  // accounts and parties are loaded the first time the form opens
+  // the accounts are loaded the first time the form opens; customers and suppliers every time, so one added since
+  // (Peoples > Customers / Suppliers) can be chosen without reloading the page. Customers have their own endpoint
+  // (/customers): /parties doesn't list them.
   const loadLookups = useCallback(async () => {
-    if (accounts.length > 0) return;
-    const [a, c, s] = await Promise.all([svc.accounts(), getParties('Customer'), getParties('Supplier')]);
-    setAccounts(a); setCustomers(c); setSuppliers(s);
-  }, [accounts.length]);
+    const [a, c, s] = await Promise.all([accounts.length > 0 ? Promise.resolve(accounts) : svc.accounts(), getCustomers(), getParties('Supplier')]);
+    setAccounts(a);
+    setCustomers(c.map((x) => ({ id: Number(x.id), fullName: x.name || x.phone || `Customer ${x.id}` }) as Party)
+      .sort((x, y) => x.fullName.localeCompare(y.fullName)));
+    setSuppliers(s);
+  }, [accounts]);
 
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const grouped = useMemo(() => ROOTS.map((r) => ({ root: r, list: accounts.filter((a) => a.rootType === r) })).filter((g) => g.list.length > 0), [accounts]);
