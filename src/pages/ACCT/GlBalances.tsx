@@ -147,7 +147,6 @@ const GlBalances: React.FC = () => {
   const postable = accounts.filter((a) => !a.isGroup);
   const shown = postable.filter((a) => !search || `${a.code} ${a.name}`.toLowerCase().includes(search.toLowerCase()));
   const toggle = (id: number) => update(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
-  const single = selected.length === 1 ? selected[0] : null;
   const years = Array.from({ length: 8 }, (_, i) => thisYear + 1 - i);
 
   const names = data ? data.accounts.map((a) => `${a.code} ${a.name}`).join(', ') : '';
@@ -255,8 +254,13 @@ const GlBalances: React.FC = () => {
                           onClick={(e) => canOpen && firstClick(e) && expand(key)}>
                           <td>{p.period}{canOpen && <i className={`ti ti-chevron-${expanded === key ? 'down' : 'right'} ms-1`} />}</td>
                           <td>{monthLabel(p.from)}
-                            {single && canOpen && <Link to={`/account-ledger/${single}?from=${from}&to=${to}`} className="ms-2 small" title="Open in the account ledger"
-                              onClick={(e) => e.stopPropagation()}><i className="ti ti-external-link" /></Link>}</td>
+                            {/* one detail button per account: its own ledger for this month (filter, Excel, PDF) */}
+                            {canOpen && data.accounts.map((a) => (
+                              <Link key={a.id} to={`/account-ledger/${a.id}?from=${from}&to=${to}`} className="ms-2 small text-nowrap gl-ledger-link"
+                                title={`Open ${a.code} ${a.name} in the account ledger (filter, Excel, PDF)`} onClick={(e) => e.stopPropagation()}>
+                                <i className="ti ti-external-link" />{data.accounts.length > 1 && <span className="ms-1">{a.code}</span>}
+                              </Link>
+                            ))}</td>
                           <td className="text-end">{amount(p.debit)}</td>
                           <td className="text-end">{amount(p.credit)}</td>
                           <td className="text-end text-nowrap">{formatTbValue(p.balance, 'signed')}</td>
