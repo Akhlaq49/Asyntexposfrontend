@@ -254,13 +254,16 @@ const GlBalances: React.FC = () => {
                           onClick={(e) => canOpen && firstClick(e) && expand(key)}>
                           <td>{p.period}{canOpen && <i className={`ti ti-chevron-${expanded === key ? 'down' : 'right'} ms-1`} />}</td>
                           <td>{monthLabel(p.from)}
-                            {/* one detail button per account: its own ledger for this month (filter, Excel, PDF) */}
-                            {canOpen && data.accounts.map((a) => (
-                              <Link key={a.id} to={`/account-ledger/${a.id}?from=${from}&to=${to}`} className="ms-2 small text-nowrap gl-ledger-link"
-                                title={`Open ${a.code} ${a.name} in the account ledger (filter, Excel, PDF)`} onClick={(e) => e.stopPropagation()}>
-                                <i className="ti ti-external-link" />{data.accounts.length > 1 && <span className="ms-1">{a.code}</span>}
+                            {/* one detail button: the chosen accounts' ledger for this month, added together (filter, Excel, PDF) */}
+                            {canOpen && (
+                              <Link to={`/account-ledger/${data.accounts.map((a) => a.id).join(',')}?from=${from}&to=${to}`} className="ms-2 small gl-ledger-link"
+                                title={data.accounts.length > 1
+                                  ? `Open ${data.accounts.map((a) => a.code).join(', ')} together in the account ledger (filter, Excel, PDF)`
+                                  : 'Open in the account ledger (filter, Excel, PDF)'}
+                                onClick={(e) => e.stopPropagation()}>
+                                <i className="ti ti-external-link" />
                               </Link>
-                            ))}</td>
+                            )}</td>
                           <td className="text-end">{amount(p.debit)}</td>
                           <td className="text-end">{amount(p.credit)}</td>
                           <td className="text-end text-nowrap">{formatTbValue(p.balance, 'signed')}</td>
