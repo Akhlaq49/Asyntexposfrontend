@@ -4,3 +4,6 @@ dist/
 .env
 .env.local
 coverage/
+
+# TypeScript incremental build cache (rewritten on every build)
+*.tsbuildinfo
