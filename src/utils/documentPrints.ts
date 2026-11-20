@@ -1,6 +1,5 @@
 import api from '../services/api';
 import { printDocument, openPrintWindow, esc, printMoney } from './printDocument';
-import { loadTermsPrintHtml } from './termsConditions';
 
 /* Single-document prints on the letterhead: sale invoice, purchase, sales return, expense voucher. */
 
@@ -18,20 +17,16 @@ interface PrintableSale {
   id: number; reference: string; customerName: string; biller?: string; saleDate: string;
   status?: string; paymentStatus?: string; notes?: string | null;
   orderTax: number; discount: number; shipping: number; grandTotal: number; paid: number; due: number;
-  /** installation, testing and commissioning (sales made from a quotation) */
-  installationCharges?: number;
   items: { productName: string; quantity: number; purchasePrice: number; discount: number; unitCost: number; totalCost: number }[];
   payments: { reference: string; payingAmount: number; paymentType: string; paymentDate: string; description?: string | null }[];
   taxes?: { taxName: string; percent: number; amount: number }[];
-  quotationReference?: string | null; quotationTerms?: string | null;
 }
 
-/** Sale invoice: items, taxes, totals, payments - and the quotation's terms when the sale came from one */
+/** Sale invoice: items, taxes, totals, payments */
 export async function printSaleInvoice(sale: PrintableSale) {
   const win = openPrintWindow();
   let s = sale;
   try { s = (await api.get<PrintableSale>(`/sales/${sale.id}`)).data; } catch { /* print what the list has */ }
-  const terms = s.quotationReference ? await loadTermsPrintHtml(s.quotationTerms) : '';
   const saleDisc = s.items.some((i) => i.discount > 0);   // no discount anywhere -> no discount column
   const saleCols = saleDisc ? 6 : 5;
   const items = s.items.map((i, n) => `<tr><td class="c">${n + 1}</td><td>${esc(i.productName)}</td><td class="r">${i.quantity}</td>
@@ -45,13 +40,12 @@ export async function printSaleInvoice(sale: PrintableSale) {
     <table class="info" style="margin-bottom:14px"><tbody>
       <tr><th>Customer</th><td>${esc(s.customerName)}</td><th>Date</th><td>${esc(day(s.saleDate))}</td></tr>
       <tr><th>Sold by</th><td>${esc(s.biller || '-')}</td><th>Payment</th><td>${esc(s.paymentStatus || '-')}</td></tr>
-      ${s.quotationReference ? `<tr><th>Quotation</th><td>${esc(s.quotationReference)}</td><th>Status</th><td>${esc(s.status || '-')}</td></tr>` : ''}
     </tbody></table>
     <table><thead><tr><th class="c" style="width:36px">#</th><th>Product</th><th class="r">Qty</th><th class="r">Unit price</th>${saleDisc ? '<th class="r">Item discount<br><small>(per unit)</small></th>' : ''}<th class="r">Total</th></tr></thead>
       <tbody>${items}</tbody>
       <tfoot>
         ${row('Subtotal', subTotal, { cols: saleCols })}
-        ${s.discount ? row('Overall discount', s.discount, { cols: saleCols, minus: true }) : ''}${taxRows}${s.shipping ? row('Shipping', s.shipping, { cols: saleCols }) : ''}${s.installationCharges ? row('Installation, Testing and Commissioning', s.installationCharges, { cols: saleCols }) : ''}
+        ${s.discount ? row('Overall discount', s.discount, { cols: saleCols, minus: true }) : ''}${taxRows}${s.shipping ? row('Shipping', s.shipping, { cols: saleCols }) : ''}
         ${row('Grand total', s.grandTotal, { cols: saleCols, total: true })}
         ${row('Paid', s.paid, { cols: saleCols })}
         ${row(s.due > 0 ? 'Balance due' : 'Balance', Math.max(0, s.due), { cols: saleCols, total: true })}
@@ -59,8 +53,7 @@ export async function printSaleInvoice(sale: PrintableSale) {
     <h3 style="font-size:15px;margin:18px 0 6px">Payments received</h3>
     ${payRows ? `<table><thead><tr><th>Date</th><th>Reference</th><th>Method</th><th>Notes</th><th class="r">Amount</th></tr></thead><tbody>${payRows}</tbody></table>` : '<p style="color:#555">No payment received yet.</p>'}
     ${s.notes ? `<p style="margin-top:14px"><strong>Notes:</strong> ${esc(s.notes)}</p>` : ''}
-    <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>
-    ${terms}`, win, { stamp: true });
+    <div class="sign"><div>Customer signature</div><div>Authorised signature</div></div>`, win, { stamp: true });
 }
 
 /* ---------------- purchase ---------------- */

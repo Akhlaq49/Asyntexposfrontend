@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { downloadPdf, shareViaWhatsApp, sendViaWhatsAppCloudApi, isWhatsAppCloudConfigured } from '../../utils/pdfWhatsappShare';
 import { mediaUrl } from '../../services/api';
-import { loadTermsContent, termsToHtml } from '../../utils/termsConditions';
 
 /* ---- types expected from POSOrders ---- */
 export interface ReceiptSaleItem {
@@ -34,10 +33,6 @@ export interface ReceiptSale {
   shipping: number;
   saleDate: string;
   items: ReceiptSaleItem[];
-  /** Set when the sale came from a converted quotation: the terms & conditions are added to the receipt */
-  quotationReference?: string | null;
-  /** Terms edited for the source quotation (printed instead of the standard terms) */
-  quotationTerms?: string | null;
   /** Taxes applied (one line each on the receipt) */
   taxes?: { taxName: string; percent: number; amount: number }[];
 }
@@ -56,13 +51,6 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
   const [sendingCloud, setSendingCloud] = useState(false);
   const [cloudConfigured, setCloudConfigured] = useState(false);
   const [cloudResult, setCloudResult] = useState<{ success: boolean; error?: string } | null>(null);
-
-  const [terms, setTerms] = useState('');
-  useEffect(() => {
-    if (!sale.quotationReference) setTerms('');
-    else if (sale.quotationTerms && sale.quotationTerms.trim()) setTerms(sale.quotationTerms);   // the quotation's own terms
-    else loadTermsContent().then(setTerms);                                                     // the standard terms
-  }, [sale.quotationReference, sale.quotationTerms]);
 
   useEffect(() => {
     isWhatsAppCloudConfigured().then(setCloudConfigured).catch(() => setCloudConfigured(false));
@@ -256,12 +244,6 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                   <span style={{ color: '#555', fontWeight: 600 }}>{t('pdf.sale_date')}:</span>
                   <span style={{ fontWeight: 500 }}>{sale.saleDate || '-'}</span>
                 </div>
-                {sale.quotationReference && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-                    <span style={{ color: '#555', fontWeight: 600 }}>Quotation:</span>
-                    <span style={{ fontWeight: 500 }}>{sale.quotationReference}</span>
-                  </div>
-                )}
 
                 {/* Items */}
                 <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, margin: '15px 0 10px' }}>
@@ -386,18 +368,6 @@ const POSPaymentReceipt: React.FC<POSPaymentReceiptProps> = ({ sale, payment, on
                   }
                 </div>
 
-                {/* Terms & conditions (sales converted from a quotation) - starts on a new page when printed */}
-                {terms && (
-                  <div className="rc-terms" style={{ pageBreakBefore: 'always', breakBefore: 'page', marginTop: 18, fontSize: 10.5, lineHeight: 1.4, color: '#222' }}>
-                    <style>{`.rc-terms h3{font-size:12px;font-weight:800;margin:10px 0 3px;border-bottom:1px solid #999;padding-bottom:2px}
-                      .rc-terms h4{font-size:11px;font-weight:700;margin:7px 0 2px}.rc-terms ul{margin:1px 0 3px;padding-left:16px}
-                      .rc-terms li{margin:1px 0}.rc-terms p{margin:2px 0}.rc-terms .tc-sign{margin-top:16px;font-size:12px}`}</style>
-                    <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', borderBottom: '2px solid #333', paddingBottom: 4, marginBottom: 6, textAlign: 'center' }}>
-                      Terms &amp; Conditions
-                    </div>
-                    <div dangerouslySetInnerHTML={{ __html: termsToHtml(terms) }} />
-                  </div>
-                )}
               </div>
             </div>
           </div>

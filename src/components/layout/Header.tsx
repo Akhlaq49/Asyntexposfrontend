@@ -94,9 +94,9 @@ const Header: React.FC = () => {
                   </Link>
                 </div>
                 <div className="col-md-2">
-                  <Link to="/quotation-list" className="link-item">
-                    <span className="link-icon"><i className="ti ti-device-floppy"></i></span>
-                    <p>{t('header.quotation')}</p>
+                  <Link to="/pos" className="link-item">
+                    <span className="link-icon"><i className="ti ti-device-laptop"></i></span>
+                    <p>{t('header.sale')}</p>
                   </Link>
                 </div>
                 <div className="col-md-2">

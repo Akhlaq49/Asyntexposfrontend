@@ -19,9 +19,7 @@ const CategoryList = lazy(() => import('./pages/INVT/CategoryList'))
 const BrandList = lazy(() => import('./pages/INVT/BrandList'))
 const Units = lazy(() => import('./pages/INVT/Units'))
 const TaxTypes = lazy(() => import('./pages/FINC/TaxTypes'))
-const SolutionPackages = lazy(() => import('./pages/CATL/SolutionPackages'))
 const PurchasePrices = lazy(() => import('./pages/INVT/PurchasePrices'))
-const DrawingSolution = lazy(() => import('./pages/CATL/DrawingSolution'))
 const Warranty = lazy(() => import('./pages/INVT/Warranty'))
 
 
@@ -32,8 +30,6 @@ const SoldStock = lazy(() => import('./pages/INVT/SoldStock'))
 // Sales
 const POSOrders = lazy(() => import('./pages/SALE/POSOrders'))
 const SalesReturns = lazy(() => import('./pages/SALE/SalesReturns'))
-const QuotationList = lazy(() => import('./pages/SALE/QuotationList'))
-const StaffApprovals = lazy(() => import('./pages/SALE/StaffApprovals'))
 const POS = lazy(() => import('./pages/SALE/POS'))
 
 
@@ -57,7 +53,6 @@ const LedgerTrialBalance = lazy(() => import('./pages/ACCT/LedgerTrialBalance'))
 const LedgerProfitLoss = lazy(() => import('./pages/ACCT/LedgerProfitLoss'))
 const LedgerBalanceSheet = lazy(() => import('./pages/ACCT/LedgerBalanceSheet'))
 const AccountingSettings = lazy(() => import('./pages/ACCT/AccountingSettings'))
-const Letterhead = lazy(() => import('./pages/SYST/Letterhead'))
 const ExpenseCategory = lazy(() => import('./pages/FINC/ExpenseCategory'))
 
 // People
@@ -159,7 +154,6 @@ function App() {
           <Route path="/brand-list" element={<BrandList />} />
           <Route path="/units" element={<Units />} />
           <Route path="/tax-types" element={<TaxTypes />} />
-          <Route path="/solution-packages" element={<SolutionPackages />} />
           <Route path="/purchase-prices" element={<PurchasePrices />} />
           <Route path="/warranty" element={<Warranty />} />
 
@@ -171,9 +165,6 @@ function App() {
           {/* Sales */}
           <Route path="/pos-orders" element={<POSOrders />} />
           <Route path="/sales-returns" element={<SalesReturns />} />
-          <Route path="/quotation-list" element={<QuotationList />} />
-          <Route path="/staff-approvals" element={<StaffApprovals />} />
-          <Route path="/drawing-solution" element={<DrawingSolution />} />
           <Route path="/pos" element={<POS />} />
 
 
@@ -196,7 +187,6 @@ function App() {
           <Route path="/ledger-profit-loss" element={<LedgerProfitLoss />} />
           <Route path="/ledger-balance-sheet" element={<LedgerBalanceSheet />} />
           <Route path="/accounting-settings" element={<AccountingSettings />} />
-          <Route path="/letterhead" element={<Letterhead />} />
           <Route path="/expense-category" element={<ExpenseCategory />} />
 
           {/* People */}

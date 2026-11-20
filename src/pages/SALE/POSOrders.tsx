@@ -3,12 +3,10 @@ import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import api, { mediaUrl } from '../../services/api';
 import { printSaleInvoice } from '../../utils/documentPrints';
-import { isQueued, markQueuedAsSold, getSaleQueue, QueueOrder, activePurchaseOrders } from '../../utils/saleQueue';
-import SaleQueueSummary from '../../components/SALE/SaleQueueSummary';
-import { useNavigate } from 'react-router-dom';
 import AdminDeleteModal from '../../components/common/AdminDeleteModal';
 import Pagination from '../../components/common/Pagination';
 import { usePagination } from '../../utils/usePagination';
+import { Link } from 'react-router-dom';
 import POSPaymentReceipt, { ReceiptSale, ReceiptPayment } from '../../components/SALE/POSPaymentReceipt';
 
 /* ---------- Types ---------- */
@@ -23,8 +21,6 @@ interface SalePaymentDto {
 }
 interface SaleDto {
   id: number; reference: string; customerId: number | null; customerName: string;
-  quotationReference?: string | null;
-  quotationTerms?: string | null;
   customerImage: string | null; biller: string; grandTotal: number; paid: number;
   due: number; orderTax: number; discount: number; shipping: number;
   status: string; paymentStatus: string; notes: string | null; saleDate: string;
@@ -41,15 +37,13 @@ interface LocalItem {
 }
 
 const STATUS_OPTIONS = ['Completed', 'Pending'];
-/** filter list: also the sale queue (converted quotations waiting for their goods) */
-const STATUS_FILTER_OPTIONS = ['Queued', 'Pending', 'Completed'];
+const STATUS_FILTER_OPTIONS = ['Pending', 'Completed'];
 const PAYMENT_STATUS_OPTIONS = ['Paid', 'Partial', 'Unpaid'];
 const PAYMENT_TYPES = ['Cash', 'Online'];
 
 const statusBadge = (s: string) => {
   if (s === 'Completed') return 'badge-success';
   if (s === 'Pending') return 'badge-cyan';
-  if (s === 'Queued') return 'badge-warning';
   return 'badge-secondary';
 };
 
@@ -165,34 +159,6 @@ const POSOrders: React.FC = () => {
   const [receiptSale, setReceiptSale] = useState<ReceiptSale | null>(null);
   const [receiptPayment, setReceiptPayment] = useState<ReceiptPayment | null>(null);
 
-  /* ---- Sale queue (converted quotations waiting for their goods) ---- */
-  const navigate = useNavigate();
-  const [queue, setQueue] = useState<QueueOrder[]>([]);
-  const queueBySale = useMemo(() => new Map(queue.map((o) => [o.saleId, o])), [queue]);
-  const convertToSale = async (s: SaleDto) => { if (await markQueuedAsSold(s)) fetchData(); };
-  /** buttons in front of a queued order: purchase order, convert to sale */
-  const queueButtons = (s: SaleDto) => {
-    if (!isQueued(s.status)) return null;
-    const q = queueBySale.get(s.id);
-    const hasPo = !!q && activePurchaseOrders(q).length > 0;
-    const ready = q?.stage === 'Ready';
-    return (
-      <span className="d-inline-flex gap-1 me-2 align-middle queue-buttons">
-        {q?.quotationId && (
-          <button type="button" className={`btn btn-xs btn-sm ${hasPo ? 'btn-outline-info' : 'btn-outline-primary'}`} style={{ whiteSpace: 'nowrap' }}
-            title={hasPo ? `Open purchase order ${activePurchaseOrders(q).map((p) => p.poNumber).join(', ')}` : 'Convert to purchase order - order the goods from the supplier'}
-            onClick={() => navigate(`/purchase-orders?fromQuotation=${q.quotationId}`)}>
-            <i className="ti ti-truck-delivery me-1" />{hasPo ? activePurchaseOrders(q)[0].poNumber : 'Purchase order'}
-          </button>
-        )}
-        <button type="button" className={`btn btn-xs btn-sm ${ready ? 'btn-success' : 'btn-outline-success'}`} style={{ whiteSpace: 'nowrap' }}
-          title={ready ? 'The goods have arrived - convert to a sale' : 'Convert to sale once the goods have arrived'} onClick={() => convertToSale(s)}>
-          <i className="ti ti-circle-check me-1" />Convert to sale
-        </button>
-      </span>
-    );
-  };
-
   /* ---- Fetch ---- */
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -206,7 +172,6 @@ const POSOrders: React.FC = () => {
       setCustomers(cRes.data);
       setProducts(pRes.data);
     } catch { /* ignore */ }
-    getSaleQueue().then((d) => setQueue(d.queue || [])).catch(() => setQueue([]));
     setLoading(false);
   }, []);
 
@@ -319,7 +284,7 @@ const POSOrders: React.FC = () => {
     setShowCustomerDropdown(false);
   };
 
-  /* ---- Open edit modal (new sales come from the POS screen or a converted quotation) ---- */
+  /* ---- Open edit modal (new sales come from the POS screen) ---- */
   const openEditModal = (sale: SaleDto) => {
     setEditingId(sale.id);
     setForm({
@@ -413,8 +378,6 @@ const POSOrders: React.FC = () => {
           discount: saleData.discount,
           shipping: saleData.shipping,
           saleDate: saleData.saleDate,
-          quotationReference: saleData.quotationReference,
-          quotationTerms: saleData.quotationTerms,
           taxes: saleData.taxes,
           items: saleData.items.map((i) => ({ productName: i.productName, quantity: i.quantity, unitCost: i.unitCost, totalCost: i.totalCost })),
         });
@@ -454,8 +417,6 @@ const POSOrders: React.FC = () => {
       discount: sale.discount,
       shipping: sale.shipping,
       saleDate: sale.saleDate,
-      quotationReference: sale.quotationReference,
-      quotationTerms: sale.quotationTerms,
       taxes: sale.taxes,
       items: sale.items.map((i) => ({ productName: i.productName, quantity: i.quantity, unitCost: i.unitCost, totalCost: i.totalCost })),
     });
@@ -543,7 +504,6 @@ const POSOrders: React.FC = () => {
         <div className="add-item d-flex align-items-center flex-wrap gap-2">
           <div className="page-title">
             <h4>{t('sales.pos_orders_title')}</h4>
-            <h6>Sale queue converted quotations</h6>
           </div>
           <button
             type="button"
@@ -560,9 +520,13 @@ const POSOrders: React.FC = () => {
             {viewMode === 'table' ? t('sales.group_by_customer') : t('sales.list_view')}
           </button>
         </div>
+        {/* new sales are made on the POS screen */}
+        <div className="page-btn">
+          <Link to="/pos" className="btn btn-primary btn-lg fw-semibold px-4 shadow-sm create-sale-btn">
+            <i className="ti ti-circle-plus me-2" style={{ fontSize: 20, verticalAlign: 'middle' }} />{t('sales.create_sale')}
+          </Link>
+        </div>
       </div>
-
-      <SaleQueueSummary queue={queue} onShowQueue={() => setFilterStatus('Queued')} />
 
       {/* ---- Card ---- */}
       <div className="card">
@@ -580,12 +544,12 @@ const POSOrders: React.FC = () => {
           <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div className="dropdown me-2">
               <a href="#" className="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                {filterStatus === 'Queued' ? 'In sale queue' : filterStatus || t('common.status')}
+                {filterStatus || t('common.status')}
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
                 <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(''); }}>{t('common.all')}</a></li>
                 {STATUS_FILTER_OPTIONS.map((s) => (
-                  <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(s); }}>{s === 'Queued' ? 'In sale queue' : s}</a></li>
+                  <li key={s}><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFilterStatus(s); }}>{s}</a></li>
                 ))}
               </ul>
             </div>
@@ -656,7 +620,7 @@ const POSOrders: React.FC = () => {
                       <td>{s.reference}</td>
                       <td>{s.saleDate}</td>
                       <td>{s.expectedDate || '—'}</td>
-                      <td><span className={`badge ${statusBadge(s.status)}`}>{isQueued(s.status) ? 'In sale queue' : s.status}</span>{isQueued(s.status) && <div className="mt-1">{queueButtons(s)}</div>}</td>
+                      <td><span className={`badge ${statusBadge(s.status)}`}>{s.status}</span></td>
                       <td>{fmt(s.grandTotal)}</td>
                       <td>{fmt(s.paid)}</td>
                       <td>{fmt(s.due)}</td>
@@ -758,9 +722,8 @@ const POSOrders: React.FC = () => {
                                     <td className="text-end">{fmt(Number(s.paid) || 0)}</td>
                                     <td className="text-end">{fmt(Number(s.due) || 0)}</td>
                                     <td className="text-end">{fmt(Number(s.grandTotal) || 0)}</td>
-                                    <td><span className={`badge ${statusBadge(s.status)}`}>{isQueued(s.status) ? 'In sale queue' : s.status}</span></td>
+                                    <td><span className={`badge ${statusBadge(s.status)}`}>{s.status}</span></td>
                                     <td className="text-center" style={{ whiteSpace: 'nowrap' }}>
-                                      {queueButtons(s)}
                                       <div className="dropdown d-inline-block">
                                         <a className="action-set" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
@@ -928,13 +891,9 @@ const POSOrders: React.FC = () => {
                     <div className="col-lg-3 col-sm-6 col-12">
                       <div className="mb-3">
                         <label className="form-label">{t('common.status')}<span className="text-danger ms-1">*</span></label>
-                        {isQueued(form.status) ? (
-                          <input className="form-control" value="In sale queue" disabled title="Use Convert to sale when the goods arrive" />
-                        ) : (
-                          <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        )}
+                        <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
                       </div>
                     </div>
                     <div className="col-lg-3 col-sm-6 col-12">
@@ -990,7 +949,7 @@ const POSOrders: React.FC = () => {
                       <h6>{t('sales.invoice_info')}</h6>
                       <p className="mb-0">{t('common.reference')}: <span className="fs-16 text-primary ms-2">#{detailSale.reference}</span></p>
                       <p className="mb-0">{t('common.date')}: <span className="ms-2 text-muted">{detailSale.saleDate}</span></p>
-                      <p className="mb-0">{t('common.status')}: <span className={`badge ${statusBadge(detailSale.status)} ms-2`}>{isQueued(detailSale.status) ? 'In sale queue' : detailSale.status}</span></p>
+                      <p className="mb-0">{t('common.status')}: <span className={`badge ${statusBadge(detailSale.status)} ms-2`}>{detailSale.status}</span></p>
                       <p className="mb-0">{t('common.payment_status')}: <span className={`badge ${paymentStatusBadge(detailSale.paymentStatus)} shadow-none badge-xs ms-2`}><i className="ti ti-point-filled"></i>{detailSale.paymentStatus}</span></p>
                     </div>
                     <div className="col-md-4">

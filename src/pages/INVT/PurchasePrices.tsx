@@ -7,7 +7,7 @@ const errorText = (err: any, fallback: string) => err?.response?.data?.message |
 
 /**
  * Inventory > Purchase Prices: what the company pays for each inventory product. Purchase orders start from these
- * prices, and quotations show their profit against them. A new product starts at its end user price less 10,000.
+ * prices. Until someone enters it, a product's purchase price is its sale price (no margin) and follows it.
  */
 const PurchasePrices: React.FC = () => {
   const [rows, setRows] = useState<PurchasePriceRow[] | null>(null);
@@ -25,8 +25,9 @@ const PurchasePrices: React.FC = () => {
   }, [rows, search]);
   const changed = Object.entries(edits).filter(([id, v]) => {
     const r = rows?.find((x) => x.productId === Number(id));
-    return r && v !== '' && Number(v) !== r.purchasePrice;
+    return r && v !== '' && (Number(v) !== r.purchasePrice || !r.isSet);   // typing the sale price confirms it
   });
+  const notSet = (rows || []).filter((r) => !r.isSet).length;
   const invalid = Object.values(edits).some((v) => v !== '' && (Number.isNaN(Number(v)) || Number(v) < 0));
 
   const save = async () => {
@@ -41,12 +42,13 @@ const PurchasePrices: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Purchase Prices" subtitle="What you pay for each product: purchase orders start from it, quotations show their profit against it" breadcrumbs={[{ title: 'Inventory' }]} />
+      <PageHeader title="Purchase Prices" subtitle="What you pay for each product: purchase orders start from it. Until you enter it, it is the sale price (no margin)." breadcrumbs={[{ title: 'Inventory' }]} />
       {error && <div className="alert alert-danger py-2">{error}</div>}
       {msg && !error && <div className="alert alert-success py-2">{msg}</div>}
       <div className="card"><div className="card-body d-flex flex-wrap gap-2 align-items-center">
         <input className="form-control pp-search" style={{ width: 280 }} placeholder="Search product, SKU, model or colour" value={search} onChange={(e) => setSearch(e.target.value)} />
         <span className="text-muted small">{rows ? `${shown.length} of ${rows.length} products` : ''}</span>
+        {notSet > 0 && <span className="badge bg-warning text-dark">{notSet} not entered yet - using the sale price</span>}
         <div className="ms-auto d-flex gap-2">
           {changed.length > 0 && <button className="btn btn-light border" onClick={() => setEdits({})}>Undo changes</button>}
           <button className="btn btn-primary pp-save" disabled={saving || changed.length === 0} onClick={save}>{saving ? 'Saving...' : `Save${changed.length ? ` (${changed.length})` : ''}`}</button>
@@ -54,7 +56,7 @@ const PurchasePrices: React.FC = () => {
       </div></div>
       <div className="card"><div className="card-body p-0"><div className="table-responsive">
         <table className="table align-middle mb-0 purchase-prices">
-          <thead className="thead-light"><tr><th>Product</th><th className="text-end">End user price</th><th className="text-end" style={{ width: 190 }}>Purchase price</th><th className="text-end">Margin</th><th>Last changed</th></tr></thead>
+          <thead className="thead-light"><tr><th>Product</th><th className="text-end">Sale price</th><th className="text-end" style={{ width: 190 }}>Purchase price</th><th className="text-end">Margin</th><th>Last changed</th></tr></thead>
           <tbody>
             {!rows ? <tr><td colSpan={5} className="text-center py-4"><div className="spinner-border spinner-border-sm text-primary" /></td></tr>
               : shown.length === 0 ? <tr><td colSpan={5} className="text-center py-4 text-muted">No products match.</td></tr>
@@ -71,7 +73,9 @@ const PurchasePrices: React.FC = () => {
                         value={value} onChange={(e) => setEdits({ ...edits, [r.productId]: e.target.value })} aria-label={`Purchase price of ${r.productName}`} />
                     </td>
                     <td className={`text-end text-nowrap ${margin < 0 ? 'text-danger' : ''}`}>{money(margin)} <small className="text-muted">({marginPercent(r.endUserPrice, price)}%)</small></td>
-                    <td className="small text-muted text-nowrap">{new Date(r.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}{r.updatedBy ? ` · ${r.updatedBy}` : ''}</td>
+                    <td className="small text-muted text-nowrap">{r.isSet
+                      ? <>{new Date(r.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}{r.updatedBy ? ` · ${r.updatedBy}` : ''}</>
+                      : <span className="badge bg-warning-subtle text-warning-emphasis border" title="Nobody has entered this purchase price: it is the sale price and follows it">Not entered - sale price</span>}</td>
                   </tr>
                 );
               })}

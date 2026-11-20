@@ -111,15 +111,11 @@ const menuData: MenuSection[] = [
   {
     header: 'Sales',
     items: [
-      // permission key "Sales/POS Orders" (was "Sales/Sales" when it sat under a Sales dropdown)
-      { title: 'POS Orders', icon: 'ti-layout-grid', iconType: 'tabler', path: '/pos-orders' },
-      // Invoices removed from Sales (sales print their own invoice from POS Orders)
+      // permission key "Sales/Sales": every sale; Create Sale on it opens the POS screen
+      { title: 'Sales', icon: 'ti-shopping-cart', iconType: 'tabler', path: '/pos-orders' },
+      // Invoices removed from Sales (sales print their own invoice from the Sales list)
       { title: 'Sales Return', icon: 'ti-receipt-refund', iconType: 'tabler', path: '/sales-returns' },
-      { title: 'Quotation', icon: 'ti-files', iconType: 'tabler', path: '/quotation-list' },
-      // Admin / Super Admin approve staff quotations here (other roles only if given access)
-      { title: 'Staff Approvals', icon: 'ti-checklist', iconType: 'tabler', path: '/staff-approvals' },
-      // upload an electrical drawing -> suggested Standard / Premium solution (read by the Drawing2Quote service)
-      { title: 'Drawing to Solution', icon: 'ti-file-search', iconType: 'tabler', path: '/drawing-solution' },
+      // sales are made directly on the POS screen (no quotation / approval step)
       // Hidden from the sidebar (opened from the header POS button); kept here so the Sales/POS permission still applies
       { title: 'POS', icon: 'ti-device-laptop', iconType: 'tabler', path: '/pos', hideInSidebar: true },
     ],
@@ -149,9 +145,7 @@ const menuData: MenuSection[] = [
       { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
       { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
-      // items per building size + Standard / Premium categorization (used by the package calculation)
-      { title: 'Solution Packages', icon: 'ti-packages', iconType: 'tabler', path: '/solution-packages' },
-      // what the company pays for each product: purchase orders start from it, quotations show their profit against it
+      // what the company pays for each product: purchase orders start from it
       { title: 'Purchase Prices', icon: 'ti-receipt-2', iconType: 'tabler', path: '/purchase-prices' },
     ],
   },
@@ -193,12 +187,6 @@ const menuData: MenuSection[] = [
           { title: 'Accounting Settings', path: '/accounting-settings' },
         ],
       },
-    ],
-  },
-  {
-    header: 'Documents',
-    items: [
-      { title: 'Letterhead', icon: 'ti-file-text', iconType: 'tabler', path: '/letterhead' },
     ],
   },
   {

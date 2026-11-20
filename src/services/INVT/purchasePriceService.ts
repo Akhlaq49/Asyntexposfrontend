@@ -4,6 +4,8 @@ import api from '../api';
 export interface PurchasePriceRow {
   productId: number; productName: string; sku: string | null; model: string | null; color: string | null;
   endUserPrice: number; purchasePrice: number; margin: number; updatedAt: string; updatedBy: string | null;
+  /** false until someone enters it: until then it is the sale price (no margin) and follows it */
+  isSet: boolean;
 }
 
 export const getPurchasePrices = () => api.get<PurchasePriceRow[]>('/purchase-prices').then((r) => r.data);

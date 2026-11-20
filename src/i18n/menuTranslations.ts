@@ -71,10 +71,8 @@ const menuTitleToKey: Record<string, string> = {
 
   // Sales
   'Online Orders': 'menu.online_orders',
-  'POS Orders': 'menu.pos_orders',
   'Invoices': 'menu.invoices',
   'Sales Return': 'menu.sales_return',
-  'Quotation': 'menu.quotation',
   'POS': 'menu.pos',
 
   // Promo

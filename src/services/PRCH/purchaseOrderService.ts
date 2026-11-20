@@ -90,21 +90,7 @@ export interface PurchaseOrder {
   supersededById?: number | null;
   /** paid to the supplier across all receipts (payments - refunds) */
   paidTotal?: number;
-  /** the converted quotation (customer order) this order buys goods for */
-  quotationId?: number | null;
-  quotationReference?: string | null;
-  saleReference?: string | null;
 }
-
-/** Buying the goods for a converted quotation */
-export interface QuotationPurchasePlan {
-  quotationId: number; reference: string; saleReference?: string | null; customerName: string;
-  lines: { productId: number; productName: string; sku?: string | null; quoted: number; inStock: number; alreadyOrdered: number; suggested: number; lastCost: number; /** the end user price */ price: number; /** what the company pays (Inventory > Purchase Prices): the order's cost */ purchasePrice: number }[];
-  purchaseOrders: { id: number; poNumber: string; status: string; supplierName: string; total: number }[];
-  missingProducts: string[];
-}
-export const getQuotationPurchasePlan = async (quotationId: number) =>
-  (await api.get<QuotationPurchasePlan>(`/quotations/${quotationId}/purchase-plan`)).data;
 
 export interface SavePurchaseOrderPayload {
   supplierId?: number | null;
@@ -119,8 +105,6 @@ export interface SavePurchaseOrderPayload {
   shipping: number;
   notes?: string;
   items: { productId: number; quantity: number; unitCost: number; discount: number; taxPercent: number }[];
-  /** create only: the converted quotation this order buys goods for */
-  quotationId?: number | null;
 }
 
 interface ReceivePurchaseOrderPayload {
