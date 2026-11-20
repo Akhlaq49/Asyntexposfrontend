@@ -145,8 +145,8 @@ const menuData: MenuSection[] = [
       { title: 'Units', icon: 'ti-brand-unity', iconType: 'tabler', path: '/units' },
       { title: 'Tax Types', icon: 'ti-receipt-tax', iconType: 'tabler', path: '/tax-types' },
       { title: 'Warranties', icon: 'ti-certificate', iconType: 'tabler', path: '/warranty' },
-      // what the company pays for each product: purchase orders start from it
-      { title: 'Purchase Prices', icon: 'ti-receipt-2', iconType: 'tabler', path: '/purchase-prices' },
+      // sale price of each product; profit = sale price - purchase price (from its latest received purchase)
+      { title: 'Sale Prices', icon: 'ti-receipt-2', iconType: 'tabler', path: '/sale-prices' },
     ],
   },
   {

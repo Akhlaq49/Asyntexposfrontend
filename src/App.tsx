@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import DashboardRedirect from './components/SECU/DashboardRedirect'
 
@@ -19,7 +19,7 @@ const CategoryList = lazy(() => import('./pages/INVT/CategoryList'))
 const BrandList = lazy(() => import('./pages/INVT/BrandList'))
 const Units = lazy(() => import('./pages/INVT/Units'))
 const TaxTypes = lazy(() => import('./pages/FINC/TaxTypes'))
-const PurchasePrices = lazy(() => import('./pages/INVT/PurchasePrices'))
+const SalePrices = lazy(() => import('./pages/INVT/SalePrices'))
 const Warranty = lazy(() => import('./pages/INVT/Warranty'))
 
 
@@ -154,7 +154,8 @@ function App() {
           <Route path="/brand-list" element={<BrandList />} />
           <Route path="/units" element={<Units />} />
           <Route path="/tax-types" element={<TaxTypes />} />
-          <Route path="/purchase-prices" element={<PurchasePrices />} />
+          <Route path="/sale-prices" element={<SalePrices />} />
+          <Route path="/purchase-prices" element={<Navigate to="/sale-prices" replace />} />
           <Route path="/warranty" element={<Warranty />} />
 
           {/* Stock */}
